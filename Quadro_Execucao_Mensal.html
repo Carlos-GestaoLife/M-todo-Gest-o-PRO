@@ -1329,7 +1329,19 @@ function gerarPDFBase64() {
   doc.text('MÉTODO GESTÃO LIFE · GESTÃO PRO', PAGE_W - 14, PAGE_H - 7, { align: 'right' });
 
   // retorna base64 puro (sem prefixo data:...)
-  return doc.output('datauristring').split('base64,')[1] || doc.output('datauristring').split(',')[1];
+  // tenta doc.output('base64') primeiro (mais limpo); se falhar, extrai do datauristring
+  let base64 = '';
+  try {
+    base64 = doc.output('datauristring');
+    if (base64.indexOf('base64,') > -1) {
+      base64 = base64.split('base64,')[1];
+    } else if (base64.indexOf(',') > -1) {
+      base64 = base64.split(',')[1];
+    }
+  } catch (e) {
+    console.error('[PDF] erro ao exportar base64:', e);
+  }
+  return base64;
 }
 
 // formata valor conforme tipo (pra usar no PDF)
