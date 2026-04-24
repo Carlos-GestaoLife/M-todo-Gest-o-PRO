@@ -497,6 +497,7 @@
       </div>
 
       <div style="display:flex; justify-content:space-between; margin-top:8px; gap:8px; flex-wrap:wrap">
+        <button class="btn-ghost" id="btnEditarPlanejamento" style="display:none">Editar planejamento desta unidade</button>
         <button class="btn-ghost" id="btnEditarMetas" style="display:none">Editar metas desta unidade</button>
         <button class="btn-ghost" id="btnLimparCliente" style="display:none">Remover esta unidade</button>
       </div>
@@ -522,14 +523,26 @@
     </div>
   </div>
 
+  <!-- PHASE INTRO (planejamento) -->
+  <div class="screen" id="phasePlanejamentoIntro">
+    <div class="phase-intro">
+      <div class="big-num" id="fasePlanNum">01</div>
+      <div class="kicker" id="fasePlanKicker">Fase 1 · Primeiro acesso</div>
+      <h2 class="caps-title">Planejamento Estratégico</h2>
+      <p style="color:var(--text-dim); margin-bottom:16px">Você vai escrever o planejamento estratégico desta unidade UMA VEZ. Ele fica salvo e nos próximos meses você não responde mais essa parte.</p>
+      <p style="color:var(--warning); font-size:13px; margin-bottom:24px">Se quiser atualizar o planejamento depois, tem botão "Editar planejamento" na tela inicial.</p>
+      <button class="btn" id="btnIniciarPlanejamento">Definir planejamento</button>
+    </div>
+  </div>
+
   <!-- PHASE INTRO (metas) -->
   <div class="screen" id="phaseMetaIntro">
     <div class="phase-intro">
-      <div class="big-num">01</div>
-      <div class="kicker">Fase 1 · Primeiro acesso</div>
+      <div class="big-num" id="faseMetaNum">02</div>
+      <div class="kicker" id="faseMetaKicker">Fase 2 · Primeiro acesso</div>
       <h2 class="caps-title">Definir as Metas</h2>
-      <p style="color:var(--text-dim); margin-bottom:16px">Você vai definir as metas do seu quadro UMA VEZ. Essas metas ficam salvas e, nos próximos meses, você só preenche os valores atuais.</p>
-      <p style="color:var(--warning); font-size:13px; margin-bottom:24px">Se quiser mudar as metas depois, dá pra editar na tela inicial.</p>
+      <p style="color:var(--text-dim); margin-bottom:16px">Agora você define as metas dos 9 indicadores do quadro. Também é UMA VEZ só, depois elas ficam salvas.</p>
+      <p style="color:var(--warning); font-size:13px; margin-bottom:24px">Se quiser mudar as metas depois, tem botão "Editar metas" na tela inicial.</p>
       <button class="btn" id="btnIniciarMetas">Definir metas</button>
     </div>
   </div>
@@ -701,12 +714,13 @@ function buscarUnidade(cnpj) {
 // salva ou atualiza uma unidade
 function salvarUnidade(cnpj, dados) {
   const unidades = lerUnidades();
-  const existente = unidades[cnpj] || { metas: {}, historico: [] };
+  const existente = unidades[cnpj] || { metas: {}, historico: [], planejamento: '' };
   unidades[cnpj] = {
     empresa: dados.empresa !== undefined ? dados.empresa : existente.empresa,
     responsavel: dados.responsavel !== undefined ? dados.responsavel : existente.responsavel,
     metas: dados.metas !== undefined ? dados.metas : existente.metas,
-    historico: dados.historico !== undefined ? dados.historico : existente.historico
+    historico: dados.historico !== undefined ? dados.historico : existente.historico,
+    planejamento: dados.planejamento !== undefined ? dados.planejamento : (existente.planejamento || '')
   };
   writeStore(KEY_UNIDADES, unidades);
   writeStore(KEY_ULTIMO_CNPJ, cnpj);
@@ -776,8 +790,14 @@ function showScreen(id) {
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
+function totalDaFase() {
+  if (state.fase === 'planejamento') return 1;
+  if (state.fase === 'metas')        return INDICADORES.length;
+  return INDICADORES.length; // atuais
+}
+
 function updateProgress() {
-  const total = state.fase === 'metas' ? INDICADORES.length : INDICADORES.length + 1;
+  const total = totalDaFase();
   const real = state.indiceAtual / total;
   const fake = 5 + 95 * Math.pow(real, 0.3);
   document.getElementById('progressBar').style.width = Math.min(100, fake) + '%';
@@ -820,17 +840,15 @@ function avaliar(indicador, meta, atual) {
 // RENDERIZAR PERGUNTA
 // ==================================================
 function renderQuestion() {
-  // planejamento estratégico é a última pergunta da fase "atuais"
-  const ehPlanejamento = state.fase === 'atuais' && state.indiceAtual === INDICADORES.length;
-
-  if (state.indiceAtual >= (state.fase === 'metas' ? INDICADORES.length : INDICADORES.length + 1)) {
+  if (state.indiceAtual >= totalDaFase()) {
     finalizarFase();
     return;
   }
 
   updateProgress();
 
-  if (ehPlanejamento) {
+  // fase PLANEJAMENTO: pergunta única
+  if (state.fase === 'planejamento') {
     renderPlanejamento();
     return;
   }
@@ -905,13 +923,26 @@ function renderPlanejamento() {
     <span class="sep">›</span>
     <span class="pill">Estratégico</span>
   `;
-  document.getElementById('metaReminder').innerHTML = '';
-  document.getElementById('metaReminder').className = '';
-  document.getElementById('questionTitle').innerHTML = 'Planejamento Estratégico do próximo mês<span class="required-tag">Obrigatória</span>';
-  document.getElementById('questionHint').textContent = 'Escreve o que vai ser o foco, as ações principais, responsáveis e prazos pro próximo mês.';
+
+  // se tem planejamento salvo (de acesso anterior), mostra lembrete verde
+  // senão, mostra aviso amarelo (como nas metas)
+  const reminder = document.getElementById('metaReminder');
+  const u = buscarUnidade(state.cnpj);
+  const temPlanSalvo = u && u.planejamento && u.planejamento.trim().length > 0;
+  if (temPlanSalvo) {
+    reminder.className = 'meta-saved';
+    reminder.innerHTML = 'Seu planejamento anterior está SALVO abaixo. Atualize se precisar, ou deixa como está.';
+  } else {
+    reminder.className = 'meta-note';
+    reminder.innerHTML = 'Esse planejamento vai ficar SALVO. Nos próximos meses, já vem preenchido pra você só atualizar.';
+  }
+
+  document.getElementById('questionTitle').innerHTML = 'Planejamento Estratégico<span class="required-tag">Obrigatória</span>';
+  document.getElementById('questionHint').textContent = 'Escreve o foco, ações principais, responsáveis e prazos. Pode ser um planejamento de 3, 6 ou 12 meses.';
   document.getElementById('questionHint').style.display = 'block';
+
   const area = document.getElementById('inputArea');
-  area.innerHTML = `<textarea id="inp" maxlength="5000" placeholder="Ex: Foco em aumentar ticket médio do delivery via combos. Ação: criar 3 combos e divulgar no Instagram nas 2 primeiras semanas. Responsável: Carla. Prazo: dia 15.">${escapeHTML(state.planejamento || '')}</textarea>`;
+  area.innerHTML = `<textarea id="inp" maxlength="5000" placeholder="Ex: Foco em aumentar ticket médio do delivery via combos. Ação: criar 3 combos e divulgar no Instagram. Responsável: Carla. Prazo: dia 15.">${escapeHTML(state.planejamento || '')}</textarea>`;
   const inp = document.getElementById('inp');
   inp.addEventListener('input', () => {
     state.planejamento = inp.value;
@@ -924,9 +955,8 @@ function renderPlanejamento() {
 }
 
 function validarProxima() {
-  const ehPlanejamento = state.fase === 'atuais' && state.indiceAtual === INDICADORES.length;
   let val;
-  if (ehPlanejamento) {
+  if (state.fase === 'planejamento') {
     val = state.planejamento;
   } else {
     const ind = INDICADORES[state.indiceAtual];
@@ -944,8 +974,38 @@ function escapeHTML(s) {
 // FINALIZAR FASE
 // ==================================================
 function finalizarFase() {
-  if (state.fase === 'metas') {
-    // salva metas na unidade (indexado por CNPJ) e vai pra fase atuais
+  // se estamos só editando (planejamento ou metas), salva e volta pro welcome
+  if (state.modoEdicao) {
+    salvarUnidade(state.cnpj, {
+      empresa: state.empresa,
+      responsavel: state.responsavel,
+      metas: state.metas,
+      planejamento: state.planejamento
+    });
+    clearStore(KEY_RASCUNHO);
+    alert('Atualizado com sucesso!');
+    location.reload();
+    return;
+  }
+
+  if (state.fase === 'planejamento') {
+    // salva planejamento e vai pras metas
+    if (state.cnpj) {
+      salvarUnidade(state.cnpj, {
+        empresa: state.empresa,
+        responsavel: state.responsavel,
+        planejamento: state.planejamento
+      });
+    }
+    state.fase = 'metas';
+    state.indiceAtual = 0;
+    salvarRascunho();
+    showScreen('phaseMetaIntro');
+    document.getElementById('faseMetaNum').textContent = '02';
+    document.getElementById('faseMetaKicker').textContent = 'Fase 2 · Primeiro acesso';
+
+  } else if (state.fase === 'metas') {
+    // salva metas e vai pros atuais
     if (state.cnpj) {
       salvarUnidade(state.cnpj, {
         empresa: state.empresa,
@@ -957,9 +1017,11 @@ function finalizarFase() {
     state.indiceAtual = 0;
     salvarRascunho();
     showScreen('phaseAtuaisIntro');
-    document.getElementById('faseAtuaisNum').textContent = '02';
-    document.getElementById('faseAtuaisKicker').textContent = 'Fase 2 · Indicadores do mês';
+    document.getElementById('faseAtuaisNum').textContent = '03';
+    document.getElementById('faseAtuaisKicker').textContent = 'Fase 3 · Indicadores do mês';
+
   } else {
+    // fase atuais terminou: resumo
     showSummary();
   }
 }
@@ -1021,8 +1083,9 @@ async function enviar() {
   let pdfBase64 = '';
   try {
     pdfBase64 = gerarPDFBase64();
+    console.log('[PDF] base64 gerado, tamanho:', pdfBase64 ? pdfBase64.length : 0, 'chars');
   } catch (e) {
-    console.warn('erro ao gerar PDF:', e);
+    console.error('[PDF] erro ao gerar:', e);
   }
 
   const pdfNome = `Quadro_${(state.empresa || 'quadro').replace(/\s+/g, '_')}_${state.mesRef}_${state.anoRef}.pdf`;
@@ -1050,11 +1113,12 @@ async function enviar() {
       headers: { 'Content-Type': 'text/plain;charset=utf-8' },
       body: JSON.stringify(payload)
     });
-    // salva/atualiza unidade com empresa, responsável, metas e histórico
+    // salva/atualiza unidade com empresa, responsável, metas, planejamento
     salvarUnidade(state.cnpj, {
       empresa: state.empresa,
       responsavel: state.responsavel,
-      metas: state.metas
+      metas: state.metas,
+      planejamento: state.planejamento
     });
     adicionarHistorico(state.cnpj, state.mesRef, state.anoRef);
     clearStore(KEY_RASCUNHO);
@@ -1264,8 +1328,8 @@ function gerarPDFBase64() {
   doc.text(`CNPJ ${state.cnpj}  ·  ${state.responsavel}`, PAGE_W / 2, PAGE_H - 7, { align: 'center' });
   doc.text('MÉTODO GESTÃO LIFE · GESTÃO PRO', PAGE_W - 14, PAGE_H - 7, { align: 'right' });
 
-  // retorna base64 (sem baixar)
-  return doc.output('datauristring').split(',')[1];
+  // retorna base64 puro (sem prefixo data:...)
+  return doc.output('datauristring').split('base64,')[1] || doc.output('datauristring').split(',')[1];
 }
 
 // formata valor conforme tipo (pra usar no PDF)
@@ -1335,18 +1399,29 @@ document.addEventListener('DOMContentLoaded', () => {
       returningChip.style.display = 'inline-flex';
       returningChip.textContent = `✓ Unidade reconhecida: ${u.empresa || cnpj}`;
       btnLimpar.style.display = 'inline-block';
-      btnEditarMetas.style.display = 'inline-block';
+
       const temMetasU = u.metas && Object.keys(u.metas).length > 0;
+      const temPlanU  = u.planejamento && u.planejamento.trim().length > 0;
+
+      // botões de editar só aparecem se tem o que editar
+      document.getElementById('btnEditarMetas').style.display = temMetasU ? 'inline-block' : 'none';
+      document.getElementById('btnEditarPlanejamento').style.display = temPlanU ? 'inline-block' : 'none';
+
       const ultimo = (u.historico || []).length > 0 ? u.historico[u.historico.length - 1] : null;
       const ultimoTxt = ultimo ? `Último quadro enviado: <strong>${ultimo}</strong>. ` : '';
-      if (temMetasU) {
-        welcomeSub.innerHTML = `${ultimoTxt}Metas desta unidade estão salvas. Preenche o mês <strong>${sugestao.mes}/${sugestao.ano}</strong> (ou troca abaixo).`;
-        hiwItem1.textContent = 'As metas desta unidade já estão salvas';
+
+      if (temPlanU && temMetasU) {
+        welcomeSub.innerHTML = `${ultimoTxt}Planejamento e metas desta unidade estão salvos. Preenche o mês <strong>${sugestao.mes}/${sugestao.ano}</strong> (ou troca abaixo).`;
+        hiwItem1.textContent = 'Planejamento e metas já estão salvos';
         hiwItem2.textContent = 'Esse mês você só preenche os valores atuais';
-      } else {
-        welcomeSub.innerHTML = `Unidade cadastrada mas ainda sem metas. Vamos definir as metas.`;
+      } else if (temPlanU && !temMetasU) {
+        welcomeSub.innerHTML = `Planejamento já salvo. Agora vamos definir as metas.`;
         hiwItem1.textContent = 'Você vai definir as metas desta unidade (uma vez)';
         hiwItem2.textContent = 'Nos próximos meses só preenche os valores atuais';
+      } else {
+        welcomeSub.innerHTML = `Unidade cadastrada. Vamos começar pelo planejamento estratégico, depois as metas.`;
+        hiwItem1.textContent = 'Planejamento + metas são UMA VEZ só (depois não pergunta mais)';
+        hiwItem2.textContent = 'Nos próximos meses só os valores atuais';
       }
       welcomeSub.style.display = 'block';
     } else {
@@ -1355,8 +1430,9 @@ document.addEventListener('DOMContentLoaded', () => {
       respInp.value = '';
       returningChip.style.display = 'none';
       btnLimpar.style.display = 'none';
-      btnEditarMetas.style.display = 'none';
-      welcomeSub.innerHTML = `Unidade nova. Preenche nome da empresa e responsável, depois você vai definir as metas (só nesta primeira vez).`;
+      document.getElementById('btnEditarMetas').style.display = 'none';
+      document.getElementById('btnEditarPlanejamento').style.display = 'none';
+      welcomeSub.innerHTML = `Unidade nova. Preenche empresa e responsável, depois você vai definir o planejamento e as metas (só nesta primeira vez).`;
       welcomeSub.style.display = 'block';
     }
     validarWelcome();
@@ -1416,8 +1492,14 @@ document.addEventListener('DOMContentLoaded', () => {
   btnEditarMetas.addEventListener('click', () => {
     const u = buscarUnidade(cnpjInp.value);
     if (!u) return;
-    state.metas = { ...(u.metas || {}) };
-    iniciarFormulario(true);
+    iniciarFormulario('editarMetas');
+  });
+
+  const btnEditarPlanejamento = document.getElementById('btnEditarPlanejamento');
+  btnEditarPlanejamento.addEventListener('click', () => {
+    const u = buscarUnidade(cnpjInp.value);
+    if (!u) return;
+    iniciarFormulario('editarPlanejamento');
   });
 
   function validarWelcome() {
@@ -1435,14 +1517,16 @@ document.addEventListener('DOMContentLoaded', () => {
   });
   validarWelcome();
 
-  function iniciarFormulario(forceMetas = false) {
+  // modoInicial: 'normal' | 'editarMetas' | 'editarPlanejamento'
+  function iniciarFormulario(modoInicial) {
     state.responsavel = respInp.value.trim();
     state.empresa = empInp.value.trim();
     state.cnpj = cnpjInp.value.trim();
     state.mesRef = mesSel.value;
     state.anoRef = anoSel.value;
+    state.modoEdicao = false;
 
-    // salva no storage da unidade (sem metas ainda, serão adicionadas no envio)
+    // salva no storage da unidade (sem metas/plan ainda, serão adicionadas depois)
     salvarUnidade(state.cnpj, {
       empresa: state.empresa,
       responsavel: state.responsavel
@@ -1450,27 +1534,61 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const u = buscarUnidade(state.cnpj);
     const temMetasU = u && u.metas && Object.keys(u.metas).length > 0;
+    const temPlanU  = u && u.planejamento && u.planejamento.trim().length > 0;
 
-    if (forceMetas) {
-      state.fase = 'metas';
+    // MODO EDIÇÃO DE PLANEJAMENTO
+    if (modoInicial === 'editarPlanejamento') {
+      state.modoEdicao = true;
+      state.planejamento = (u && u.planejamento) || '';
+      state.metas = (u && u.metas) || {};
+      state.atuais = {};
+      state.fase = 'planejamento';
       state.indiceAtual = 0;
       salvarRascunho();
-      showScreen('phaseMetaIntro');
+      showScreen('phasePlanejamentoIntro');
+      document.getElementById('fasePlanNum').textContent = '•';
+      document.getElementById('fasePlanKicker').textContent = 'Editar · Planejamento';
       return;
     }
 
-    if (!temMetasU) {
-      state.metas = {};
+    // MODO EDIÇÃO DE METAS
+    if (modoInicial === 'editarMetas') {
+      state.modoEdicao = true;
+      state.planejamento = (u && u.planejamento) || '';
+      state.metas = (u && u.metas) ? { ...u.metas } : {};
       state.atuais = {};
-      state.planejamento = '';
       state.fase = 'metas';
       state.indiceAtual = 0;
       salvarRascunho();
       showScreen('phaseMetaIntro');
+      document.getElementById('faseMetaNum').textContent = '•';
+      document.getElementById('faseMetaKicker').textContent = 'Editar · Metas';
+      return;
+    }
+
+    // FLUXO NORMAL
+    state.planejamento = (u && u.planejamento) || '';
+    state.metas = (u && u.metas) ? { ...u.metas } : {};
+    state.atuais = {};
+
+    if (!temPlanU) {
+      // primeiro acesso: começa do planejamento
+      state.fase = 'planejamento';
+      state.indiceAtual = 0;
+      salvarRascunho();
+      showScreen('phasePlanejamentoIntro');
+      document.getElementById('fasePlanNum').textContent = '01';
+      document.getElementById('fasePlanKicker').textContent = 'Fase 1 · Primeiro acesso';
+    } else if (!temMetasU) {
+      // tem planejamento mas não tem metas
+      state.fase = 'metas';
+      state.indiceAtual = 0;
+      salvarRascunho();
+      showScreen('phaseMetaIntro');
+      document.getElementById('faseMetaNum').textContent = '01';
+      document.getElementById('faseMetaKicker').textContent = 'Definir as metas';
     } else {
-      state.metas = { ...u.metas };
-      state.atuais = {};
-      state.planejamento = '';
+      // já tem tudo, vai direto pros valores atuais
       state.fase = 'atuais';
       state.indiceAtual = 0;
       salvarRascunho();
@@ -1482,11 +1600,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
   btnComecar.addEventListener('click', () => {
     if (btnComecar.disabled) return;
-    iniciarFormulario(false);
+    iniciarFormulario('normal');
   });
 
   // PDF é gerado automaticamente no envio e vai por e-mail pra equipe
 
+  document.getElementById('btnIniciarPlanejamento').addEventListener('click', () => {
+    showScreen('questionScreen');
+    renderQuestion();
+  });
   document.getElementById('btnIniciarMetas').addEventListener('click', () => {
     showScreen('questionScreen');
     renderQuestion();
