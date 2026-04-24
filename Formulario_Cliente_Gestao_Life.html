@@ -230,6 +230,8 @@
     <div class="client-info">
       <div><label>Responsável <span class="req">*</span></label><input type="text" id="c-dono" placeholder="Seu nome"></div>
     </div>
+    <!-- Campo invisível anti-bot. NÃO REMOVER. -->
+    <input type="text" name="website" id="website" style="position:absolute;left:-9999px;opacity:0;pointer-events:none" tabindex="-1" autocomplete="off" aria-hidden="true">
     <div class="instructions">
       <strong>Como funciona:</strong>
       <p>Você vai responder uma pergunta por vez. Todas são obrigatórias. Após a primeira etapa, sua fase fica salva como pendente e você continua pra fase final.</p>
@@ -607,7 +609,12 @@ async function enviarFase1() {
   const gerais = PERGUNTAS_GERAIS.map((p, i) => ({ pergunta: p, resposta: respGerais[i] }));
   const respostasFlat = {};
   PERGUNTAS_GERAIS.forEach((p, idx) => { respostasFlat[`G${String(idx+1).padStart(2,'0')} ${p.slice(0,70)}`] = respGerais[idx]; });
-  const payload = { fase:'gerais', registroId, timestamp:new Date().toISOString(), empresa, responsavel, data:dataISO, respostas:respostasFlat, gerais };
+  const payload = {
+    fase:'gerais', registroId, timestamp:new Date().toISOString(),
+    empresa, responsavel, data:dataISO, respostas:respostasFlat, gerais,
+    token: "DxclbdFY8lbweT6J02kQ3kHX2vcoFpAG",
+    website: (document.getElementById('website')||{}).value || ''
+  };
   try {
     await fetch(WEBHOOK_URL, { method:'POST', mode:'no-cors', headers:{'Content-Type':'text/plain;charset=utf-8'}, body: JSON.stringify(payload) });
     setTimeout(() => mostrarView('view-pending'), 900);
@@ -640,7 +647,9 @@ async function enviarFase2() {
       respostas: respostasFlat,
       scoresNiveis: scores.map(s => ({num:s.num,nome:s.nome,pct:s.pct,status:s.status,soma:s.soma,total:s.total})),
       gerais, nivelAtual, headline, subtitulo, pdfBase64,
-      pdfNome: `diagnostico_${empresa.replace(/[^a-z0-9]/gi,'_').slice(0,40)}_${dataISO.replace(/-/g,'')}.pdf`
+      pdfNome: `diagnostico_${empresa.replace(/[^a-z0-9]/gi,'_').slice(0,40)}_${dataISO.replace(/-/g,'')}.pdf`,
+      token: "DxclbdFY8lbweT6J02kQ3kHX2vcoFpAG",
+      website: (document.getElementById('website')||{}).value || ''
     };
     await fetch(WEBHOOK_URL, { method:'POST', mode:'no-cors', headers:{'Content-Type':'text/plain;charset=utf-8'}, body: JSON.stringify(payload) });
     $('top-fill').style.width = '100%'; $('top-bar').style.display = 'none';
