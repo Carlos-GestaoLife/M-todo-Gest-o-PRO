@@ -963,8 +963,14 @@ function escapeHTML(s) {
 // ==================================================
 function finalizarFase() {
   if (state.fase === 'metas') {
-    // salva metas e vai pra fase atuais
-    salvarMetas();
+    // salva metas na unidade (indexado por CNPJ) e vai pra fase atuais
+    if (state.cnpj) {
+      salvarUnidade(state.cnpj, {
+        empresa: state.empresa,
+        responsavel: state.responsavel,
+        metas: state.metas
+      });
+    }
     state.fase = 'atuais';
     state.indiceAtual = 0;
     salvarRascunho();
