@@ -565,7 +565,6 @@
     <h2 class="caps-title">Revise seu Quadro</h2>
     <p style="color:var(--text-dim); margin-bottom:20px">Confere se está tudo certo. Depois do envio, vai pra equipe.</p>
     <div class="summary-list" id="summaryList"></div>
-    <button class="btn btn-secondary" id="btnBaixarPDFSummary" style="margin-bottom:12px">Baixar prévia em PDF</button>
     <div class="btn-row">
       <button class="btn btn-secondary" id="btnRevisar">Revisar</button>
       <button class="btn" id="btnEnviar">Confirmar e enviar</button>
@@ -584,24 +583,7 @@
       <div class="check-icon green">✓</div>
       <div class="kicker">Envio confirmado</div>
       <h2 class="caps-title">Quadro atualizado!</h2>
-      <p style="color:var(--text-dim); margin-bottom:24px">O quadro do mês foi enviado pra equipe. Agora é executar.</p>
-    </div>
-
-    <button class="btn" id="btnBaixarPDF" style="margin-bottom:24px">Baixar Quadro em PDF</button>
-
-    <div class="step-card">
-      <div class="num">1</div>
-      <div class="txt">
-        <h4>Análise da equipe</h4>
-        <p>A equipe Gestão Life vai revisar o quadro e preparar os pontos de mentoria.</p>
-      </div>
-    </div>
-    <div class="step-card">
-      <div class="num">2</div>
-      <div class="txt">
-        <h4>Reunião de acompanhamento</h4>
-        <p>Na próxima reunião rodamos o plano com base nesse quadro.</p>
-      </div>
+      <p style="color:var(--text-dim); margin-bottom:24px">O quadro do mês foi enviado pra equipe Gestão Life. Agora é executar.</p>
     </div>
   </div>
 
@@ -1035,6 +1017,16 @@ function showSummary() {
 // ==================================================
 async function enviar() {
   showScreen('sendingScreen');
+  // gera PDF em base64 pra anexar no email (cliente não vê, não baixa)
+  let pdfBase64 = '';
+  try {
+    pdfBase64 = gerarPDFBase64();
+  } catch (e) {
+    console.warn('erro ao gerar PDF:', e);
+  }
+
+  const pdfNome = `Quadro_${(state.empresa || 'quadro').replace(/\s+/g, '_')}_${state.mesRef}_${state.anoRef}.pdf`;
+
   const payload = {
     token: TOKEN,
     website: document.getElementById('website').value,
@@ -1047,7 +1039,9 @@ async function enviar() {
     data_envio: new Date().toISOString(),
     metas: state.metas,
     atuais: state.atuais,
-    planejamento: state.planejamento
+    planejamento: state.planejamento,
+    pdfBase64: pdfBase64,
+    pdfNome: pdfNome
   };
   try {
     await fetch(ENDPOINT, {
@@ -1072,200 +1066,218 @@ async function enviar() {
 }
 
 // ==================================================
-// GERAR PDF DO QUADRO (visual igual a imagem original)
+// GERAR PDF DO QUADRO · fundo branco, limpo, profissional
+// Retorna base64 pra ser anexado no e-mail (cliente NÃO baixa)
 // ==================================================
-function gerarPDF() {
+function gerarPDFBase64() {
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
 
   const PAGE_W = 297, PAGE_H = 210;
 
-  // cores
-  const navy = [11, 18, 48];
-  const navyLight = [22, 32, 79];
-  const accent = [77, 201, 255];
-  const yellow = [251, 191, 36];
-  const white = [255, 255, 255];
-  const dim = [168, 178, 216];
-  const border = [46, 58, 105];
+  // paleta clara
+  const navy      = [11, 18, 48];     // texto principal
+  const navyDeep  = [26, 35, 87];     // títulos
+  const accent    = [77, 201, 255];   // ciano
+  const accentDark = [30, 64, 175];   // azul do texto "PRO"
+  const yellow    = [251, 191, 36];
+  const yellowSoft = [254, 243, 199]; // fundo amarelo claro da meta
+  const bgCard    = [248, 250, 252];  // cinza quase branco dos cards
+  const bgPlan    = [241, 245, 249];  // cinza claro do planejamento
+  const border    = [226, 232, 240];  // borda cinza
+  const dim       = [100, 116, 139];  // cinza médio (labels)
+  const darkText  = [15, 23, 42];     // texto bem escuro
 
-  // fundo preto/navy
-  doc.setFillColor(...navy);
+  // fundo BRANCO
+  doc.setFillColor(255, 255, 255);
   doc.rect(0, 0, PAGE_W, PAGE_H, 'F');
 
-  // borda externa com cantos arredondados
-  doc.setDrawColor(...border);
-  doc.setLineWidth(0.4);
-  doc.roundedRect(6, 6, PAGE_W - 12, PAGE_H - 12, 3, 3, 'S');
+  // ========= HEADER =========
+  // faixa superior sutil
+  doc.setFillColor(...accent);
+  doc.rect(0, 0, PAGE_W, 1.5, 'F');
 
-  // tag com nome da empresa (topo centro)
-  const empresaTxt = state.empresa || '';
+  // logo GESTÃO LIFE (esquerda, estilizada)
   doc.setFont('helvetica', 'normal');
-  doc.setFontSize(10);
-  doc.setTextColor(...dim);
-  const empW = doc.getTextWidth(empresaTxt) + 10;
-  doc.setFillColor(...navyLight);
-  doc.roundedRect(PAGE_W / 2 - empW / 2, 3, empW, 7, 3, 3, 'F');
-  doc.text(empresaTxt, PAGE_W / 2, 8, { align: 'center' });
-
-  // título QUADRO DE EXECUÇÃO (esquerda)
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(18);
-  doc.setTextColor(...white);
-  doc.text('QUADRO', 14, 22);
+  doc.setFontSize(20);
+  doc.setTextColor(...navyDeep);
+  doc.text('GESTÃO', 14, 18);
   doc.setFont('helvetica', 'bold');
-  doc.setFontSize(26);
-  doc.setTextColor(11, 40, 90);
-  doc.text('EXECUÇÃO', 14, 32);
-  doc.setTextColor(...white);
-  doc.setFontSize(18);
-  doc.setFont('helvetica', 'normal');
-  doc.text('DE', 46, 22);
+  doc.setFontSize(28);
+  doc.setTextColor(...accent);
+  doc.text('LIFE', 52, 18);
 
-  // logo GESTÃO PRO (direita)
-  doc.setFont('helvetica', 'normal');
+  // kicker centro
+  doc.setFont('helvetica', 'bold');
   doc.setFontSize(9);
   doc.setTextColor(...dim);
-  doc.text('METODOLOGIA', PAGE_W - 14, 16, { align: 'right' });
-  doc.text('GUIADA DE EXECUÇÃO', PAGE_W - 14, 20, { align: 'right' });
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(14);
-  doc.setTextColor(...white);
-  doc.text('GESTÃO', PAGE_W - 35, 28, { align: 'right' });
-  doc.setFontSize(30);
-  doc.setTextColor(11, 40, 90);
-  doc.text('PRO', PAGE_W - 14, 32, { align: 'right' });
+  doc.text('QUADRO DE EXECUÇÃO', PAGE_W / 2, 13, { align: 'center' });
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(11);
+  doc.setTextColor(...navyDeep);
+  const empresaRef = `${state.empresa}  ·  ${state.mesRef}/${state.anoRef}`;
+  doc.text(empresaRef, PAGE_W / 2, 19, { align: 'center' });
 
-  // função pra desenhar card meta/atual
+  // logo GESTÃO PRO (direita, estilizada)
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(7);
+  doc.setTextColor(...dim);
+  doc.text('METODOLOGIA GUIADA DE EXECUÇÃO', PAGE_W - 14, 12, { align: 'right' });
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(11);
+  doc.setTextColor(...navyDeep);
+  doc.text('GESTÃO', PAGE_W - 31, 20, { align: 'right' });
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(18);
+  doc.setTextColor(...accentDark);
+  doc.text('PRO', PAGE_W - 14, 20, { align: 'right' });
+
+  // linha divisória
+  doc.setDrawColor(...border);
+  doc.setLineWidth(0.3);
+  doc.line(14, 26, PAGE_W - 14, 26);
+
+  // ========= FUNÇÕES DE DESENHO =========
   function drawCard(x, y, w, h, titulo, meta, atual) {
     // fundo do card
-    doc.setFillColor(...navyLight);
-    doc.roundedRect(x, y, w, h, 2.5, 2.5, 'F');
+    doc.setFillColor(...bgCard);
+    doc.roundedRect(x, y, w, h, 2, 2, 'F');
     doc.setDrawColor(...border);
+    doc.setLineWidth(0.3);
+    doc.roundedRect(x, y, w, h, 2, 2, 'S');
+
+    // título
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(6.5);
+    doc.setTextColor(...dim);
+    doc.text(titulo, x + w / 2, y + 4.5, { align: 'center' });
+
+    // caixa META (amarela clara)
+    doc.setFillColor(...yellowSoft);
+    doc.setDrawColor(...yellow);
     doc.setLineWidth(0.2);
-    doc.roundedRect(x, y, w, h, 2.5, 2.5, 'S');
-
-    // faixa do título (azul ciano)
-    doc.setFillColor(...accent);
-    doc.roundedRect(x + 2, y + 2, w - 4, 6, 1.5, 1.5, 'F');
+    doc.roundedRect(x + 2.5, y + 6.5, w - 5, 5.5, 0.8, 0.8, 'FD');
     doc.setFont('helvetica', 'bold');
-    doc.setFontSize(7);
-    doc.setTextColor(...navy);
-    doc.text(titulo, x + w / 2, y + 6.2, { align: 'center' });
-
-    // faixa META (amarela)
-    doc.setFillColor(...yellow);
-    doc.roundedRect(x + 3, y + 11, w - 6, 6, 1, 1, 'F');
+    doc.setFontSize(6);
+    doc.setTextColor(180, 83, 9);
+    doc.text('META', x + 4.5, y + 10);
     doc.setFont('helvetica', 'bold');
-    doc.setFontSize(7);
-    doc.setTextColor(60, 40, 0);
-    doc.text('META: ', x + 5, y + 15);
-    doc.setFont('helvetica', 'normal');
-    doc.text(meta, x + 14, y + 15);
+    doc.setFontSize(7.5);
+    doc.setTextColor(...darkText);
+    doc.text(meta, x + w - 3, y + 10, { align: 'right' });
 
     // label ATUAL
     doc.setFont('helvetica', 'normal');
-    doc.setFontSize(6);
+    doc.setFontSize(5.5);
     doc.setTextColor(...dim);
-    doc.text('ATUAL:', x + w / 2, y + 22, { align: 'center' });
+    doc.text('ATUAL', x + w / 2, y + 17, { align: 'center' });
 
-    // valor ATUAL grande
+    // valor ATUAL destaque
     doc.setFont('helvetica', 'bold');
-    doc.setFontSize(12);
-    doc.setTextColor(...white);
-    doc.text(atual, x + w / 2, y + h - 3, { align: 'center' });
+    doc.setFontSize(13);
+    doc.setTextColor(...navyDeep);
+    doc.text(atual, x + w / 2, y + h - 3.5, { align: 'center' });
   }
 
   function drawSectionLabel(x, y, txt) {
     doc.setFont('helvetica', 'bold');
-    doc.setFontSize(12);
+    doc.setFontSize(9);
     doc.setTextColor(...accent);
     doc.text(txt, x, y);
+    // traço ciano embaixo
+    doc.setDrawColor(...accent);
+    doc.setLineWidth(0.8);
+    const w = doc.getTextWidth(txt);
+    doc.line(x, y + 1.2, x + w, y + 1.2);
   }
 
+  // ========= DIMENSÕES DO GRID =========
+  const marginX = 14;
+  const gridW = PAGE_W - marginX * 2;
+  const cardGap = 3.5;
+  const cardW = (gridW - cardGap * 3) / 4;  // 4 colunas
+  const cardH = 28;
+
   // ========= RECEITA =========
-  drawSectionLabel(14, 44, 'RECEITA');
+  const receitaY = 33;
+  drawSectionLabel(marginX, receitaY, 'RECEITA');
+
   const receitaCards = [
-    { t: 'FATURAMENTO',             m: 'R$ ' + fmtMoney(state.metas.faturamento),     a: 'R$ ' + fmtMoney(state.atuais.faturamento) },
-    { t: 'TICKET MÉDIO - LOJA',     m: 'R$ ' + fmtMoney(state.metas.ticket_loja),     a: 'R$ ' + fmtMoney(state.atuais.ticket_loja) },
-    { t: 'TICKET MÉDIO - DELIVERY', m: 'R$ ' + fmtMoney(state.metas.ticket_delivery), a: 'R$ ' + fmtMoney(state.atuais.ticket_delivery) },
-    { t: '% DE SATISFAÇÃO',         m: (state.metas.satisfacao || '-') + '%',         a: (state.atuais.satisfacao || '-') + '%' }
+    { t: 'FATURAMENTO',             m: fmtMoney(state.metas.faturamento, 'money'),     a: fmtMoney(state.atuais.faturamento, 'money') },
+    { t: 'TICKET MÉDIO · LOJA',     m: fmtMoney(state.metas.ticket_loja, 'money'),     a: fmtMoney(state.atuais.ticket_loja, 'money') },
+    { t: 'TICKET MÉDIO · DELIVERY', m: fmtMoney(state.metas.ticket_delivery, 'money'), a: fmtMoney(state.atuais.ticket_delivery, 'money') },
+    { t: '% DE SATISFAÇÃO',         m: fmtMoney(state.metas.satisfacao, 'percent'),    a: fmtMoney(state.atuais.satisfacao, 'percent') }
   ];
-  const cardW = 65, cardH = 36, gap = 3;
-  let x0 = 14, y0 = 47;
-  receitaCards.forEach((c, i) => drawCard(x0 + i * (cardW + gap), y0, cardW, cardH, c.t, c.m, c.a));
+  receitaCards.forEach((c, i) => drawCard(marginX + i * (cardW + cardGap), receitaY + 3, cardW, cardH, c.t, c.m, c.a));
 
-  // ========= DESPESA =========
-  drawSectionLabel(14, 92, 'DESPESA');
-  drawCard(14,  95, cardW, cardH, '% CMV', (state.metas.cmv || '-') + '%', (state.atuais.cmv || '-') + '%');
-  drawCard(14 + cardW + gap, 95, cardW, cardH, '% CMO', (state.metas.cmo || '-') + '%', (state.atuais.cmo || '-') + '%');
+  // ========= DESPESA + DELIVERY =========
+  const meioY = receitaY + cardH + 12;
+  drawSectionLabel(marginX, meioY, 'DESPESA');
+  drawCard(marginX,                   meioY + 3, cardW, cardH, '% CMV', fmtMoney(state.metas.cmv, 'percent'), fmtMoney(state.atuais.cmv, 'percent'));
+  drawCard(marginX + cardW + cardGap, meioY + 3, cardW, cardH, '% CMO', fmtMoney(state.metas.cmo, 'percent'), fmtMoney(state.atuais.cmo, 'percent'));
 
-  // ========= DELIVERY =========
-  drawSectionLabel(14 + 2 * (cardW + gap), 92, 'DELIVERY');
-  drawCard(14 + 2 * (cardW + gap), 95, cardW, cardH, 'TEMPO DE ENTREGA', (state.metas.tempo_entrega || '-') + ' MIN', (state.atuais.tempo_entrega || '-') + ' MIN');
-  drawCard(14 + 3 * (cardW + gap), 95, cardW, cardH, 'NOTA MARKETPLACE', state.metas.nota_marketplace || '-', state.atuais.nota_marketplace || '-');
+  drawSectionLabel(marginX + 2 * (cardW + cardGap), meioY, 'DELIVERY');
+  drawCard(marginX + 2 * (cardW + cardGap), meioY + 3, cardW, cardH, 'TEMPO DE ENTREGA', fmtMoney(state.metas.tempo_entrega, 'minutes'), fmtMoney(state.atuais.tempo_entrega, 'minutes'));
+  drawCard(marginX + 3 * (cardW + cardGap), meioY + 3, cardW, cardH, 'NOTA MARKETPLACE', fmtMoney(state.metas.nota_marketplace, 'decimal'), fmtMoney(state.atuais.nota_marketplace, 'decimal'));
 
-  // ========= LUCRO =========
-  drawCard(14, 140, cardW, cardH, '% LUCRO', (state.metas.lucro || '-') + '%', (state.atuais.lucro || '-') + '%');
+  // ========= LUCRO + PLANEJAMENTO =========
+  const baixoY = meioY + cardH + 12;
+  drawSectionLabel(marginX, baixoY, 'RESULTADO');
+  drawCard(marginX, baixoY + 3, cardW, cardH, '% LUCRO', fmtMoney(state.metas.lucro, 'percent'), fmtMoney(state.atuais.lucro, 'percent'));
 
-  // ========= PLANEJAMENTO ESTRATÉGICO =========
-  const planX = 14 + cardW + gap;
-  const planW = PAGE_W - planX - 14;
-  const planY = 140;
-  const planH = 36;
+  // PLANEJAMENTO ESTRATÉGICO (ao lado do card de lucro, ocupa 3 colunas)
+  const planX = marginX + cardW + cardGap;
+  const planW = gridW - cardW - cardGap;
+  const planY = baixoY + 3;
+  const planH = cardH;
 
-  doc.setFillColor(...navyLight);
-  doc.roundedRect(planX, planY, planW, planH, 2.5, 2.5, 'F');
+  doc.setFillColor(...bgPlan);
+  doc.roundedRect(planX, planY, planW, planH, 2, 2, 'F');
+  // faixa lateral ciano
+  doc.setFillColor(...accent);
+  doc.rect(planX, planY, 1.5, planH, 'F');
   doc.setDrawColor(...border);
-  doc.setLineWidth(0.2);
-  doc.roundedRect(planX, planY, planW, planH, 2.5, 2.5, 'S');
+  doc.setLineWidth(0.3);
+  doc.roundedRect(planX, planY, planW, planH, 2, 2, 'S');
 
   doc.setFont('helvetica', 'bold');
-  doc.setFontSize(11);
-  doc.setTextColor(...white);
-  doc.text('PLANEJAMENTO ESTRATÉGICO', planX + 4, planY + 6);
+  doc.setFontSize(8);
+  doc.setTextColor(...navyDeep);
+  doc.text('PLANEJAMENTO ESTRATÉGICO', planX + 4, planY + 5);
 
-  // corpo do planejamento (quebra linha automática)
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(8);
-  doc.setTextColor(...dim);
+  doc.setTextColor(...darkText);
   const planTexto = state.planejamento || '(sem planejamento preenchido)';
   const linhas = doc.splitTextToSize(planTexto, planW - 8);
-  doc.text(linhas.slice(0, 10), planX + 4, planY + 12);
+  doc.text(linhas.slice(0, 8), planX + 4, planY + 9);
 
   // ========= FOOTER =========
-  const mesRefTxt = `${String(state.mesRef).toUpperCase()} ${state.anoRef}`;
+  doc.setDrawColor(...border);
+  doc.setLineWidth(0.3);
+  doc.line(14, PAGE_H - 12, PAGE_W - 14, PAGE_H - 12);
+
   doc.setFont('helvetica', 'normal');
-  doc.setFontSize(8);
+  doc.setFontSize(7);
   doc.setTextColor(...dim);
+  doc.text(`${String(state.mesRef).toUpperCase()} ${state.anoRef}`, 14, PAGE_H - 7);
+  doc.text(`CNPJ ${state.cnpj}  ·  ${state.responsavel}`, PAGE_W / 2, PAGE_H - 7, { align: 'center' });
+  doc.text('MÉTODO GESTÃO LIFE · GESTÃO PRO', PAGE_W - 14, PAGE_H - 7, { align: 'right' });
 
-  // tag mês (esquerda)
-  const mesW = doc.getTextWidth(mesRefTxt) + 8;
-  doc.setFillColor(...navyLight);
-  doc.roundedRect(10, PAGE_H - 11, mesW, 6, 2, 2, 'F');
-  doc.text(mesRefTxt, 10 + mesW / 2, PAGE_H - 7, { align: 'center' });
-
-  // número (centro)
-  doc.setFontSize(9);
-  doc.text('2', PAGE_W / 2, PAGE_H - 7, { align: 'center' });
-
-  // tag (direita)
-  const handle = '@gestãoLife';
-  const hW = doc.getTextWidth(handle) + 8;
-  doc.setFontSize(8);
-  doc.setFillColor(...navyLight);
-  doc.roundedRect(PAGE_W - 10 - hW, PAGE_H - 11, hW, 6, 2, 2, 'F');
-  doc.text(handle, PAGE_W - 10 - hW / 2, PAGE_H - 7, { align: 'center' });
-
-  const nomeArquivo = `Quadro_${state.empresa.replace(/\s+/g, '_')}_${state.mesRef}_${state.anoRef}.pdf`;
-  doc.save(nomeArquivo);
+  // retorna base64 (sem baixar)
+  return doc.output('datauristring').split(',')[1];
 }
 
-function fmtMoney(v) {
-  if (v === undefined || v === null || v === '') return '-';
+// formata valor conforme tipo (pra usar no PDF)
+function fmtMoney(v, tipo) {
+  if (v === undefined || v === null || v === '') return '—';
   const n = Number(v);
   if (isNaN(n)) return String(v);
-  return n.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  if (tipo === 'money')   return 'R$ ' + n.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  if (tipo === 'percent') return String(v).replace('.', ',') + '%';
+  if (tipo === 'minutes') return n + ' MIN';
+  if (tipo === 'decimal') return String(v).replace('.', ',');
+  return String(v);
 }
 
 // ==================================================
@@ -1473,9 +1485,7 @@ document.addEventListener('DOMContentLoaded', () => {
     iniciarFormulario(false);
   });
 
-  // botões de PDF
-  document.getElementById('btnBaixarPDF').addEventListener('click', gerarPDF);
-  document.getElementById('btnBaixarPDFSummary').addEventListener('click', gerarPDF);
+  // PDF é gerado automaticamente no envio e vai por e-mail pra equipe
 
   document.getElementById('btnIniciarMetas').addEventListener('click', () => {
     showScreen('questionScreen');
