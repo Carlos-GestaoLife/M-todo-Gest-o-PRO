@@ -51,6 +51,28 @@
   .client-info input:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
 
   .instructions { background: rgba(77,201,255,.08); border-left: 4px solid var(--accent); border-radius: 8px; padding: 18px 22px; margin-bottom: 24px; }
+
+  /* Banner de retomar diagnóstico */
+  .resume-banner {
+    background: linear-gradient(135deg, rgba(251,191,36,.14), rgba(245,158,11,.08));
+    border: 1px solid rgba(251,191,36,.35);
+    border-radius: 12px; padding: 20px 24px; margin-bottom: 24px;
+    display: flex; gap: 18px; align-items: center; flex-wrap: wrap;
+  }
+  .resume-banner .icon { font-size: 32px; line-height: 1; }
+  .resume-banner .txt { flex: 1; min-width: 200px; }
+  .resume-banner h4 { margin: 0 0 4px; font-size: 16px; font-weight: 800; color: var(--warning); }
+  .resume-banner p { margin: 0; color: var(--text-dim); font-size: 13px; }
+  .resume-banner .btns { display: flex; gap: 8px; flex-wrap: wrap; }
+  .resume-banner button { font-family: inherit; font-size: 13px; font-weight: 700; padding: 10px 18px; border-radius: 8px; border: none; cursor: pointer; transition: all .15s; }
+  .resume-banner .btn-retomar { background: var(--warning); color: #0b1230; }
+  .resume-banner .btn-retomar:hover { background: #fbc53c; transform: translateY(-1px); }
+  .resume-banner .btn-novo { background: transparent; color: var(--text-dim); border: 1px solid var(--border); }
+  .resume-banner .btn-novo:hover { background: var(--card); color: var(--text); }
+
+  /* Indicador sutil de auto-save */
+  .save-indicator { position: fixed; bottom: 24px; right: 24px; background: var(--card); color: var(--text-dim); padding: 8px 14px; border-radius: 20px; font-size: 11px; font-weight: 600; border: 1px solid var(--border); opacity: 0; transition: opacity .3s; z-index: 998; pointer-events: none; }
+  .save-indicator.show { opacity: .85; }
   .instructions strong { color: var(--accent); }
   .instructions p { margin: 6px 0 0; color: var(--text-dim); }
 
@@ -227,6 +249,19 @@
       <div class="brand">Método Gestão Life · Diagnóstico</div>
       <p>Preencha com sinceridade. O envio é feito em duas etapas: primeiro as informações da empresa, depois o questionário de avaliação.</p>
     </header>
+    <!-- Banner de retomar (oculto por padrão, aparece se houver dados salvos) -->
+    <div class="resume-banner" id="resume-banner" style="display:none">
+      <div class="icon">🔄</div>
+      <div class="txt">
+        <h4>Você tem um diagnóstico em andamento</h4>
+        <p id="resume-info">Respostas salvas automaticamente no seu navegador.</p>
+      </div>
+      <div class="btns">
+        <button class="btn-retomar" onclick="retomarDiagnostico()">Retomar de onde parei →</button>
+        <button class="btn-novo" onclick="comecarNovo()">Começar novo</button>
+      </div>
+    </div>
+
     <div class="client-info">
       <div><label>Responsável <span class="req">*</span></label><input type="text" id="c-dono" placeholder="Seu nome"></div>
     </div>
@@ -373,6 +408,7 @@
 </svg>
 </div>
 <div class="toast" id="toast"></div>
+<div class="save-indicator" id="save-indicator">💾 Salvo automaticamente</div>
 
 <script>
 const WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbwEuad7S-Htdh9cwMQEMI6mA8jELHqL-tTgyjN1als4JtV07kM8XyFxIkbW3HzXafMw/exec";
@@ -392,6 +428,126 @@ NIVEIS.forEach((n, nIdx) => {
 const respGerais = PERGUNTAS_GERAIS.map(() => '');
 const respNiveis = NIVEIS.map(n => n.temas.map(t => t.perguntas.map(() => null)));
 let faseAtual = 1, passoAtual = 0, PASSOS = PASSOS_F1, registroId = null;
+
+// ========== AUTO-SAVE (localStorage) ==========
+const STORAGE_KEY = 'gestao_life_diagnostico_v1';
+let saveTimer = null;
+
+function salvarEstado() {
+  try {
+    const estado = {
+      v: 1,
+      responsavel: document.getElementById('c-dono').value,
+      respGerais,
+      respNiveis,
+      faseAtual,
+      passoAtual,
+      registroId,
+      salvoEm: Date.now()
+    };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(estado));
+    // Indicador visual sutil
+    const ind = document.getElementById('save-indicator');
+    if (ind) {
+      ind.classList.add('show');
+      clearTimeout(ind._hideTimer);
+      ind._hideTimer = setTimeout(() => ind.classList.remove('show'), 1500);
+    }
+  } catch (e) { console.warn('Auto-save falhou:', e); }
+}
+
+// Salva com debounce (não martela o localStorage)
+function salvarEstadoDebounced() {
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(salvarEstado, 300);
+}
+
+function carregarEstado() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return null;
+    const estado = JSON.parse(raw);
+    if (estado && estado.v === 1) return estado;
+    return null;
+  } catch (e) { return null; }
+}
+
+function limparEstado() {
+  try { localStorage.removeItem(STORAGE_KEY); } catch (e) {}
+}
+
+function temProgressoSalvo(estado) {
+  if (!estado) return false;
+  const temGerais = estado.respGerais && estado.respGerais.some(v => v && v.trim());
+  const temNiveis = estado.respNiveis && estado.respNiveis.flat(2).some(v => v !== null);
+  return temGerais || temNiveis;
+}
+
+function retomarDiagnostico() {
+  const estado = carregarEstado();
+  if (!estado) return;
+  // Restaura respostas
+  if (estado.respGerais) {
+    for (let i = 0; i < respGerais.length; i++) respGerais[i] = estado.respGerais[i] || '';
+  }
+  if (estado.respNiveis) {
+    for (let n = 0; n < respNiveis.length; n++) {
+      if (!estado.respNiveis[n]) continue;
+      for (let t = 0; t < respNiveis[n].length; t++) {
+        if (!estado.respNiveis[n][t]) continue;
+        for (let q = 0; q < respNiveis[n][t].length; q++) {
+          respNiveis[n][t][q] = estado.respNiveis[n][t][q];
+        }
+      }
+    }
+  }
+  // Restaura fase/passo
+  faseAtual = estado.faseAtual || 1;
+  passoAtual = estado.passoAtual || 0;
+  PASSOS = (faseAtual === 1) ? PASSOS_F1 : PASSOS_F2;
+  registroId = estado.registroId || null;
+  // Restaura responsável
+  if (estado.responsavel) document.getElementById('c-dono').value = estado.responsavel;
+
+  // Esconde o banner e mostra o top-bar
+  const bn = document.getElementById('resume-banner');
+  if (bn) bn.style.display = 'none';
+  document.getElementById('top-bar').style.display = 'block';
+
+  renderPasso();
+  toast('✓ Diagnóstico retomado de onde você parou', 3000);
+}
+
+function comecarNovo() {
+  if (!confirm('Isso vai apagar as respostas salvas anteriormente. Tem certeza?')) return;
+  limparEstado();
+  const bn = document.getElementById('resume-banner');
+  if (bn) bn.style.display = 'none';
+  // Reset local
+  respGerais.forEach((_,i)=>respGerais[i]='');
+  respNiveis.forEach((n,ni)=>n.forEach((t,ti)=>t.forEach((_,qi)=>respNiveis[ni][ti][qi]=null)));
+  faseAtual = 1; passoAtual = 0; PASSOS = PASSOS_F1; registroId = null;
+  document.getElementById('c-dono').value = '';
+  toast('✓ Começando diagnóstico novo');
+}
+
+function verificarProgressoSalvo() {
+  const estado = carregarEstado();
+  if (!temProgressoSalvo(estado)) return;
+  const banner = document.getElementById('resume-banner');
+  const info = document.getElementById('resume-info');
+  if (!banner) return;
+  // Conta quantas perguntas já foram respondidas
+  const fGerais = (estado.respGerais||[]).filter(v => v && v.trim()).length;
+  const fNiveis = (estado.respNiveis||[]).flat(2).filter(v => v !== null).length;
+  const total = fGerais + fNiveis;
+  const totalPossivel = PERGUNTAS_GERAIS.length + NIVEIS.reduce((a,n)=>a + n.temas.reduce((x,t)=>x+t.perguntas.length,0),0);
+  const pct = Math.round((total / totalPossivel) * 100);
+  const qdoSalvo = new Date(estado.salvoEm || Date.now());
+  const dataStr = qdoSalvo.toLocaleDateString('pt-BR') + ' às ' + qdoSalvo.toLocaleTimeString('pt-BR').slice(0,5);
+  info.textContent = `Último salvamento: ${dataStr} · ${total} perguntas respondidas (${pct}% do total).`;
+  banner.style.display = 'flex';
+}
 
 function $(id){ return document.getElementById(id); }
 function toast(msg, ms=3500, isError=false) {
@@ -492,7 +648,7 @@ function responderTexto() {
   const p = PASSOS[passoAtual];
   const v = $('qt-input').value.trim();
   if (!v) { toast('⚠ Esta pergunta é obrigatória.', 3000, true); return; }
-  respGerais[p.gIdx] = v; avancar();
+  respGerais[p.gIdx] = v; salvarEstadoDebounced(); avancar();
 }
 
 function renderScale(p) {
@@ -519,6 +675,7 @@ function renderScale(p) {
 function responderEscala(v) {
   const p = PASSOS[passoAtual];
   respNiveis[p.nIdx][p.tIdx][p.qIdx] = v;
+  salvarEstadoDebounced();
   document.querySelectorAll('.answer-btn').forEach(b => b.classList.remove('selected'));
   const btn = document.querySelector(`.answer-btn[data-v="${v}"]`);
   if (btn) {
@@ -538,6 +695,7 @@ function avancar() {
     if (p.tipo === 'q' && respNiveis[p.nIdx][p.tIdx][p.qIdx] === null) { toast('⚠ Esta pergunta é obrigatória.', 3000, true); return; }
   }
   passoAtual++;
+  salvarEstadoDebounced();
   if (passoAtual >= PASSOS.length) return fimDaFase();
   renderPasso();
 }
@@ -653,6 +811,8 @@ async function enviarFase2() {
     };
     await fetch(WEBHOOK_URL, { method:'POST', mode:'no-cors', headers:{'Content-Type':'text/plain;charset=utf-8'}, body: JSON.stringify(payload) });
     $('top-fill').style.width = '100%'; $('top-bar').style.display = 'none';
+    // Limpa dados salvos — diagnóstico finalizado
+    limparEstado();
     mostrarView('view-thanks');
   } catch (err) {
     btn.disabled = false; btn.textContent = '✓ Confirmar e enviar';
@@ -1226,6 +1386,12 @@ const ANALISES = {
     fechamento: "O indicador final aqui é turnover abaixo da meta e ciclo de avaliação + PDI rodando. Com tudo isso firme, a empresa tá pronta pra escalar de verdade: abrir unidade, assumir novo projeto, expandir. Na nossa reunião a gente revisa teu R&S atual e monta o primeiro ciclo de avaliação de desempenho da tua equipe."
   }
 };
+// Listener no input Responsável (salva a cada digitação)
+document.getElementById('c-dono').addEventListener('input', salvarEstadoDebounced);
+
+// Verifica se tem progresso salvo ao abrir a página
+verificarProgressoSalvo();
+
 // (data preenchida automaticamente no envio)
 </script>
 </body>
