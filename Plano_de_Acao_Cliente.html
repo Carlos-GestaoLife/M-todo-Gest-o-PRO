@@ -22,69 +22,122 @@
   .site-logo { display:flex; align-items:center; justify-content:center; padding: 20px 16px 10px; }
   .site-logo svg { width: 160px; height: auto; }
 
-  header { text-align: center; padding-bottom: 24px; border-bottom: 1px solid var(--border); margin-bottom: 32px; }
+  .view { display: none; animation: fade .3s ease; }
+  .view.show { display: block; }
+  @keyframes fade { from {opacity:0; transform: translateY(8px);} to {opacity:1; transform: translateY(0);} }
+
+  header { text-align: center; padding-bottom: 24px; border-bottom: 1px solid var(--border); margin-bottom: 28px; }
   .badge-interno { display:inline-block; padding: 5px 12px; background: rgba(251,191,36,.15); color: var(--warning); border-radius: 20px; font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 14px; }
   .brand { font-size: 13px; letter-spacing: 3px; color: var(--accent); text-transform: uppercase; font-weight: 600; margin-bottom: 12px; }
   h1 { font-size: clamp(26px,4vw,40px); line-height: 1.1; margin: 0 0 10px; font-weight: 800; letter-spacing: -.02em; text-transform: uppercase; }
   h1 .hl { color: var(--accent); }
   header p { color: var(--text-dim); font-size: 16px; margin: 8px auto 0; max-width: 720px; }
 
-  .section { background: var(--card); border: 1px solid var(--border); border-radius: 14px; margin-bottom: 24px; overflow: hidden; }
-  .section-head { padding: 18px 24px; background: linear-gradient(90deg, var(--card-hover), var(--card)); border-bottom: 1px solid var(--border); display:flex; align-items:center; gap: 14px; }
-  .section-head .num { font-size: 28px; font-weight: 900; color: var(--accent); min-width: 40px; letter-spacing: -.03em; }
-  .section-head h2 { font-size: 18px; margin: 0; font-weight: 800; text-transform: uppercase; }
-  .section-head .sub { font-size: 12px; color: var(--text-dim); margin-top: 2px; }
-  .section-body { padding: 22px 24px; }
+  /* LOGIN */
+  .login-card { max-width: 420px; margin: 80px auto 40px; background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 36px 32px; }
+  .login-card h2 { margin: 0 0 8px; font-size: 22px; font-weight: 800; text-transform: uppercase; }
+  .login-card p { margin: 0 0 24px; color: var(--text-dim); font-size: 14px; }
 
-  .field-group { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; }
-  .field { margin-bottom: 14px; }
+  .field { margin-bottom: 16px; }
   .field label { display: block; font-size: 11px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; font-weight: 700; }
-  .field input, .field textarea, .field select { width: 100%; background: var(--bg-2); border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; color: var(--text); font-size: 14px; font-family: inherit; }
+  .field input, .field textarea, .field select { width: 100%; background: var(--bg-2); border: 1px solid var(--border); border-radius: 8px; padding: 12px 14px; color: var(--text); font-size: 14px; font-family: inherit; }
   .field textarea { min-height: 80px; line-height: 1.55; resize: vertical; }
   .field input:focus, .field textarea:focus, .field select:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .field-group { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; }
 
-  .items-list { display: grid; gap: 12px; }
-  .item-card { background: var(--bg-2); border: 1px solid var(--border); border-radius: 10px; padding: 16px; position: relative; }
-  .item-card .item-head { display:flex; justify-content:space-between; align-items:center; margin-bottom: 10px; }
-  .item-card .item-num { font-weight: 900; color: var(--accent); font-size: 15px; }
-  .item-card .btn-remove { background: transparent; border: none; color: var(--danger); cursor: pointer; font-size: 18px; padding: 4px 8px; border-radius: 4px; }
-  .item-card .btn-remove:hover { background: rgba(248,113,113,.12); }
-  .item-card .row-small { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-top: 10px; }
+  /* DASHBOARD */
+  .dash-header { display: flex; justify-content: space-between; align-items: center; padding-bottom: 20px; border-bottom: 1px solid var(--border); margin-bottom: 24px; flex-wrap: wrap; gap: 12px; }
+  .dash-user { font-size: 13px; color: var(--text-dim); }
+  .dash-user strong { color: var(--accent); }
+  .btn-logout { background: transparent; border: 1px solid var(--border); color: var(--text-dim); padding: 6px 14px; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer; }
+  .btn-logout:hover { background: var(--card); color: var(--text); }
+
+  .search-bar { display:flex; gap: 10px; margin-bottom: 16px; }
+  .search-bar input { flex: 1; background: var(--bg-2); border: 1px solid var(--border); color: var(--text); padding: 12px 16px; border-radius: 8px; font-size: 14px; font-family: inherit; }
+
+  .empresa-grid { display: grid; gap: 10px; }
+  .empresa-card { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 16px 20px; display:flex; justify-content: space-between; align-items: center; cursor: pointer; transition: all .15s; }
+  .empresa-card:hover { background: var(--card-hover); border-color: var(--accent); transform: translateX(4px); }
+  .empresa-card .info h4 { margin: 0 0 4px; font-size: 16px; font-weight: 800; }
+  .empresa-card .info p { margin: 0; color: var(--text-dim); font-size: 12px; }
+  .empresa-card .count { background: rgba(77,201,255,.12); color: var(--accent); padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: 700; }
+
+  .empty-state { text-align: center; padding: 48px 24px; color: var(--text-dim); }
+  .empty-state .icon { font-size: 48px; margin-bottom: 12px; }
+
+  /* HISTORICO DA EMPRESA */
+  .timeline { display:grid; gap: 10px; margin-bottom: 24px; }
+  .timeline-item { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 16px 20px; display:flex; justify-content: space-between; align-items: center; cursor: pointer; transition: all .15s; }
+  .timeline-item:hover { background: var(--card-hover); border-color: var(--accent-2); }
+  .timeline-item .num { background: var(--accent); color: #0b1230; padding: 6px 14px; border-radius: 20px; font-size: 13px; font-weight: 900; margin-right: 14px; }
+  .timeline-item .meta { flex: 1; }
+  .timeline-item .meta h4 { margin: 0 0 4px; font-size: 15px; font-weight: 700; }
+  .timeline-item .meta p { margin: 0; color: var(--text-dim); font-size: 12px; }
+
+  /* FORMULARIO */
+  .section { background: var(--card); border: 1px solid var(--border); border-radius: 14px; margin-bottom: 20px; overflow: hidden; }
+  .section-head { padding: 16px 22px; background: linear-gradient(90deg, var(--card-hover), var(--card)); border-bottom: 1px solid var(--border); display:flex; align-items:center; gap: 12px; }
+  .section-head .num { font-size: 24px; font-weight: 900; color: var(--accent); min-width: 34px; letter-spacing: -.03em; }
+  .section-head h2 { font-size: 16px; margin: 0; font-weight: 800; text-transform: uppercase; }
+  .section-head .sub { font-size: 11px; color: var(--text-dim); margin-top: 2px; }
+  .section-body { padding: 20px 22px; }
+
+  .items-list { display: grid; gap: 10px; }
+  .item-card { background: var(--bg-2); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; }
+  .item-card .item-head { display:flex; justify-content:space-between; align-items:center; margin-bottom: 8px; }
+  .item-card .item-num { font-weight: 900; color: var(--accent); font-size: 13px; }
+  .item-card .btn-remove { background: transparent; border: none; color: var(--danger); cursor: pointer; font-size: 18px; padding: 2px 6px; border-radius: 4px; }
+  .item-card .row-small { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-top: 8px; }
   @media (max-width: 640px) { .item-card .row-small { grid-template-columns: 1fr; } }
 
-  .btn-add { background: rgba(77,201,255,.08); color: var(--accent); border: 1px dashed rgba(77,201,255,.4); padding: 12px 20px; border-radius: 8px; font-weight: 700; font-family: inherit; cursor: pointer; width: 100%; margin-top: 8px; font-size: 14px; transition: all .15s; }
+  .btn-add { background: rgba(77,201,255,.08); color: var(--accent); border: 1px dashed rgba(77,201,255,.4); padding: 10px 18px; border-radius: 8px; font-weight: 700; font-family: inherit; cursor: pointer; width: 100%; margin-top: 6px; font-size: 13px; }
   .btn-add:hover { background: rgba(77,201,255,.14); }
 
-  .suggestions { background: rgba(77,201,255,.06); border-left: 3px solid var(--accent); padding: 12px 14px; border-radius: 6px; margin-bottom: 12px; font-size: 13px; color: var(--text-dim); }
-  .suggestions strong { color: var(--accent); display: block; margin-bottom: 6px; font-size: 11px; letter-spacing: 1px; text-transform: uppercase; }
-  .suggestions ul { margin: 4px 0 0; padding-left: 18px; }
-  .suggestions li { margin-bottom: 4px; cursor: pointer; padding: 2px 6px; border-radius: 4px; transition: background .12s; }
+  .suggestions { background: rgba(77,201,255,.06); border-left: 3px solid var(--accent); padding: 10px 12px; border-radius: 6px; margin-bottom: 10px; font-size: 12px; color: var(--text-dim); }
+  .suggestions strong { color: var(--accent); display: block; margin-bottom: 6px; font-size: 10px; letter-spacing: 1px; text-transform: uppercase; }
+  .suggestions ul { margin: 4px 0 0; padding-left: 16px; }
+  .suggestions li { margin-bottom: 3px; cursor: pointer; padding: 2px 4px; border-radius: 3px; }
   .suggestions li:hover { background: rgba(77,201,255,.12); color: var(--text); }
 
-  .roadmap { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+  /* CHECK-IN (reuniões > 1) */
+  .checkin-banner { background: linear-gradient(135deg, rgba(251,191,36,.14), rgba(245,158,11,.06)); border: 1px solid rgba(251,191,36,.3); border-radius: 10px; padding: 16px; margin-bottom: 14px; font-size: 13px; color: var(--text-dim); }
+  .checkin-banner strong { color: var(--warning); display:block; margin-bottom: 4px; }
+
+  .checkin-item { background: var(--bg-2); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; margin-bottom: 8px; }
+  .checkin-item .titulo { font-weight: 700; margin-bottom: 8px; font-size: 14px; }
+  .checkin-status { display:flex; gap: 6px; flex-wrap: wrap; margin-bottom: 8px; }
+  .checkin-status button { flex: 1; min-width: 100px; padding: 8px 10px; border-radius: 8px; border: 1.5px solid var(--border); background: transparent; color: var(--text-dim); font-weight: 700; font-size: 12px; cursor: pointer; font-family: inherit; }
+  .checkin-status button.active[data-s="feita"] { background: var(--success); color: #0b1230; border-color: var(--success); }
+  .checkin-status button.active[data-s="parcial"] { background: var(--warning); color: #0b1230; border-color: var(--warning); }
+  .checkin-status button.active[data-s="naofeita"] { background: var(--danger); color: #fff; border-color: var(--danger); }
+  .checkin-item textarea { width: 100%; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 8px 10px; color: var(--text); font-size: 13px; font-family: inherit; min-height: 50px; }
+
+  .roadmap { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
   @media (max-width: 720px) { .roadmap { grid-template-columns: 1fr 1fr; } }
   @media (max-width: 480px) { .roadmap { grid-template-columns: 1fr; } }
-  .tri { background: var(--bg-2); border: 1px solid var(--border); border-radius: 10px; padding: 14px; }
-  .tri .tri-head { font-size: 11px; color: var(--accent); font-weight: 800; letter-spacing: 1px; margin-bottom: 8px; }
-  .tri textarea { width: 100%; background: transparent; border: none; color: var(--text); font-size: 13px; font-family: inherit; resize: vertical; min-height: 90px; padding: 0; line-height: 1.5; }
-  .tri textarea:focus { outline: none; }
+  .tri { background: var(--bg-2); border: 1px solid var(--border); border-radius: 10px; padding: 12px; }
+  .tri .tri-head { font-size: 10px; color: var(--accent); font-weight: 800; letter-spacing: 1px; margin-bottom: 6px; }
+  .tri textarea { width: 100%; background: transparent; border: none; color: var(--text); font-size: 12px; font-family: inherit; resize: vertical; min-height: 80px; padding: 0; line-height: 1.5; }
 
-  .actions { display:flex; justify-content:center; gap: 12px; margin-top: 32px; flex-wrap: wrap; }
-  button.btn { font-family: inherit; font-size: 15px; font-weight: 700; padding: 16px 32px; border-radius: 10px; border: none; cursor: pointer; transition: all .15s; letter-spacing: .3px; }
-  .btn-primary { background: var(--accent); color: #0b1230; box-shadow: 0 4px 16px rgba(77,201,255,.25); }
-  .btn-primary:hover { background: #67d4ff; transform: translateY(-1px); }
-  .btn-primary:disabled { opacity: .7; cursor: wait; transform: none; }
+  .actions { display:flex; justify-content:center; gap: 10px; margin-top: 28px; flex-wrap: wrap; }
+  button.btn { font-family: inherit; font-size: 14px; font-weight: 700; padding: 14px 26px; border-radius: 10px; border: none; cursor: pointer; transition: all .15s; letter-spacing: .3px; }
+  .btn-primary { background: var(--accent); color: #0b1230; }
+  .btn-primary:hover:not(:disabled) { background: #67d4ff; transform: translateY(-1px); }
+  .btn-primary:disabled { opacity: .6; cursor: wait; transform: none; }
   .btn-secondary { background: var(--card); color: var(--text); border: 1px solid var(--border); }
   .btn-secondary:hover { background: var(--card-hover); }
+  .btn-big { padding: 16px 32px; font-size: 15px; }
 
-  footer { text-align: center; margin-top: 40px; padding-top: 24px; border-top: 1px solid var(--border); color: var(--text-dim); font-size: 13px; }
+  footer { text-align: center; margin-top: 40px; padding-top: 24px; border-top: 1px solid var(--border); color: var(--text-dim); font-size: 12px; }
 
   .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(100px); background: var(--card); border: 1px solid var(--accent); color: var(--text); padding: 14px 22px; border-radius: 10px; font-size: 14px; font-weight: 600; box-shadow: 0 10px 40px rgba(0,0,0,.4); opacity: 0; transition: all .35s ease; z-index: 999; max-width: 90%; }
   .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
   .toast.error { border-color: var(--danger); }
 
-  .alert-info { padding: 10px 14px; background: rgba(251,191,36,.08); border-left: 3px solid var(--warning); border-radius: 6px; font-size: 13px; color: var(--text-dim); margin-bottom: 14px; }
-  .alert-info strong { color: var(--warning); }
+  .spinner { display:inline-block; width: 14px; height: 14px; border: 2px solid rgba(255,255,255,.3); border-top-color: var(--accent); border-radius: 50%; animation: spin .8s linear infinite; vertical-align: middle; margin-right: 6px; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .loading { text-align: center; padding: 40px; color: var(--text-dim); }
 </style>
 </head>
 <body>
@@ -146,260 +199,494 @@
 
 <div class="container">
 
-  <header>
-    <div class="badge-interno">USO DO CONSULTOR · REUNIÃO ESTRATÉGICA</div>
-    <div class="brand">Método Gestão Life · Gestão PRO</div>
-    <h1>Plano de <span class="hl">ação inicial</span></h1>
-    <p>Ferramenta pra construir o plano de ação junto com o cliente após o diagnóstico. Preencha com ele na reunião e gere o PDF pra entregar na hora.</p>
-  </header>
-
-  <!-- SEÇÃO 1: DADOS INICIAIS -->
-  <section class="section">
-    <div class="section-head">
-      <div class="num">01</div>
-      <div><h2>Dados iniciais</h2><div class="sub">Identificação do cliente e data da reunião</div></div>
+  <!-- ======== LOGIN ======== -->
+  <div class="view show" id="view-login">
+    <div class="login-card">
+      <h2>Login</h2>
+      <p>Área restrita aos consultores Gestão Life</p>
+      <div class="field"><label>Usuário</label><input type="text" id="login-user" autocomplete="username"></div>
+      <div class="field"><label>Senha</label><input type="password" id="login-pass" autocomplete="current-password"></div>
+      <div class="actions" style="margin-top:8px"><button class="btn btn-primary btn-big" onclick="fazerLogin()" style="width:100%">Entrar</button></div>
+      <p style="margin-top:20px;font-size:12px;text-align:center">Primeiro acesso? Peça usuário e senha ao admin da planilha.</p>
     </div>
-    <div class="section-body">
-      <div class="field-group">
-        <div class="field"><label>Empresa</label><input type="text" id="empresa" placeholder="Ex.: Burger do João"></div>
-        <div class="field"><label>Responsável</label><input type="text" id="responsavel" placeholder="Nome do dono"></div>
-        <div class="field"><label>Data da reunião</label><input type="date" id="data"></div>
-        <div class="field"><label>Nível atual do diagnóstico</label>
-          <select id="nivel" onchange="aplicarSugestoes()">
-            <option value="">-- Selecione --</option>
-            <option value="01">Nível 01 · Saindo do Caos</option>
-            <option value="02">Nível 02 · Colocando Ordem</option>
-            <option value="03">Nível 03 · Virando Empresa</option>
-            <option value="04">Nível 04 · Jogando o Jogo dos Números</option>
-            <option value="05">Nível 05 · Pronto para Escalar</option>
-          </select>
-        </div>
-      </div>
-      <div class="field"><label>Objetivo combinado pros próximos 12 meses</label>
-        <textarea id="objetivo12m" placeholder="Ex.: Sair do operacional, fechar DRE todo mês, aumentar lucro de 8% pra 15%..."></textarea>
-      </div>
-    </div>
-  </section>
-
-  <!-- SEÇÃO 2: RECAP DO DIAGNÓSTICO -->
-  <section class="section">
-    <div class="section-head">
-      <div class="num">02</div>
-      <div><h2>Recap do diagnóstico</h2><div class="sub">Onde está forte e onde está travando</div></div>
-    </div>
-    <div class="section-body">
-      <div class="field"><label>O que está forte hoje</label>
-        <textarea id="fortes" placeholder="Ex.: Mentalidade do dono (média 4.2), atendimento no salão (85%)..."></textarea>
-      </div>
-      <div class="field"><label>O que está travando (prioridade de ataque)</label>
-        <textarea id="fracos" placeholder="Ex.: DRE não fecha, liderança sem capacitação, CMV fora do controle..."></textarea>
-      </div>
-    </div>
-  </section>
-
-  <!-- SEÇÃO 3: VITÓRIAS RÁPIDAS -->
-  <section class="section">
-    <div class="section-head">
-      <div class="num">03</div>
-      <div><h2>Vitórias rápidas (até 30 dias)</h2><div class="sub">Mínimo 2 ações com impacto imediato</div></div>
-    </div>
-    <div class="section-body">
-      <div class="alert-info"><strong>Regra da vitória rápida:</strong> ação simples, de baixa complexidade, que gera resultado visível em até 30 dias e já mostra valor do programa pro dono.</div>
-      <div class="suggestions" id="sug-vitorias" style="display:none">
-        <strong>Sugestões pro Nível selecionado — clique pra adicionar:</strong>
-        <ul id="sug-vitorias-list"></ul>
-      </div>
-      <div class="items-list" id="vitorias-list"></div>
-      <button class="btn-add" onclick="addVitoria()">+ Adicionar vitória rápida</button>
-    </div>
-  </section>
-
-  <!-- SEÇÃO 4: PRIORIDADES DO TRIMESTRE -->
-  <section class="section">
-    <div class="section-head">
-      <div class="num">04</div>
-      <div><h2>Prioridades dos próximos 90 dias</h2><div class="sub">Ações estruturais do nível atual</div></div>
-    </div>
-    <div class="section-body">
-      <div class="suggestions" id="sug-prioridades" style="display:none">
-        <strong>Prioridades do nível selecionado — clique pra adicionar:</strong>
-        <ul id="sug-prioridades-list"></ul>
-      </div>
-      <div class="items-list" id="prioridades-list"></div>
-      <button class="btn-add" onclick="addPrioridade()">+ Adicionar prioridade</button>
-    </div>
-  </section>
-
-  <!-- SEÇÃO 5: ROADMAP 12 MESES -->
-  <section class="section">
-    <div class="section-head">
-      <div class="num">05</div>
-      <div><h2>Roadmap dos 12 meses</h2><div class="sub">Foco de cada trimestre</div></div>
-    </div>
-    <div class="section-body">
-      <div class="roadmap">
-        <div class="tri">
-          <div class="tri-head">TRIMESTRE 1 · MÊS 1-3</div>
-          <textarea id="tri1" placeholder="Foco, principais entregas..."></textarea>
-        </div>
-        <div class="tri">
-          <div class="tri-head">TRIMESTRE 2 · MÊS 4-6</div>
-          <textarea id="tri2" placeholder="Foco, principais entregas..."></textarea>
-        </div>
-        <div class="tri">
-          <div class="tri-head">TRIMESTRE 3 · MÊS 7-9</div>
-          <textarea id="tri3" placeholder="Foco, principais entregas..."></textarea>
-        </div>
-        <div class="tri">
-          <div class="tri-head">TRIMESTRE 4 · MÊS 10-12</div>
-          <textarea id="tri4" placeholder="Foco, principais entregas..."></textarea>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- SEÇÃO 6: INDICADORES -->
-  <section class="section">
-    <div class="section-head">
-      <div class="num">06</div>
-      <div><h2>Indicadores de acompanhamento</h2><div class="sub">O que vamos medir para saber se está dando certo</div></div>
-    </div>
-    <div class="section-body">
-      <div class="field"><label>KPIs que serão medidos (um por linha)</label>
-        <textarea id="kpis" rows="5" placeholder="Ex.:&#10;Faturamento mensal&#10;CMV (%)&#10;CMO (%)&#10;Lucro líquido&#10;NPS/Satisfação cliente&#10;% de auditoria aprovada"></textarea>
-      </div>
-      <div class="field"><label>Frequência de revisão</label>
-        <input type="text" id="frequencia" placeholder="Ex.: Reunião mensal no dia 5 + acompanhamento semanal no grupo do WhatsApp">
-      </div>
-    </div>
-  </section>
-
-  <!-- SEÇÃO 7: PRÓXIMA REUNIÃO -->
-  <section class="section">
-    <div class="section-head">
-      <div class="num">07</div>
-      <div><h2>Próxima reunião</h2><div class="sub">Agenda fechada pra não deixar cair</div></div>
-    </div>
-    <div class="section-body">
-      <div class="field-group">
-        <div class="field"><label>Data da próxima reunião</label><input type="date" id="proxData"></div>
-        <div class="field"><label>Horário</label><input type="time" id="proxHora"></div>
-        <div class="field"><label>Formato</label><input type="text" id="proxFormato" placeholder="Ex.: Presencial / Online via Google Meet"></div>
-        <div class="field"><label>Mentor responsável</label><input type="text" id="proxMentor" placeholder="Ex.: Thiago Rocha"></div>
-      </div>
-      <div class="field"><label>Pauta ou o que o cliente precisa trazer</label>
-        <textarea id="proxPauta" placeholder="Ex.: Trazer DRE dos últimos 3 meses fechado + confirmar separação PF/PJ feita."></textarea>
-      </div>
-    </div>
-  </section>
-
-  <div class="actions">
-    <button class="btn btn-primary" id="btn-pdf" onclick="gerarPDF()">📄 Gerar plano em PDF</button>
-    <button class="btn btn-secondary" onclick="limparTudo()">↺ Limpar tudo</button>
   </div>
 
-  <footer>Método Gestão Life · Gestão PRO<br><small>Ferramenta de uso interno — Plano de Ação pós-diagnóstico</small></footer>
+  <!-- ======== DASHBOARD ======== -->
+  <div class="view" id="view-dashboard">
+    <div class="dash-header">
+      <div><div class="brand">Método Gestão Life · Planos de Ação</div><div class="dash-user">Logado como <strong id="dash-nome"></strong></div></div>
+      <button class="btn-logout" onclick="sair()">Sair</button>
+    </div>
+
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; flex-wrap:wrap; gap: 10px">
+      <h1 style="text-transform:none;font-size:22px;margin:0">Empresas</h1>
+      <button class="btn btn-primary" onclick="novaEmpresa()">+ Criar nova reunião</button>
+    </div>
+
+    <div class="search-bar"><input type="text" id="busca" placeholder="🔍 Buscar empresa..." oninput="filtrarEmpresas()"></div>
+
+    <div id="empresas-root" class="empresa-grid"></div>
+  </div>
+
+  <!-- ======== HISTÓRICO DA EMPRESA ======== -->
+  <div class="view" id="view-historico">
+    <div class="dash-header">
+      <div><button class="btn-logout" onclick="voltarDashboard()">← Voltar</button></div>
+      <div class="dash-user">Logado como <strong id="hist-nome"></strong></div>
+    </div>
+    <header style="text-align:left">
+      <div class="brand" id="hist-empresa-nome">Empresa</div>
+      <h1 style="text-transform:none;font-size:26px">Histórico de <span class="hl">reuniões</span></h1>
+      <p id="hist-empresa-info">—</p>
+    </header>
+    <div id="timeline-root" class="timeline"></div>
+    <div class="actions">
+      <button class="btn btn-primary btn-big" onclick="novaReuniaoEmpresaAtual()">+ Nova reunião desta empresa</button>
+    </div>
+  </div>
+
+  <!-- ======== FORMULÁRIO DO PLANO ======== -->
+  <div class="view" id="view-form">
+    <div class="dash-header">
+      <div><button class="btn-logout" onclick="voltarDashboard()">← Voltar</button></div>
+      <div class="dash-user">Logado como <strong id="form-nome"></strong></div>
+    </div>
+
+    <header style="text-align:left">
+      <div class="brand">Plano de Ação</div>
+      <h1 style="text-transform:none;font-size:28px">Reunião <span class="hl" id="form-titulo-num">1</span></h1>
+      <p id="form-subtitle">Preencha com o cliente durante a reunião.</p>
+    </header>
+
+    <!-- CHECK-IN (só aparece se for reunião > 1) -->
+    <section class="section" id="secao-checkin" style="display:none">
+      <div class="section-head"><div class="num">🔁</div><div><h2>Check-in da reunião anterior</h2><div class="sub">Marca com o cliente o que foi feito desde a última reunião</div></div></div>
+      <div class="section-body">
+        <div class="checkin-banner"><strong>Puxado da reunião anterior:</strong>Vitórias rápidas e prioridades combinadas. Marcar cada item como: FEITA, PARCIAL ou NÃO FEITA + observação opcional.</div>
+        <div id="checkin-root"></div>
+      </div>
+    </section>
+
+    <!-- 1. DADOS -->
+    <section class="section">
+      <div class="section-head"><div class="num">01</div><div><h2>Dados da reunião</h2><div class="sub">Identificação e nível diagnóstico</div></div></div>
+      <div class="section-body">
+        <div class="field-group">
+          <div class="field"><label>Empresa</label><input type="text" id="empresa" placeholder="Ex.: Burger do João"></div>
+          <div class="field"><label>Responsável</label><input type="text" id="responsavel"></div>
+          <div class="field"><label>Data</label><input type="date" id="data"></div>
+          <div class="field"><label>Número da reunião</label><input type="number" id="reuniao" min="1" max="99" value="1"></div>
+          <div class="field"><label>Nível atual do diagnóstico</label>
+            <select id="nivel" onchange="aplicarSugestoes()">
+              <option value="">-- Selecione --</option>
+              <option value="01">Nível 01 · Saindo do Caos</option>
+              <option value="02">Nível 02 · Colocando Ordem</option>
+              <option value="03">Nível 03 · Virando Empresa</option>
+              <option value="04">Nível 04 · Jogando o Jogo dos Números</option>
+              <option value="05">Nível 05 · Pronto para Escalar</option>
+            </select>
+          </div>
+        </div>
+        <div class="field"><label>Objetivo combinado</label><textarea id="objetivo12m" placeholder="Foco dos próximos meses..."></textarea></div>
+      </div>
+    </section>
+
+    <!-- 2. RECAP -->
+    <section class="section">
+      <div class="section-head"><div class="num">02</div><div><h2>Recap do momento</h2><div class="sub">Onde está forte · Onde está travando</div></div></div>
+      <div class="section-body">
+        <div class="field"><label>Onde está forte</label><textarea id="fortes"></textarea></div>
+        <div class="field"><label>Onde está travando</label><textarea id="fracos"></textarea></div>
+      </div>
+    </section>
+
+    <!-- 3. VITÓRIAS -->
+    <section class="section">
+      <div class="section-head"><div class="num">03</div><div><h2>Vitórias rápidas (30 dias)</h2><div class="sub">Mínimo 2 ações de impacto imediato</div></div></div>
+      <div class="section-body">
+        <div class="suggestions" id="sug-vitorias" style="display:none"><strong>Sugestões pro nível selecionado — clique:</strong><ul id="sug-vitorias-list"></ul></div>
+        <div class="items-list" id="vitorias-list"></div>
+        <button class="btn-add" onclick="addVitoria()">+ Adicionar vitória</button>
+      </div>
+    </section>
+
+    <!-- 4. PRIORIDADES -->
+    <section class="section">
+      <div class="section-head"><div class="num">04</div><div><h2>Prioridades (30-90 dias)</h2><div class="sub">Ações estruturais</div></div></div>
+      <div class="section-body">
+        <div class="suggestions" id="sug-prioridades" style="display:none"><strong>Sugestões pro nível selecionado — clique:</strong><ul id="sug-prioridades-list"></ul></div>
+        <div class="items-list" id="prioridades-list"></div>
+        <button class="btn-add" onclick="addPrioridade()">+ Adicionar prioridade</button>
+      </div>
+    </section>
+
+    <!-- 5. ROADMAP -->
+    <section class="section">
+      <div class="section-head"><div class="num">05</div><div><h2>Roadmap dos próximos meses</h2><div class="sub">Foco de cada trimestre</div></div></div>
+      <div class="section-body">
+        <div class="roadmap">
+          <div class="tri"><div class="tri-head">TRI 1 · MÊS 1-3</div><textarea id="tri1"></textarea></div>
+          <div class="tri"><div class="tri-head">TRI 2 · MÊS 4-6</div><textarea id="tri2"></textarea></div>
+          <div class="tri"><div class="tri-head">TRI 3 · MÊS 7-9</div><textarea id="tri3"></textarea></div>
+          <div class="tri"><div class="tri-head">TRI 4 · MÊS 10-12</div><textarea id="tri4"></textarea></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 6. INDICADORES -->
+    <section class="section">
+      <div class="section-head"><div class="num">06</div><div><h2>Indicadores</h2><div class="sub">O que vamos medir</div></div></div>
+      <div class="section-body">
+        <div class="field"><label>KPIs (um por linha)</label><textarea id="kpis" rows="4"></textarea></div>
+        <div class="field"><label>Frequência de revisão</label><input type="text" id="frequencia"></div>
+      </div>
+    </section>
+
+    <!-- 7. PRÓXIMA REUNIÃO -->
+    <section class="section">
+      <div class="section-head"><div class="num">07</div><div><h2>Próxima reunião</h2><div class="sub">Agenda fechada com o cliente</div></div></div>
+      <div class="section-body">
+        <div class="field-group">
+          <div class="field"><label>Data</label><input type="date" id="proxData"></div>
+          <div class="field"><label>Horário</label><input type="time" id="proxHora"></div>
+          <div class="field"><label>Formato</label><input type="text" id="proxFormato" placeholder="Presencial / Online"></div>
+          <div class="field"><label>Mentor</label><input type="text" id="proxMentor"></div>
+        </div>
+        <div class="field"><label>Pauta / material a trazer</label><textarea id="proxPauta"></textarea></div>
+      </div>
+    </section>
+
+    <div class="actions">
+      <button class="btn btn-primary btn-big" id="btn-salvar" onclick="salvarEGerar()">💾 Salvar e gerar PDF</button>
+      <button class="btn btn-secondary" onclick="voltarDashboard()">Cancelar</button>
+    </div>
+  </div>
+
+  <footer>Método Gestão Life · Gestão PRO<br><small>Ferramenta interna · Planos de Ação</small></footer>
 </div>
 
 <div class="toast" id="toast"></div>
 
 <script>
-const NIVEIS = [{"num": "01", "nome": "Saindo do Caos", "foco": "Mentalidade do Dono · Liderança Básica · Controle Financeiro e DRE", "vitorias_sugeridas": ["Separar a conta PF da conta PJ (conta bancária + cartão) — impacto imediato na leitura de resultado", "Definir pró-labore fixo do(s) sócio(s) — fim das retiradas desorganizadas", "Começar a lançar 100% das vendas no sistema (VUCA) a partir de hoje"], "prioridades": ["Mentalidade do dono: aplicar testes de personalidade, forças e sabotadores", "Definir e escrever o objetivo de 5 anos da empresa", "Desenhar organograma por cargo e montar RCF dos cargos de liderança", "Capacitação básica da liderança (feedback, delegação, cobrança)", "Configurar sistema VUCA com categorização correta de receitas e despesas", "Fechar DRE gerencial dos últimos 3 meses COM inventário", "Calcular capital de giro mínimo e criar regra de distribuição de lucros"]}, {"num": "02", "nome": "Colocando Ordem", "foco": "Precificação e Cardápio · Rotina Operacional · Experiência do Cliente", "vitorias_sugeridas": ["Preleção diária de 5 min antes da operação — começar esta semana", "Pesquisa de satisfação ativa nos 4 pilares (loja + Google)", "Ficha técnica dos 10 produtos mais vendidos — em 2 semanas"], "prioridades": ["Ficha técnica de 100% dos produtos e precificação com markup correto", "Engenharia de cardápio: classificar e agir nos cachorros/burros de carga", "Rotina semanal de reunião de resultados com liderança", "Padronização do atendimento: script + recepção + check-back", "Tempo-padrão por produto e monitoramento no pico", "Checklist diário de ambiente (limpeza, iluminação, som, temperatura)"]}, {"num": "03", "nome": "Virando Empresa", "foco": "Cultura · Processos, Checklist e Treinamento · Compras, Estoque e CMV", "vitorias_sugeridas": ["Instalar placas com Missão, Visão e Valores no ambiente — 1 semana", "Definir dias fixos de compra (2x por semana) com contagem prévia", "Começar feedback mensal 1:1 (mesmo que informal) nesta semana"], "prioridades": ["Cultura completa: missão, visão, valores e rituais definidos e vividos", "Mapear e documentar os 2 processos mais críticos da operação", "Criar checklist por cargo usado diariamente", "Gravar treinamentos técnicos em vídeo (integração + reciclagem)", "Aplicar pesquisa de engajamento e atuar nos 3 piores pontos", "Feedback mensal 1:1 registrado de cada líder com seu time", "Controle de estoque (PVPS, contagem diária, acesso restrito)", "Ritmo de compras com cotação entre fornecedores"]}, {"num": "04", "nome": "Jogando o Jogo dos Números", "foco": "Liderança Avançada · Indicadores · Aumento de Faturamento · Redução de Custos", "vitorias_sugeridas": ["Instalar quadro de recordes no salão/cozinha — diário", "Começar reunião semanal de indicadores com liderança", "Escolher 1 alavanca de ticket médio e implantar (combo, upsell ou adicional)"], "prioridades": ["Capacitação completa da liderança (delegação, engajamento, desenvolvimento)", "Painel de indicadores visível (ticket médio, NPS, CMV, CMO, lucro)", "Plano estruturado de aumento de faturamento (ticket + captação + recorrência)", "Otimização do delivery (empresa, cardápio, ranking, campanhas)", "Ação nos 8 momentos críticos do CMV", "Controle da produtividade (faturamento ÷ colaboradores)", "Auditoria mensal com checklist único aprovado/reprovado"]}, {"num": "05", "nome": "Pronto para Escalar", "foco": "R&S · Integração · Treinamentos Culturais · Avaliação de Desempenho e PDI", "vitorias_sugeridas": ["Atualizar RCF dos 3 cargos-chave e usar na próxima contratação", "Criar jornada de 10 dias de integração do novo colaborador", "Agendar primeira avaliação de desempenho semestral do time"], "prioridades": ["R&S padronizado com base no RCF (triagem, entrevista por competência, decisão)", "Auditoria jurídica de conformidades trabalhistas", "Processo de integração estruturado (10 dias) aplicado a 100% dos novos", "Treinamentos culturais em vídeo com prova ao final", "Ciclo semestral de avaliação de desempenho", "PDI individual pra cada colaborador com ações práticas", "Feedback mensal ancorado no PDI com registro de acordos"]}];
+const WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbwer2hhy5AXa8J1-lz09xoDnBrfhLzsBtoXoAMdc5cRF9hk0D7RMzgCqeB1axTqFKMV/exec";
+const TOKEN = "DxclbdFY8lbweT6J02kQ3kHX2vcoFpAG";
+const NIVEIS = [{"num": "01", "nome": "Saindo do Caos", "foco": "Mentalidade do Dono · Liderança Básica · Controle Financeiro e DRE", "vitorias_sugeridas": ["Separar a conta PF da conta PJ (conta bancária + cartão)", "Definir pró-labore fixo do(s) sócio(s)", "Começar a lançar 100% das vendas no sistema (VUCA)"], "prioridades": ["Mentalidade do dono: testes de personalidade, forças e sabotadores", "Definir e escrever o objetivo de 5 anos da empresa", "Desenhar organograma por cargo e montar RCF dos cargos de liderança", "Capacitação básica da liderança (feedback, delegação, cobrança)", "Configurar sistema VUCA com categorização correta", "Fechar DRE gerencial dos últimos 3 meses COM inventário", "Calcular capital de giro mínimo e regra de distribuição de lucros"]}, {"num": "02", "nome": "Colocando Ordem", "foco": "Precificação e Cardápio · Rotina Operacional · Experiência do Cliente", "vitorias_sugeridas": ["Preleção diária de 5 min antes da operação", "Pesquisa de satisfação ativa nos 4 pilares", "Ficha técnica dos 10 produtos mais vendidos"], "prioridades": ["Ficha técnica de 100% dos produtos e precificação com markup", "Engenharia de cardápio: classificar e agir nos cachorros", "Rotina semanal de reunião de resultados com liderança", "Padronização do atendimento: script + recepção + check-back", "Tempo-padrão por produto e monitoramento no pico", "Checklist diário de ambiente (limpeza, iluminação, som, temperatura)"]}, {"num": "03", "nome": "Virando Empresa", "foco": "Cultura · Processos, Checklist e Treinamento · Compras, Estoque e CMV", "vitorias_sugeridas": ["Instalar placas com Missão, Visão e Valores no ambiente", "Definir dias fixos de compra (2x por semana) com contagem prévia", "Começar feedback mensal 1:1 com a equipe"], "prioridades": ["Cultura completa: missão, visão, valores e rituais vividos", "Mapear e documentar os 2 processos mais críticos", "Criar checklist por cargo usado diariamente", "Gravar treinamentos técnicos em vídeo", "Aplicar pesquisa de engajamento e atuar nos 3 piores pontos", "Feedback mensal 1:1 registrado", "Controle de estoque (PVPS, contagem diária, acesso restrito)", "Ritmo de compras com cotação entre fornecedores"]}, {"num": "04", "nome": "Jogando o Jogo dos Números", "foco": "Liderança Avançada · Indicadores · Aumento de Faturamento · Redução de Custos", "vitorias_sugeridas": ["Instalar quadro de recordes no salão/cozinha", "Começar reunião semanal de indicadores com liderança", "Escolher 1 alavanca de ticket médio e implantar"], "prioridades": ["Capacitação completa da liderança", "Painel de indicadores visível", "Plano estruturado de aumento de faturamento", "Otimização do delivery", "Ação nos 8 momentos críticos do CMV", "Controle da produtividade", "Auditoria mensal com checklist único"]}, {"num": "05", "nome": "Pronto para Escalar", "foco": "R&S · Integração · Treinamentos Culturais · Avaliação de Desempenho e PDI", "vitorias_sugeridas": ["Atualizar RCF dos 3 cargos-chave", "Criar jornada de 10 dias de integração", "Agendar primeira avaliação de desempenho"], "prioridades": ["R&S padronizado com base no RCF", "Auditoria jurídica de conformidades trabalhistas", "Processo de integração estruturado", "Treinamentos culturais em vídeo", "Ciclo semestral de avaliação de desempenho", "PDI individual", "Feedback mensal ancorado no PDI"]}];
 const LOGO_LIFE_SVG_STR = document.getElementById('gestao-life-logo-hidden').innerHTML;
 const LOGO_PRO_SVG_STR = document.querySelector('.site-logo svg').outerHTML;
 
+let empresaAtual = null;
+let reuniaoAnteriorData = null; // usado no check-in
+let idPlanoAtual = null; // se tá editando
+let consultorLogado = null;
+
 function $(id){return document.getElementById(id);}
 function toast(msg, ms=3500, isErr=false){ const t=$('toast'); t.textContent=msg; t.classList.remove('error'); if(isErr) t.classList.add('error'); t.classList.add('show'); clearTimeout(t._h); t._h=setTimeout(()=>t.classList.remove('show'), ms); }
+function mostrarView(id){ document.querySelectorAll('.view').forEach(v=>v.classList.remove('show')); $(id).classList.add('show'); window.scrollTo({top:0,behavior:'smooth'}); }
 
-// ======= CAMPOS DINÂMICOS (vitórias e prioridades) =======
-function addVitoria(titulo='') {
-  const idx = document.querySelectorAll('#vitorias-list .item-card').length + 1;
+// ================ API =================
+async function chamarAPI(action, dados = {}) {
+  if (WEBHOOK_URL.startsWith('COLE_AQUI')) {
+    toast('⚠ URL do Apps Script não configurada no HTML', 5000, true);
+    throw new Error('WEBHOOK_URL não configurada');
+  }
+  const payload = { token: TOKEN, action, ...dados };
+  const resp = await fetch(WEBHOOK_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: JSON.stringify(payload)
+  });
+  if (!resp.ok) throw new Error('HTTP ' + resp.status);
+  const json = await resp.json();
+  if (!json.ok) throw new Error(json.error || 'Erro desconhecido');
+  return json;
+}
+
+// ================ LOGIN =================
+async function fazerLogin() {
+  const usuario = $('login-user').value.trim();
+  const senha = $('login-pass').value;
+  if (!usuario || !senha) { toast('⚠ Preencha usuário e senha', 3500, true); return; }
+  try {
+    const r = await chamarAPI('login', { usuario, senha });
+    consultorLogado = { usuario: r.usuario, nome: r.nome };
+    localStorage.setItem('planoLogin', JSON.stringify(consultorLogado));
+    irDashboard();
+  } catch(err) {
+    toast('❌ ' + err.message, 4000, true);
+  }
+}
+
+function sair() {
+  localStorage.removeItem('planoLogin');
+  consultorLogado = null;
+  $('login-user').value = ''; $('login-pass').value = '';
+  mostrarView('view-login');
+}
+
+// ================ DASHBOARD =================
+async function irDashboard() {
+  $('dash-nome').textContent = consultorLogado.nome;
+  mostrarView('view-dashboard');
+  $('empresas-root').innerHTML = '<div class="loading"><span class="spinner"></span>Carregando empresas...</div>';
+  try {
+    const r = await chamarAPI('listar-empresas');
+    renderEmpresas(r.empresas || []);
+  } catch(err) {
+    $('empresas-root').innerHTML = `<div class="empty-state"><div class="icon">⚠</div>${err.message}</div>`;
+  }
+}
+
+let _empresasCache = [];
+function renderEmpresas(lista) {
+  _empresasCache = lista;
+  if (!lista.length) {
+    $('empresas-root').innerHTML = `<div class="empty-state"><div class="icon">📂</div><p>Nenhuma empresa cadastrada ainda.</p><p>Clique em <strong>"+ Criar nova reunião"</strong> para começar.</p></div>`;
+    return;
+  }
+  const termo = $('busca').value.trim().toLowerCase();
+  const filtradas = termo ? lista.filter(e => e.empresa.toLowerCase().includes(termo)) : lista;
+  $('empresas-root').innerHTML = filtradas.map(e => `
+    <div class="empresa-card" onclick="abrirHistorico('${e.empresa.replace(/'/g,"\\'")}')">
+      <div class="info">
+        <h4>${e.empresa}</h4>
+        <p>${e.responsavel || '—'} · última reunião: ${e.ultimaData || '—'}${e.ultimoConsultor ? ' · ' + e.ultimoConsultor : ''}</p>
+      </div>
+      <div class="count">${e.reunioes} reunião${e.reunioes > 1 ? 'ões' : ''}</div>
+    </div>
+  `).join('');
+}
+
+function filtrarEmpresas() { renderEmpresas(_empresasCache); }
+
+// ================ HISTÓRICO EMPRESA =================
+async function abrirHistorico(empresa) {
+  empresaAtual = empresa;
+  $('hist-nome').textContent = consultorLogado.nome;
+  $('hist-empresa-nome').textContent = empresa;
+  $('hist-empresa-info').textContent = 'Carregando...';
+  mostrarView('view-historico');
+  $('timeline-root').innerHTML = '<div class="loading"><span class="spinner"></span>Carregando reuniões...</div>';
+  try {
+    const r = await chamarAPI('listar-planos', { empresa });
+    renderTimeline(r.planos || []);
+  } catch(err) {
+    $('timeline-root').innerHTML = `<div class="empty-state"><div class="icon">⚠</div>${err.message}</div>`;
+  }
+}
+
+function renderTimeline(planos) {
+  const html = planos.map(p => `
+    <div class="timeline-item" onclick="editarPlano('${p.id}')">
+      <div style="display:flex;align-items:center;flex:1">
+        <div class="num">R${p.reuniao}</div>
+        <div class="meta">
+          <h4>${p.headline || 'Plano de Ação'}</h4>
+          <p>${p.data || '—'} · ${p.consultor || '—'}${p.nivel ? ' · Nível ' + p.nivel : ''}</p>
+        </div>
+      </div>
+      <div style="color:var(--text-dim);font-size:12px">Abrir →</div>
+    </div>
+  `).join('');
+  $('timeline-root').innerHTML = html || `<div class="empty-state"><div class="icon">📅</div>Nenhuma reunião registrada ainda.</div>`;
+  $('hist-empresa-info').textContent = planos.length ? `${planos.length} reuniã${planos.length > 1 ? 'ões' : 'o'} registrada${planos.length > 1 ? 's' : ''}` : 'Comece a primeira reunião abaixo';
+  // guarda a última reunião para o check-in
+  window._planosEmpresa = planos;
+}
+
+function voltarDashboard(){ empresaAtual = null; idPlanoAtual = null; reuniaoAnteriorData = null; irDashboard(); }
+
+// ================ CRIAR/EDITAR PLANO =================
+function novaEmpresa() {
+  empresaAtual = null; idPlanoAtual = null; reuniaoAnteriorData = null;
+  limparFormulario();
+  $('empresa').value = ''; $('responsavel').value = ''; $('reuniao').value = '1';
+  $('form-titulo-num').textContent = '1';
+  $('secao-checkin').style.display = 'none';
+  $('form-nome').textContent = consultorLogado.nome;
+  mostrarView('view-form');
+}
+
+async function novaReuniaoEmpresaAtual() {
+  if (!empresaAtual) return;
+  const planos = window._planosEmpresa || [];
+  const ultimaReuniao = planos.reduce((max, p) => Math.max(max, p.reuniao || 0), 0);
+  const proxReuniao = ultimaReuniao + 1;
+  idPlanoAtual = null;
+  limparFormulario();
+  $('empresa').value = empresaAtual;
+  if (planos.length) {
+    $('responsavel').value = planos[planos.length - 1]?.responsavel || '';
+  }
+  $('reuniao').value = proxReuniao;
+  $('form-titulo-num').textContent = proxReuniao;
+  $('form-nome').textContent = consultorLogado.nome;
+
+  // Se houver reunião anterior, carrega pra check-in
+  if (ultimaReuniao > 0) {
+    const ultima = planos.find(p => p.reuniao === ultimaReuniao);
+    if (ultima && ultima.id) {
+      try {
+        const r = await chamarAPI('carregar-plano', { idPlano: ultima.id });
+        reuniaoAnteriorData = r.plano;
+        renderCheckin(reuniaoAnteriorData);
+        $('secao-checkin').style.display = 'block';
+      } catch(e) { console.warn(e); }
+    }
+  } else {
+    $('secao-checkin').style.display = 'none';
+  }
+  mostrarView('view-form');
+}
+
+async function editarPlano(idPlano) {
+  try {
+    const r = await chamarAPI('carregar-plano', { idPlano });
+    const plano = r.plano;
+    idPlanoAtual = idPlano;
+    limparFormulario();
+    $('empresa').value = plano.empresa || '';
+    $('responsavel').value = plano.responsavel || '';
+    $('data').value = plano.data || new Date().toISOString().slice(0,10);
+    $('reuniao').value = plano.reuniao || 1;
+    $('form-titulo-num').textContent = plano.reuniao || 1;
+    $('nivel').value = plano.nivelNum || '';
+    $('objetivo12m').value = plano.objetivo12m || '';
+    $('fortes').value = plano.fortes || '';
+    $('fracos').value = plano.fracos || '';
+    (plano.vitorias || []).forEach(v => addVitoria(v.titulo, v.resp, v.prazo, v.ind));
+    (plano.prioridades || []).forEach(p => addPrioridade(p.titulo, p.resp, p.prazo, p.ind));
+    $('tri1').value = plano.tri1 || '';
+    $('tri2').value = plano.tri2 || '';
+    $('tri3').value = plano.tri3 || '';
+    $('tri4').value = plano.tri4 || '';
+    $('kpis').value = plano.kpis || '';
+    $('frequencia').value = plano.frequencia || '';
+    $('proxData').value = plano.proxData || '';
+    $('proxHora').value = plano.proxHora || '';
+    $('proxFormato').value = plano.proxFormato || '';
+    $('proxMentor').value = plano.proxMentor || '';
+    $('proxPauta').value = plano.proxPauta || '';
+    aplicarSugestoes();
+    // Check-in: se houver plano anterior daquela mesma empresa
+    const reuniao = plano.reuniao || 1;
+    if (reuniao > 1 && window._planosEmpresa) {
+      const anterior = window._planosEmpresa.find(p => p.reuniao === reuniao - 1);
+      if (anterior && anterior.id) {
+        const ra = await chamarAPI('carregar-plano', { idPlano: anterior.id });
+        reuniaoAnteriorData = ra.plano;
+        renderCheckin(reuniaoAnteriorData, plano.checkin || {});
+        $('secao-checkin').style.display = 'block';
+      }
+    }
+    $('form-nome').textContent = consultorLogado.nome;
+    mostrarView('view-form');
+  } catch(err) {
+    toast('❌ ' + err.message, 4000, true);
+  }
+}
+
+// ================ CHECK-IN =================
+function renderCheckin(planoAnterior, statusSalvo = {}) {
+  const lista = [];
+  (planoAnterior.vitorias || []).forEach((v,i) => lista.push({ key: 'v'+i, tipo: 'Vitória', titulo: v.titulo, prazo: v.prazo }));
+  (planoAnterior.prioridades || []).forEach((p,i) => lista.push({ key: 'p'+i, tipo: 'Prioridade', titulo: p.titulo, prazo: p.prazo }));
+  if (!lista.length) { $('checkin-root').innerHTML = '<p style="color:var(--text-dim);font-size:13px">Sem ações anteriores pra conferir.</p>'; return; }
+  $('checkin-root').innerHTML = lista.map(it => {
+    const st = statusSalvo[it.key] || {};
+    return `
+      <div class="checkin-item" data-key="${it.key}">
+        <div class="titulo"><span style="color:var(--accent);font-size:10px;letter-spacing:1px">${it.tipo.toUpperCase()}${it.prazo ? ' · '+it.prazo : ''}</span><br>${it.titulo}</div>
+        <div class="checkin-status">
+          <button data-s="feita" onclick="marcarStatus(this)" class="${st.status==='feita'?'active':''}">✓ FEITA</button>
+          <button data-s="parcial" onclick="marcarStatus(this)" class="${st.status==='parcial'?'active':''}">◐ PARCIAL</button>
+          <button data-s="naofeita" onclick="marcarStatus(this)" class="${st.status==='naofeita'?'active':''}">✗ NÃO FEITA</button>
+        </div>
+        <textarea placeholder="Observação (opcional)">${st.obs || ''}</textarea>
+      </div>
+    `;
+  }).join('');
+}
+
+function marcarStatus(btn) {
+  const parent = btn.parentElement;
+  parent.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+function coletarCheckin() {
+  const out = {};
+  document.querySelectorAll('#checkin-root .checkin-item').forEach(item => {
+    const key = item.dataset.key;
+    const btnActive = item.querySelector('.checkin-status button.active');
+    const status = btnActive ? btnActive.dataset.s : null;
+    const obs = item.querySelector('textarea').value.trim();
+    if (status || obs) out[key] = { status, obs };
+  });
+  return out;
+}
+
+// ================ VITÓRIAS / PRIORIDADES (cards dinâmicos) =================
+function addVitoria(titulo='', resp='', prazo='', ind=''){
   const card = document.createElement('div');
   card.className = 'item-card';
+  const idx = $('vitorias-list').children.length + 1;
   card.innerHTML = `
-    <div class="item-head">
-      <div class="item-num">Vitória rápida #${idx}</div>
-      <button class="btn-remove" onclick="this.closest('.item-card').remove(); renumerar('vitorias-list','Vitória rápida')">×</button>
-    </div>
-    <div class="field" style="margin-bottom:8px"><label>Ação</label><input type="text" class="v-titulo" placeholder="Ex.: Separar conta PF da PJ" value="${titulo.replace(/"/g,'&quot;')}"></div>
+    <div class="item-head"><div class="item-num">Vitória #${idx}</div><button class="btn-remove" onclick="this.closest('.item-card').remove(); renumerar('vitorias-list','Vitória')">×</button></div>
+    <div class="field" style="margin-bottom:6px"><input type="text" class="v-titulo" placeholder="Ação" value="${titulo.replace(/"/g,'&quot;')}"></div>
     <div class="row-small">
-      <div class="field" style="margin:0"><label>Responsável</label><input type="text" class="v-resp" placeholder="Dono / líder / sócio"></div>
-      <div class="field" style="margin:0"><label>Prazo</label><input type="text" class="v-prazo" placeholder="Ex.: 7 dias"></div>
-      <div class="field" style="margin:0"><label>Indicador de sucesso</label><input type="text" class="v-ind" placeholder="Como saber que deu certo"></div>
+      <input type="text" class="v-resp" placeholder="Responsável" value="${resp.replace(/"/g,'&quot;')}">
+      <input type="text" class="v-prazo" placeholder="Prazo" value="${prazo.replace(/"/g,'&quot;')}">
+      <input type="text" class="v-ind" placeholder="Indicador" value="${ind.replace(/"/g,'&quot;')}">
     </div>
   `;
   $('vitorias-list').appendChild(card);
 }
 
-function addPrioridade(titulo='') {
-  const idx = document.querySelectorAll('#prioridades-list .item-card').length + 1;
+function addPrioridade(titulo='', resp='', prazo='', ind=''){
   const card = document.createElement('div');
   card.className = 'item-card';
+  const idx = $('prioridades-list').children.length + 1;
   card.innerHTML = `
-    <div class="item-head">
-      <div class="item-num">Prioridade #${idx}</div>
-      <button class="btn-remove" onclick="this.closest('.item-card').remove(); renumerar('prioridades-list','Prioridade')">×</button>
-    </div>
-    <div class="field" style="margin-bottom:8px"><label>Ação</label><input type="text" class="p-titulo" placeholder="Ex.: Montar ficha técnica de 100% dos produtos" value="${titulo.replace(/"/g,'&quot;')}"></div>
+    <div class="item-head"><div class="item-num">Prioridade #${idx}</div><button class="btn-remove" onclick="this.closest('.item-card').remove(); renumerar('prioridades-list','Prioridade')">×</button></div>
+    <div class="field" style="margin-bottom:6px"><input type="text" class="p-titulo" placeholder="Ação" value="${titulo.replace(/"/g,'&quot;')}"></div>
     <div class="row-small">
-      <div class="field" style="margin:0"><label>Responsável</label><input type="text" class="p-resp" placeholder="Dono / líder"></div>
-      <div class="field" style="margin:0"><label>Prazo</label><input type="text" class="p-prazo" placeholder="Ex.: 30/60/90 dias"></div>
-      <div class="field" style="margin:0"><label>Indicador</label><input type="text" class="p-ind" placeholder="Como medir"></div>
+      <input type="text" class="p-resp" placeholder="Responsável" value="${resp.replace(/"/g,'&quot;')}">
+      <input type="text" class="p-prazo" placeholder="Prazo" value="${prazo.replace(/"/g,'&quot;')}">
+      <input type="text" class="p-ind" placeholder="Indicador" value="${ind.replace(/"/g,'&quot;')}">
     </div>
   `;
   $('prioridades-list').appendChild(card);
 }
 
-function renumerar(listId, label) {
-  document.querySelectorAll(`#${listId} .item-card .item-num`).forEach((el,i)=>{ el.textContent = `${label} #${i+1}`; });
+function renumerar(listId, label){
+  document.querySelectorAll(`#${listId} .item-num`).forEach((el,i) => el.textContent = `${label} #${i+1}`);
 }
 
 function aplicarSugestoes() {
   const nivel = $('nivel').value;
   const sugV = $('sug-vitorias'), sugP = $('sug-prioridades');
-  const listV = $('sug-vitorias-list'), listP = $('sug-prioridades-list');
   if (!nivel) { sugV.style.display='none'; sugP.style.display='none'; return; }
-  const dados = NIVEIS.find(n => n.num === nivel);
-  if (!dados) return;
-  listV.innerHTML = dados.vitorias_sugeridas.map(s => `<li onclick="addVitoria('${s.replace(/'/g,"\\'")}')">+ ${s}</li>`).join('');
-  listP.innerHTML = dados.prioridades.map(s => `<li onclick="addPrioridade('${s.replace(/'/g,"\\'")}')">+ ${s}</li>`).join('');
-  sugV.style.display = 'block';
-  sugP.style.display = 'block';
+  const d = NIVEIS.find(n => n.num === nivel);
+  if (!d) return;
+  $('sug-vitorias-list').innerHTML = d.vitorias_sugeridas.map(s=>`<li onclick="addVitoria('${s.replace(/'/g,"\\'")}')">+ ${s}</li>`).join('');
+  $('sug-prioridades-list').innerHTML = d.prioridades.map(s=>`<li onclick="addPrioridade('${s.replace(/'/g,"\\'")}')">+ ${s}</li>`).join('');
+  sugV.style.display = 'block'; sugP.style.display = 'block';
 }
 
-function limparTudo(){
-  if (!confirm('Limpar todo o plano?')) return;
-  document.querySelectorAll('input, textarea').forEach(el => { if(el.type!=='button') el.value=''; });
+function limparFormulario(){
+  ['empresa','responsavel','objetivo12m','fortes','fracos','tri1','tri2','tri3','tri4','kpis','frequencia','proxFormato','proxMentor','proxPauta'].forEach(id => $(id).value = '');
+  ['proxData','proxHora'].forEach(id => $(id).value = '');
+  $('nivel').value = '';
+  $('data').value = new Date().toISOString().slice(0,10);
   $('vitorias-list').innerHTML = '';
   $('prioridades-list').innerHTML = '';
   $('sug-vitorias').style.display='none';
   $('sug-prioridades').style.display='none';
-  $('nivel').value='';
-  $('data').value = new Date().toISOString().slice(0,10);
-  toast('✓ Limpo');
+  $('secao-checkin').style.display='none';
+  $('checkin-root').innerHTML='';
 }
 
-// ======= SVG → PNG =======
-function svgToPngDataUrl(svgStr, widthPx = 500) {
-  return new Promise((resolve, reject) => {
-    const blob = new Blob([svgStr], { type:'image/svg+xml;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const img = new Image();
-    img.onload = () => {
-      const canvas = document.createElement('canvas');
-      const ratio = img.height / img.width;
-      canvas.width = widthPx; canvas.height = Math.round(widthPx*ratio);
-      const ctx = canvas.getContext('2d');
-      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-      URL.revokeObjectURL(url);
-      resolve(canvas.toDataURL('image/png'));
-    };
-    img.onerror = (e) => { URL.revokeObjectURL(url); reject(e); };
-    img.src = url;
-  });
-}
-
-// ======= COLETAR DADOS =======
+// ================ COLETAR + SALVAR + PDF =================
 function coletar() {
   const vitorias = [...document.querySelectorAll('#vitorias-list .item-card')].map(c => ({
     titulo: c.querySelector('.v-titulo').value.trim(),
@@ -407,19 +694,21 @@ function coletar() {
     prazo: c.querySelector('.v-prazo').value.trim(),
     ind: c.querySelector('.v-ind').value.trim()
   })).filter(v => v.titulo);
-
   const prioridades = [...document.querySelectorAll('#prioridades-list .item-card')].map(c => ({
     titulo: c.querySelector('.p-titulo').value.trim(),
     resp: c.querySelector('.p-resp').value.trim(),
     prazo: c.querySelector('.p-prazo').value.trim(),
     ind: c.querySelector('.p-ind').value.trim()
   })).filter(p => p.titulo);
-
   return {
-    empresa: $('empresa').value.trim() || '—',
-    responsavel: $('responsavel').value.trim() || '—',
+    idPlano: idPlanoAtual || undefined,
+    empresa: $('empresa').value.trim(),
+    responsavel: $('responsavel').value.trim(),
     data: $('data').value || new Date().toISOString().slice(0,10),
+    reuniao: parseInt($('reuniao').value) || 1,
+    consultor: consultorLogado ? consultorLogado.nome : '',
     nivelNum: $('nivel').value || '',
+    headline: $('nivel').value ? `Reunião ${$('reuniao').value} · Nível ${$('nivel').value}` : `Reunião ${$('reuniao').value}`,
     objetivo12m: $('objetivo12m').value.trim(),
     fortes: $('fortes').value.trim(),
     fracos: $('fracos').value.trim(),
@@ -432,313 +721,340 @@ function coletar() {
     proxHora: $('proxHora').value || '',
     proxFormato: $('proxFormato').value.trim(),
     proxMentor: $('proxMentor').value.trim(),
-    proxPauta: $('proxPauta').value.trim()
+    proxPauta: $('proxPauta').value.trim(),
+    checkin: coletarCheckin()
   };
 }
 
-function formatarData(iso){ if(!iso) return '—'; const [y,m,d]=iso.split('-'); return `${d}/${m}/${y}`; }
-
-// ======= PDF =======
-async function gerarPDF() {
-  const btn = $('btn-pdf');
-  btn.disabled = true; btn.textContent = '⏳ Gerando...';
+async function salvarEGerar() {
+  const btn = $('btn-salvar');
+  const d = coletar();
+  if (!d.empresa) { toast('⚠ Preencha a Empresa', 3500, true); return; }
+  if (d.vitorias.length < 2) { toast('⚠ Mínimo de 2 vitórias rápidas', 4000, true); return; }
+  btn.disabled = true; btn.innerHTML = '<span class="spinner"></span>Salvando...';
   try {
-    const d = coletar();
-    if (!d.empresa || d.empresa === '—') { toast('⚠ Preencha a Empresa', 3500, true); btn.disabled=false; btn.innerHTML='📄 Gerar plano em PDF'; return; }
-    if (d.vitorias.length < 2) { toast('⚠ Mínimo de 2 vitórias rápidas', 4000, true); btn.disabled=false; btn.innerHTML='📄 Gerar plano em PDF'; return; }
-
-    const nivelData = NIVEIS.find(n => n.num === d.nivelNum);
-    const logoPro = await svgToPngDataUrl(LOGO_PRO_SVG_STR, 600);
-    const logoLife = await svgToPngDataUrl(LOGO_LIFE_SVG_STR, 500);
-
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF({ unit:'pt', format:'a4' });
-    const pageW = doc.internal.pageSize.getWidth();
-    const pageH = doc.internal.pageSize.getHeight();
-    const margin = 48;
-
-    const CL = { bgDark:[11,18,48], card:[26,35,87], accent:[77,201,255],
-      text:[238,242,255], textDim:[168,178,216], lineLight:[225,230,245], textDark:[20,28,64],
-      green:[34,197,94], yellow:[251,191,36], red:[248,113,113] };
-
-    // ========== CAPA ==========
-    doc.setFillColor(...CL.bgDark); doc.rect(0,0,pageW,pageH,'F');
-    doc.setFillColor(...CL.accent); doc.rect(0,0,6,pageH,'F');
-
-    const logoW = 180, logoH = logoW * (532/1310);
-    doc.addImage(logoPro, 'PNG', (pageW - logoW)/2, 70, logoW, logoH);
-
-    doc.setFont('helvetica','bold'); doc.setFontSize(10); doc.setTextColor(...CL.accent);
-    doc.text('MÉTODO GESTÃO LIFE · GESTÃO PRO', pageW/2, 70 + logoH + 42, { align:'center', charSpace:2 });
-
-    const tituloY = 70 + logoH + 92;
-    doc.setFont('helvetica','bold'); doc.setFontSize(34); doc.setTextColor(...CL.text);
-    doc.text('PLANO DE', pageW/2, tituloY, { align:'center' });
-    doc.setTextColor(...CL.accent);
-    doc.text('AÇÃO INICIAL', pageW/2, tituloY + 44, { align:'center' });
-
-    doc.setDrawColor(...CL.accent); doc.setLineWidth(2);
-    doc.line(pageW/2 - 40, tituloY + 68, pageW/2 + 40, tituloY + 68);
-
-    doc.setFont('helvetica','normal'); doc.setFontSize(13); doc.setTextColor(...CL.textDim);
-    doc.text('Construído na reunião estratégica', pageW/2, tituloY + 98, { align:'center' });
-
-    // Card informações
-    const infoY = pageH - 220;
-    doc.setFillColor(...CL.card); doc.roundedRect(margin, infoY, pageW - margin*2, 130, 10, 10, 'F');
-    doc.setFillColor(...CL.accent); doc.roundedRect(margin, infoY, 4, 130, 2, 2, 'F');
-    doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(...CL.accent);
-    doc.text('INFORMAÇÕES DO PLANO', margin+20, infoY+24, { charSpace:2 });
-    const info = [['Empresa', d.empresa],['Responsável', d.responsavel],['Data', formatarData(d.data)],
-                  ['Nível atual', nivelData ? `Nível ${nivelData.num} · ${nivelData.nome}` : '—']];
-    info.forEach((row,i) => {
-      const y = infoY + 50 + i*20;
-      doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(...CL.textDim);
-      doc.text(row[0].toUpperCase(), margin+20, y);
-      doc.setFont('helvetica','bold'); doc.setFontSize(11); doc.setTextColor(...CL.text);
-      doc.text(String(row[1]).slice(0,70), margin+130, y);
-    });
-
-    // Footer capa
-    doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(...CL.textDim);
-    doc.text('Método Gestão Life · Gestão PRO', margin, pageH-36);
-    const logoFW = 56, logoFH = logoFW * (262/1393);
-    doc.addImage(logoLife, 'PNG', (pageW - logoFW)/2, pageH-36-logoFH+2, logoFW, logoFH);
-    doc.text('Página 1', pageW-margin, pageH-36, { align:'right' });
-
-    // ========== PÁGINAS INTERNAS ==========
-    doc.addPage(); let pageNum = 2;
-    const renderPage = () => {
-      doc.setFillColor(255,255,255); doc.rect(0,0,pageW,pageH,'F');
-      doc.setFillColor(...CL.bgDark); doc.rect(0,0,pageW,42,'F');
-      doc.setFillColor(...CL.accent); doc.rect(0,42,pageW,3,'F');
-      doc.setFont('helvetica','bold'); doc.setFontSize(10); doc.setTextColor(...CL.accent);
-      doc.text('MÉTODO GESTÃO LIFE · PLANO DE AÇÃO', margin, 27, { charSpace:2 });
-      doc.setFont('helvetica','normal'); doc.setTextColor(...CL.text); doc.setFontSize(9);
-      doc.text(d.empresa, pageW-margin, 27, { align:'right' });
-      doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(...CL.textDim);
-      doc.text('Método Gestão Life · Gestão PRO', margin, pageH-24);
-      const lW=52, lH=lW*(262/1393);
-      doc.addImage(logoLife, 'PNG', (pageW-lW)/2, pageH-24-lH+2, lW, lH);
-      doc.text(`Página ${pageNum}`, pageW-margin, pageH-24, { align:'right' });
-    };
-    renderPage();
-    let y = 90;
-    const ensureSpace = (need) => { if (y + need > pageH - 50) { doc.addPage(); pageNum++; renderPage(); y = 90; } };
-
-    // Kicker + título do nível
-    doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(...CL.accent);
-    doc.text('PLANO DE AÇÃO INICIAL', margin, y, { charSpace:2 }); y += 16;
-    if (nivelData) {
-      doc.setFont('helvetica','bold'); doc.setFontSize(22); doc.setTextColor(...CL.textDark);
-      doc.text(`NÍVEL ${nivelData.num} · ${nivelData.nome.toUpperCase()}`, margin, y); y += 8;
-      doc.setDrawColor(...CL.accent); doc.setLineWidth(1.5); doc.line(margin, y+4, margin+40, y+4); y += 16;
-      doc.setFont('helvetica','normal'); doc.setFontSize(10); doc.setTextColor(120,130,160);
-      const focoLines = doc.splitTextToSize(`Foco: ${nivelData.foco}`, pageW - margin*2);
-      doc.text(focoLines, margin, y); y += focoLines.length * 12 + 16;
-    } else {
-      y += 8;
-    }
-
-    // Objetivo 12m
-    if (d.objetivo12m) {
-      ensureSpace(60);
-      doc.setFillColor(246,248,254);
-      doc.setFont('helvetica','normal'); doc.setFontSize(11);
-      const objL = doc.splitTextToSize(d.objetivo12m, pageW - margin*2 - 32);
-      const objH = 24 + objL.length * 14 + 14;
-      doc.roundedRect(margin, y, pageW - margin*2, objH, 8, 8, 'F');
-      doc.setFillColor(...CL.accent); doc.roundedRect(margin, y, 4, objH, 2, 2, 'F');
-      doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(...CL.accent);
-      doc.text('OBJETIVO DOS PRÓXIMOS 12 MESES', margin+16, y+20, { charSpace:1 });
-      doc.setFont('helvetica','normal'); doc.setFontSize(11); doc.setTextColor(60,70,100);
-      doc.text(objL, margin+16, y+38);
-      y += objH + 20;
-    }
-
-    // RECAP
-    if (d.fortes || d.fracos) {
-      ensureSpace(60);
-      doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(...CL.accent);
-      doc.text('RECAP DO DIAGNÓSTICO', margin, y, { charSpace:2 }); y += 20;
-      if (d.fortes) {
-        ensureSpace(40);
-        doc.setFont('helvetica','bold'); doc.setFontSize(10); doc.setTextColor(...CL.green);
-        doc.text('ONDE ESTÁ FORTE', margin, y, { charSpace:1 }); y += 14;
-        doc.setFont('helvetica','normal'); doc.setFontSize(10); doc.setTextColor(60,70,100);
-        const linhas = doc.splitTextToSize(d.fortes, pageW - margin*2);
-        ensureSpace(linhas.length * 13 + 8);
-        doc.text(linhas, margin, y); y += linhas.length * 13 + 14;
-      }
-      if (d.fracos) {
-        ensureSpace(40);
-        doc.setFont('helvetica','bold'); doc.setFontSize(10); doc.setTextColor(...CL.red);
-        doc.text('ONDE ESTÁ TRAVANDO', margin, y, { charSpace:1 }); y += 14;
-        doc.setFont('helvetica','normal'); doc.setFontSize(10); doc.setTextColor(60,70,100);
-        const linhas = doc.splitTextToSize(d.fracos, pageW - margin*2);
-        ensureSpace(linhas.length * 13 + 8);
-        doc.text(linhas, margin, y); y += linhas.length * 13 + 14;
-      }
-      y += 6;
-    }
-
-    // VITÓRIAS RÁPIDAS
-    ensureSpace(50);
-    doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(...CL.accent);
-    doc.text('VITÓRIAS RÁPIDAS · ATÉ 30 DIAS', margin, y, { charSpace:2 }); y += 18;
-    d.vitorias.forEach((v, i) => {
-      doc.setFont('helvetica','bold'); doc.setFontSize(11);
-      const tL = doc.splitTextToSize(v.titulo, pageW - margin*2 - 50);
-      let metaStr = [v.resp && `Resp: ${v.resp}`, v.prazo && `Prazo: ${v.prazo}`, v.ind && `Indicador: ${v.ind}`].filter(Boolean).join('  ·  ');
-      doc.setFont('helvetica','normal'); doc.setFontSize(9);
-      const metaL = metaStr ? doc.splitTextToSize(metaStr, pageW - margin*2 - 50) : [];
-      const cardH = 14 + tL.length * 14 + (metaL.length ? metaL.length * 11 + 4 : 0) + 14;
-      ensureSpace(cardH + 8);
-      // Card
-      doc.setFillColor(255,251,235);
-      doc.roundedRect(margin, y, pageW - margin*2, cardH, 8, 8, 'F');
-      doc.setFillColor(...CL.yellow); doc.roundedRect(margin, y, 4, cardH, 2, 2, 'F');
-      // Número
-      doc.setFont('helvetica','bold'); doc.setFontSize(14); doc.setTextColor(161,98,7);
-      doc.text(String(i+1).padStart(2,'0'), margin+14, y+26);
-      // Título
-      doc.setFont('helvetica','bold'); doc.setFontSize(11); doc.setTextColor(...CL.textDark);
-      doc.text(tL, margin+40, y+22);
-      // Meta
-      if (metaL.length) {
-        doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(140,120,60);
-        doc.text(metaL, margin+40, y + 22 + tL.length*14 + 10);
-      }
-      y += cardH + 8;
-    });
-    y += 6;
-
-    // PRIORIDADES
-    if (d.prioridades.length) {
-      ensureSpace(50);
-      doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(...CL.accent);
-      doc.text('PRIORIDADES · 30 A 90 DIAS', margin, y, { charSpace:2 }); y += 18;
-      d.prioridades.forEach((p, i) => {
-        doc.setFont('helvetica','bold'); doc.setFontSize(11);
-        const tL = doc.splitTextToSize(p.titulo, pageW - margin*2 - 50);
-        let metaStr = [p.resp && `Resp: ${p.resp}`, p.prazo && `Prazo: ${p.prazo}`, p.ind && `Indicador: ${p.ind}`].filter(Boolean).join('  ·  ');
-        doc.setFont('helvetica','normal'); doc.setFontSize(9);
-        const metaL = metaStr ? doc.splitTextToSize(metaStr, pageW - margin*2 - 50) : [];
-        const cardH = 14 + tL.length * 14 + (metaL.length ? metaL.length * 11 + 4 : 0) + 14;
-        ensureSpace(cardH + 8);
-        doc.setFillColor(250,252,255);
-        doc.roundedRect(margin, y, pageW - margin*2, cardH, 8, 8, 'F');
-        doc.setDrawColor(226,232,240); doc.roundedRect(margin, y, pageW - margin*2, cardH, 8, 8, 'S');
-        doc.setFillColor(...CL.accent); doc.roundedRect(margin, y, 4, cardH, 2, 2, 'F');
-        doc.setFont('helvetica','bold'); doc.setFontSize(14); doc.setTextColor(...CL.accent);
-        doc.text(String(i+1).padStart(2,'0'), margin+14, y+26);
-        doc.setFont('helvetica','bold'); doc.setFontSize(11); doc.setTextColor(...CL.textDark);
-        doc.text(tL, margin+40, y+22);
-        if (metaL.length) {
-          doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(90,100,130);
-          doc.text(metaL, margin+40, y + 22 + tL.length*14 + 10);
-        }
-        y += cardH + 8;
-      });
-      y += 6;
-    }
-
-    // ROADMAP
-    if (d.tri1 || d.tri2 || d.tri3 || d.tri4) {
-      ensureSpace(80);
-      doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(...CL.accent);
-      doc.text('ROADMAP DOS 12 MESES', margin, y, { charSpace:2 }); y += 20;
-      const trimestres = [
-        { label: 'TRI 1 · MÊS 1-3', txt: d.tri1 },
-        { label: 'TRI 2 · MÊS 4-6', txt: d.tri2 },
-        { label: 'TRI 3 · MÊS 7-9', txt: d.tri3 },
-        { label: 'TRI 4 · MÊS 10-12', txt: d.tri4 }
-      ];
-      trimestres.forEach(t => {
-        if (!t.txt) return;
-        doc.setFont('helvetica','normal'); doc.setFontSize(10);
-        const txtL = doc.splitTextToSize(t.txt, pageW - margin*2 - 20);
-        const h = 24 + txtL.length * 12 + 10;
-        ensureSpace(h + 6);
-        doc.setFillColor(246,248,254); doc.roundedRect(margin, y, pageW - margin*2, h, 6, 6, 'F');
-        doc.setFillColor(...CL.accent); doc.roundedRect(margin, y, 3, h, 1.5, 1.5, 'F');
-        doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(...CL.accent);
-        doc.text(t.label, margin+12, y+16, { charSpace:1 });
-        doc.setFont('helvetica','normal'); doc.setFontSize(10); doc.setTextColor(60,70,100);
-        doc.text(txtL, margin+12, y+32);
-        y += h + 6;
-      });
-      y += 4;
-    }
-
-    // INDICADORES
-    if (d.kpis || d.frequencia) {
-      ensureSpace(60);
-      doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(...CL.accent);
-      doc.text('INDICADORES DE ACOMPANHAMENTO', margin, y, { charSpace:2 }); y += 18;
-      if (d.kpis) {
-        const kpisL = d.kpis.split('\n').filter(k => k.trim());
-        kpisL.forEach(kpi => {
-          ensureSpace(16);
-          doc.setFillColor(...CL.accent); doc.circle(margin+6, y-2, 2.5, 'F');
-          doc.setFont('helvetica','normal'); doc.setFontSize(10); doc.setTextColor(...CL.textDark);
-          doc.text(kpi.trim(), margin+14, y);
-          y += 14;
-        });
-        y += 4;
-      }
-      if (d.frequencia) {
-        ensureSpace(30);
-        doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(...CL.accent);
-        doc.text('FREQUÊNCIA DE REVISÃO', margin, y, { charSpace:1 }); y += 12;
-        doc.setFont('helvetica','normal'); doc.setFontSize(10); doc.setTextColor(60,70,100);
-        const fL = doc.splitTextToSize(d.frequencia, pageW - margin*2);
-        doc.text(fL, margin, y); y += fL.length * 13 + 10;
-      }
-    }
-
-    // PRÓXIMA REUNIÃO
-    ensureSpace(100);
-    y += 10;
-    doc.setFillColor(...CL.bgDark);
-    const prxLines = [];
-    if (d.proxData) prxLines.push(`Data: ${formatarData(d.proxData)}${d.proxHora ? ' às '+d.proxHora : ''}`);
-    if (d.proxFormato) prxLines.push(`Formato: ${d.proxFormato}`);
-    if (d.proxMentor) prxLines.push(`Mentor: ${d.proxMentor}`);
-    const prxPauta = d.proxPauta ? doc.splitTextToSize(d.proxPauta, pageW - margin*2 - 32) : [];
-    const prxH = 30 + prxLines.length * 14 + (prxPauta.length ? prxPauta.length * 13 + 12 : 0) + 14;
-    ensureSpace(prxH + 8);
-    doc.roundedRect(margin, y, pageW - margin*2, prxH, 8, 8, 'F');
-    doc.setFillColor(...CL.accent); doc.roundedRect(margin, y, 4, prxH, 2, 2, 'F');
-    doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(...CL.accent);
-    doc.text('PRÓXIMA REUNIÃO', margin+16, y+20, { charSpace:2 });
-    let subY = y + 40;
-    doc.setFont('helvetica','normal'); doc.setFontSize(11); doc.setTextColor(...CL.text);
-    prxLines.forEach(line => { doc.text(line, margin+16, subY); subY += 14; });
-    if (prxPauta.length) {
-      subY += 6;
-      doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(...CL.accent);
-      doc.text('PAUTA / MATERIAL', margin+16, subY); subY += 12;
-      doc.setFont('helvetica','normal'); doc.setFontSize(10); doc.setTextColor(...CL.textDim);
-      doc.text(prxPauta, margin+16, subY);
-    }
-    y += prxH + 20;
-
-    // Salvar
-    const nomeArq = `Plano_Acao_${d.empresa.replace(/[^a-z0-9]/gi,'_').slice(0,40)}_${d.data.replace(/-/g,'')}.pdf`;
-    doc.save(nomeArq);
-    toast('✓ PDF gerado: ' + nomeArq);
-  } catch (err) {
-    console.error(err);
-    toast('❌ Erro: ' + err.message, 5000, true);
+    const r = await chamarAPI('salvar-plano', { plano: d });
+    idPlanoAtual = r.idPlano;
+    toast('✓ Plano salvo!');
+    await gerarPDF(d);
+  } catch(err) {
+    toast('❌ ' + err.message, 5000, true);
   } finally {
-    btn.disabled = false;
-    btn.innerHTML = '📄 Gerar plano em PDF';
+    btn.disabled = false; btn.innerHTML = '💾 Salvar e gerar PDF';
   }
 }
 
-// Init
-$('data').value = new Date().toISOString().slice(0,10);
+function formatarData(iso){ if(!iso) return '—'; const [y,m,dd]=iso.split('-'); return `${dd}/${m}/${y}`; }
+
+// ================ PDF =================
+function svgToPngDataUrl(svgStr, widthPx = 500) {
+  return new Promise((resolve, reject) => {
+    const blob = new Blob([svgStr], { type:'image/svg+xml;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      const ratio = img.height / img.width;
+      canvas.width = widthPx; canvas.height = Math.round(widthPx*ratio);
+      canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+      URL.revokeObjectURL(url);
+      resolve(canvas.toDataURL('image/png'));
+    };
+    img.onerror = (e) => { URL.revokeObjectURL(url); reject(e); };
+    img.src = url;
+  });
+}
+
+async function gerarPDF(d) {
+  const nivelData = NIVEIS.find(n => n.num === d.nivelNum);
+  const logoPro = await svgToPngDataUrl(LOGO_PRO_SVG_STR, 600);
+  const logoLife = await svgToPngDataUrl(LOGO_LIFE_SVG_STR, 500);
+
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ unit:'pt', format:'a4' });
+  const pageW = doc.internal.pageSize.getWidth();
+  const pageH = doc.internal.pageSize.getHeight();
+  const margin = 48;
+
+  const CL = { bgDark:[11,18,48], card:[26,35,87], accent:[77,201,255], text:[238,242,255], textDim:[168,178,216], lineLight:[225,230,245], textDark:[20,28,64], green:[34,197,94], yellow:[251,191,36], red:[248,113,113] };
+
+  // CAPA
+  doc.setFillColor(...CL.bgDark); doc.rect(0,0,pageW,pageH,'F');
+  doc.setFillColor(...CL.accent); doc.rect(0,0,6,pageH,'F');
+  const logoW = 160, logoH = logoW * (532/1310);
+  doc.addImage(logoPro, 'PNG', (pageW - logoW)/2, 120, logoW, logoH);
+  doc.setFont('helvetica','bold'); doc.setFontSize(10); doc.setTextColor(...CL.accent);
+  doc.text('MÉTODO GESTÃO LIFE · GESTÃO PRO', pageW/2, 120 + logoH + 48, { align:'center', charSpace:2 });
+  const tituloY = 120 + logoH + 108;
+  doc.setFont('helvetica','bold'); doc.setFontSize(34); doc.setTextColor(...CL.text);
+  doc.text('PLANO DE AÇÃO', pageW/2, tituloY, { align:'center' });
+  doc.setTextColor(...CL.accent);
+  doc.text(`REUNIÃO ${d.reuniao}`, pageW/2, tituloY + 44, { align:'center' });
+  doc.setDrawColor(...CL.accent); doc.setLineWidth(2);
+  doc.line(pageW/2 - 40, tituloY + 68, pageW/2 + 40, tituloY + 68);
+  doc.setFont('helvetica','normal'); doc.setFontSize(13); doc.setTextColor(...CL.textDim);
+  doc.text('Construído com o cliente na reunião', pageW/2, tituloY + 98, { align:'center' });
+
+  const infoY = pageH - 240;
+  doc.setFillColor(...CL.card); doc.roundedRect(margin, infoY, pageW-margin*2, 150, 10, 10, 'F');
+  doc.setFillColor(...CL.accent); doc.roundedRect(margin, infoY, 4, 150, 2, 2, 'F');
+  doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(...CL.accent);
+  doc.text('INFORMAÇÕES DA REUNIÃO', margin+20, infoY+24, { charSpace:2 });
+  const info = [['Empresa', d.empresa],['Responsável', d.responsavel || '—'],['Data', formatarData(d.data)],['Consultor', d.consultor || '—'],['Nível', nivelData ? `Nível ${nivelData.num} · ${nivelData.nome}` : '—']];
+  info.forEach((row,i) => {
+    const y = infoY + 54 + i*18;
+    doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(...CL.textDim);
+    doc.text(row[0].toUpperCase(), margin+20, y);
+    doc.setFont('helvetica','bold'); doc.setFontSize(10); doc.setTextColor(...CL.text);
+    doc.text(String(row[1]).slice(0,60), margin+140, y);
+  });
+
+  doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(...CL.textDim);
+  doc.text('Método Gestão Life · Gestão PRO', margin, pageH-36);
+  const logoFW = 56, logoFH = logoFW * (262/1393);
+  doc.addImage(logoLife, 'PNG', (pageW-logoFW)/2, pageH-36-logoFH+2, logoFW, logoFH);
+  doc.text('Página 1', pageW-margin, pageH-36, { align:'right' });
+
+  // PÁGINAS INTERNAS
+  doc.addPage(); let pageNum = 2;
+  const renderPage = () => {
+    doc.setFillColor(255,255,255); doc.rect(0,0,pageW,pageH,'F');
+    doc.setFillColor(...CL.bgDark); doc.rect(0,0,pageW,42,'F');
+    doc.setFillColor(...CL.accent); doc.rect(0,42,pageW,3,'F');
+    doc.setFont('helvetica','bold'); doc.setFontSize(10); doc.setTextColor(...CL.accent);
+    doc.text(`PLANO DE AÇÃO · REUNIÃO ${d.reuniao}`, margin, 27, { charSpace:2 });
+    doc.setFont('helvetica','normal'); doc.setTextColor(...CL.text); doc.setFontSize(9);
+    doc.text(d.empresa, pageW-margin, 27, { align:'right' });
+    doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(...CL.textDim);
+    doc.text('Método Gestão Life · Gestão PRO', margin, pageH-24);
+    const lW=52, lH=lW*(262/1393);
+    doc.addImage(logoLife, 'PNG', (pageW-lW)/2, pageH-24-lH+2, lW, lH);
+    doc.text(`Página ${pageNum}`, pageW-margin, pageH-24, { align:'right' });
+  };
+  renderPage();
+  let y = 90;
+  const ensureSpace = (need) => { if (y + need > pageH - 50) { doc.addPage(); pageNum++; renderPage(); y = 90; } };
+
+  // Check-in (se houver)
+  const checkinKeys = Object.keys(d.checkin || {});
+  if (checkinKeys.length && reuniaoAnteriorData) {
+    doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(...CL.accent);
+    doc.text('CHECK-IN DA REUNIÃO ANTERIOR', margin, y, { charSpace:2 }); y += 18;
+    const todos = [];
+    (reuniaoAnteriorData.vitorias || []).forEach((v,i) => todos.push({ key: 'v'+i, tipo: 'Vitória', titulo: v.titulo }));
+    (reuniaoAnteriorData.prioridades || []).forEach((p,i) => todos.push({ key: 'p'+i, tipo: 'Prioridade', titulo: p.titulo }));
+    todos.forEach(item => {
+      const ck = d.checkin[item.key];
+      if (!ck) return;
+      const cor = ck.status === 'feita' ? CL.green : (ck.status === 'parcial' ? CL.yellow : CL.red);
+      const stLabel = ck.status === 'feita' ? '✓ FEITA' : (ck.status === 'parcial' ? '◐ PARCIAL' : '✗ NÃO FEITA');
+      doc.setFont('helvetica','bold'); doc.setFontSize(10);
+      const tL = doc.splitTextToSize(item.titulo, pageW-margin*2-120);
+      const obsL = ck.obs ? doc.splitTextToSize(`Obs: ${ck.obs}`, pageW-margin*2-24) : [];
+      const h = 14 + tL.length*13 + (obsL.length ? obsL.length*11+4 : 0) + 14;
+      ensureSpace(h+6);
+      doc.setFillColor(250,252,255); doc.roundedRect(margin, y, pageW-margin*2, h, 6, 6, 'F');
+      doc.setDrawColor(226,232,240); doc.roundedRect(margin, y, pageW-margin*2, h, 6, 6, 'S');
+      doc.setFillColor(...cor); doc.roundedRect(margin, y, 3, h, 1.5, 1.5, 'F');
+      doc.setFont('helvetica','bold'); doc.setFontSize(10); doc.setTextColor(...CL.textDark);
+      doc.text(tL, margin+12, y+18);
+      // Status label
+      doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor(...cor);
+      doc.text(stLabel, pageW-margin-12, y+18, { align:'right', charSpace:1 });
+      if (obsL.length) {
+        doc.setFont('helvetica','italic'); doc.setFontSize(9); doc.setTextColor(100,110,140);
+        doc.text(obsL, margin+12, y+18+tL.length*13+10);
+      }
+      y += h + 6;
+    });
+    y += 10;
+  }
+
+  // Objetivo
+  if (d.objetivo12m) {
+    ensureSpace(50);
+    doc.setFont('helvetica','normal'); doc.setFontSize(11);
+    const objL = doc.splitTextToSize(d.objetivo12m, pageW-margin*2-32);
+    const objH = 24 + objL.length*14 + 14;
+    ensureSpace(objH + 8);
+    doc.setFillColor(246,248,254); doc.roundedRect(margin, y, pageW-margin*2, objH, 8, 8, 'F');
+    doc.setFillColor(...CL.accent); doc.roundedRect(margin, y, 4, objH, 2, 2, 'F');
+    doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(...CL.accent);
+    doc.text('OBJETIVO COMBINADO', margin+16, y+20, { charSpace:1 });
+    doc.setFont('helvetica','normal'); doc.setFontSize(11); doc.setTextColor(60,70,100);
+    doc.text(objL, margin+16, y+38);
+    y += objH + 16;
+  }
+
+  // Recap
+  if (d.fortes || d.fracos) {
+    ensureSpace(50);
+    doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(...CL.accent);
+    doc.text('RECAP DO MOMENTO', margin, y, { charSpace:2 }); y += 18;
+    if (d.fortes) {
+      doc.setFont('helvetica','bold'); doc.setFontSize(10); doc.setTextColor(...CL.green);
+      doc.text('ONDE ESTÁ FORTE', margin, y, { charSpace:1 }); y += 14;
+      doc.setFont('helvetica','normal'); doc.setFontSize(10); doc.setTextColor(60,70,100);
+      const l = doc.splitTextToSize(d.fortes, pageW-margin*2);
+      ensureSpace(l.length*13+8); doc.text(l, margin, y); y += l.length*13 + 14;
+    }
+    if (d.fracos) {
+      doc.setFont('helvetica','bold'); doc.setFontSize(10); doc.setTextColor(...CL.red);
+      doc.text('ONDE ESTÁ TRAVANDO', margin, y, { charSpace:1 }); y += 14;
+      doc.setFont('helvetica','normal'); doc.setFontSize(10); doc.setTextColor(60,70,100);
+      const l = doc.splitTextToSize(d.fracos, pageW-margin*2);
+      ensureSpace(l.length*13+8); doc.text(l, margin, y); y += l.length*13 + 14;
+    }
+    y += 4;
+  }
+
+  // Vitórias
+  ensureSpace(40);
+  doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(...CL.accent);
+  doc.text('VITÓRIAS RÁPIDAS · ATÉ 30 DIAS', margin, y, { charSpace:2 }); y += 18;
+  d.vitorias.forEach((v,i) => {
+    doc.setFont('helvetica','bold'); doc.setFontSize(11);
+    const tL = doc.splitTextToSize(v.titulo, pageW-margin*2-56);
+    const metas = [];
+    if (v.resp) metas.push(`Responsável: ${v.resp}`);
+    if (v.prazo) metas.push(`Prazo: ${v.prazo}`);
+    if (v.ind) metas.push(`Indicador: ${v.ind}`);
+    const topPad=16, bottomPad=14, gap = metas.length ? 8 : 0, metaH = metas.length*12;
+    const cardH = topPad + tL.length*16 + gap + metaH + bottomPad;
+    ensureSpace(cardH+8);
+    doc.setFillColor(255,251,235); doc.roundedRect(margin, y, pageW-margin*2, cardH, 8, 8, 'F');
+    doc.setFillColor(...CL.yellow); doc.roundedRect(margin, y, 4, cardH, 2, 2, 'F');
+    doc.setFont('helvetica','bold'); doc.setFontSize(16); doc.setTextColor(161,98,7);
+    doc.text(String(i+1).padStart(2,'0'), margin+14, y+topPad+10);
+    doc.setFont('helvetica','bold'); doc.setFontSize(11); doc.setTextColor(...CL.textDark);
+    doc.text(tL, margin+44, y+topPad+10);
+    if (metas.length) {
+      doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(140,120,60);
+      const startY = y + topPad + tL.length*16 + gap + 8;
+      metas.forEach((m,mi) => doc.text(m, margin+44, startY+mi*12));
+    }
+    y += cardH + 8;
+  });
+
+  // Prioridades
+  if (d.prioridades.length) {
+    y += 4;
+    ensureSpace(40);
+    doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(...CL.accent);
+    doc.text('PRIORIDADES · 30 A 90 DIAS', margin, y, { charSpace:2 }); y += 18;
+    d.prioridades.forEach((p,i) => {
+      doc.setFont('helvetica','bold'); doc.setFontSize(11);
+      const tL = doc.splitTextToSize(p.titulo, pageW-margin*2-56);
+      const metas = [];
+      if (p.resp) metas.push(`Responsável: ${p.resp}`);
+      if (p.prazo) metas.push(`Prazo: ${p.prazo}`);
+      if (p.ind) metas.push(`Indicador: ${p.ind}`);
+      const topPad=16, bottomPad=14, gap = metas.length ? 8 : 0, metaH = metas.length*12;
+      const cardH = topPad + tL.length*16 + gap + metaH + bottomPad;
+      ensureSpace(cardH+8);
+      doc.setFillColor(250,252,255); doc.roundedRect(margin, y, pageW-margin*2, cardH, 8, 8, 'F');
+      doc.setDrawColor(226,232,240); doc.roundedRect(margin, y, pageW-margin*2, cardH, 8, 8, 'S');
+      doc.setFillColor(...CL.accent); doc.roundedRect(margin, y, 4, cardH, 2, 2, 'F');
+      doc.setFont('helvetica','bold'); doc.setFontSize(16); doc.setTextColor(...CL.accent);
+      doc.text(String(i+1).padStart(2,'0'), margin+14, y+topPad+10);
+      doc.setFont('helvetica','bold'); doc.setFontSize(11); doc.setTextColor(...CL.textDark);
+      doc.text(tL, margin+44, y+topPad+10);
+      if (metas.length) {
+        doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(90,100,130);
+        const startY = y + topPad + tL.length*16 + gap + 8;
+        metas.forEach((m,mi) => doc.text(m, margin+44, startY+mi*12));
+      }
+      y += cardH + 8;
+    });
+  }
+
+  // Roadmap
+  if (d.tri1 || d.tri2 || d.tri3 || d.tri4) {
+    y += 6;
+    ensureSpace(40);
+    doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(...CL.accent);
+    doc.text('ROADMAP', margin, y, { charSpace:2 }); y += 18;
+    [['TRI 1 · MÊS 1-3', d.tri1],['TRI 2 · MÊS 4-6', d.tri2],['TRI 3 · MÊS 7-9', d.tri3],['TRI 4 · MÊS 10-12', d.tri4]].forEach(([label, txt]) => {
+      if (!txt) return;
+      doc.setFont('helvetica','normal'); doc.setFontSize(10);
+      const tL = doc.splitTextToSize(txt, pageW-margin*2-20);
+      const h = 24 + tL.length*12 + 10;
+      ensureSpace(h+6);
+      doc.setFillColor(246,248,254); doc.roundedRect(margin, y, pageW-margin*2, h, 6, 6, 'F');
+      doc.setFillColor(...CL.accent); doc.roundedRect(margin, y, 3, h, 1.5, 1.5, 'F');
+      doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(...CL.accent);
+      doc.text(label, margin+12, y+16, { charSpace:1 });
+      doc.setFont('helvetica','normal'); doc.setFontSize(10); doc.setTextColor(60,70,100);
+      doc.text(tL, margin+12, y+32);
+      y += h + 6;
+    });
+  }
+
+  // Indicadores
+  if (d.kpis || d.frequencia) {
+    y += 4;
+    ensureSpace(50);
+    doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(...CL.accent);
+    doc.text('INDICADORES', margin, y, { charSpace:2 }); y += 18;
+    if (d.kpis) {
+      d.kpis.split('\n').filter(k=>k.trim()).forEach(kpi => {
+        doc.setFont('helvetica','normal'); doc.setFontSize(10);
+        const l = doc.splitTextToSize(kpi.trim(), pageW-margin*2-20);
+        ensureSpace(l.length*14+4);
+        doc.setFillColor(...CL.accent); doc.circle(margin+6, y-2, 2.5, 'F');
+        doc.setTextColor(...CL.textDark); doc.text(l, margin+14, y);
+        y += l.length*14;
+      });
+      y += 6;
+    }
+    if (d.frequencia) {
+      doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(...CL.accent);
+      doc.text('FREQUÊNCIA DE REVISÃO', margin, y, { charSpace:1 }); y += 12;
+      doc.setFont('helvetica','normal'); doc.setFontSize(10); doc.setTextColor(60,70,100);
+      const l = doc.splitTextToSize(d.frequencia, pageW-margin*2);
+      doc.text(l, margin, y); y += l.length*13 + 10;
+    }
+  }
+
+  // Próxima reunião
+  y += 8;
+  ensureSpace(100);
+  const prxLines = [];
+  if (d.proxData) prxLines.push(`Data: ${formatarData(d.proxData)}${d.proxHora ? ' às '+d.proxHora : ''}`);
+  if (d.proxFormato) prxLines.push(`Formato: ${d.proxFormato}`);
+  if (d.proxMentor) prxLines.push(`Mentor: ${d.proxMentor}`);
+  const prxPauta = d.proxPauta ? doc.splitTextToSize(d.proxPauta, pageW-margin*2-32) : [];
+  const prxH = 30 + prxLines.length*14 + (prxPauta.length ? prxPauta.length*13+16 : 0) + 14;
+  ensureSpace(prxH+8);
+  doc.setFillColor(...CL.bgDark); doc.roundedRect(margin, y, pageW-margin*2, prxH, 8, 8, 'F');
+  doc.setFillColor(...CL.accent); doc.roundedRect(margin, y, 4, prxH, 2, 2, 'F');
+  doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(...CL.accent);
+  doc.text('PRÓXIMA REUNIÃO', margin+16, y+20, { charSpace:2 });
+  let subY = y+40;
+  doc.setFont('helvetica','normal'); doc.setFontSize(11); doc.setTextColor(...CL.text);
+  prxLines.forEach(ln => { doc.text(ln, margin+16, subY); subY += 14; });
+  if (prxPauta.length) {
+    subY += 6;
+    doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(...CL.accent);
+    doc.text('PAUTA / MATERIAL', margin+16, subY); subY += 12;
+    doc.setFont('helvetica','normal'); doc.setFontSize(10); doc.setTextColor(...CL.textDim);
+    doc.text(prxPauta, margin+16, subY);
+  }
+
+  const nomeArq = `Plano_Acao_R${d.reuniao}_${d.empresa.replace(/[^a-z0-9]/gi,'_').slice(0,30)}_${d.data.replace(/-/g,'')}.pdf`;
+  doc.save(nomeArq);
+  toast('✓ PDF baixado: ' + nomeArq, 4000);
+}
+
+// ================ INIT =================
+(function init(){
+  const salvo = localStorage.getItem('planoLogin');
+  if (salvo) {
+    try { consultorLogado = JSON.parse(salvo); irDashboard(); return; } catch(e) {}
+  }
+  $('data').value = new Date().toISOString().slice(0,10);
+  mostrarView('view-login');
+})();
 </script>
 </body>
 </html>
