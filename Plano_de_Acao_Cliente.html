@@ -349,10 +349,14 @@
         <div class="field-group">
           <div class="field"><label>Data</label><input type="date" id="proxData"></div>
           <div class="field"><label>Horário</label><input type="time" id="proxHora"></div>
+          <div class="field"><label>Duração (minutos)</label><input type="number" id="proxDuracao" value="60" min="15" max="480" step="15"></div>
           <div class="field"><label>Formato</label><input type="text" id="proxFormato" placeholder="Presencial / Online"></div>
           <div class="field"><label>Mentor</label><input type="text" id="proxMentor"></div>
         </div>
         <div class="field"><label>Pauta / material a trazer</label><textarea id="proxPauta"></textarea></div>
+        <div class="actions" style="margin-top:14px;justify-content:flex-start">
+          <button type="button" class="btn btn-secondary" onclick="abrirGoogleAgenda()">📅 Adicionar ao Google Agenda</button>
+        </div>
       </div>
     </section>
 
@@ -449,7 +453,7 @@ function renderEmpresas(lista) {
     <div class="empresa-card" onclick="abrirHistorico('${e.empresa.replace(/'/g,"\\'")}')">
       <div class="info">
         <h4>${e.empresa}</h4>
-        <p>${e.responsavel || '—'} · última reunião: ${e.ultimaData || '—'}${e.ultimoConsultor ? ' · ' + e.ultimoConsultor : ''}</p>
+        <p>${e.responsavel || '—'} · última reunião: ${formatarDataComDia(e.ultimaData)}${e.ultimoConsultor ? ' · ' + e.ultimoConsultor : ''}</p>
       </div>
       <div class="count">${e.reunioes} reunião${e.reunioes > 1 ? 'ões' : ''}</div>
     </div>
@@ -481,7 +485,7 @@ function renderTimeline(planos) {
         <div class="num">R${p.reuniao}</div>
         <div class="meta">
           <h4>${p.headline || 'Plano de Ação'}</h4>
-          <p>${p.data || '—'} · ${p.consultor || '—'}${p.nivel ? ' · Nível ' + p.nivel : ''}</p>
+          <p>${formatarDataComDia(p.data)} · ${p.consultor || '—'}${p.nivel ? ' · Nível ' + p.nivel : ''}</p>
         </div>
       </div>
       <div style="color:var(--text-dim);font-size:12px">Abrir →</div>
@@ -563,6 +567,7 @@ async function editarPlano(idPlano) {
     $('frequencia').value = plano.frequencia || '';
     $('proxData').value = plano.proxData || '';
     $('proxHora').value = plano.proxHora || '';
+    $('proxDuracao').value = plano.proxDuracao || 60;
     $('proxFormato').value = plano.proxFormato || '';
     $('proxMentor').value = plano.proxMentor || '';
     $('proxPauta').value = plano.proxPauta || '';
@@ -719,6 +724,7 @@ function coletar() {
     frequencia: $('frequencia').value.trim(),
     proxData: $('proxData').value || '',
     proxHora: $('proxHora').value || '',
+    proxDuracao: parseInt($('proxDuracao').value) || 60,
     proxFormato: $('proxFormato').value.trim(),
     proxMentor: $('proxMentor').value.trim(),
     proxPauta: $('proxPauta').value.trim(),
@@ -745,6 +751,75 @@ async function salvarEGerar() {
 }
 
 function formatarData(iso){ if(!iso) return '—'; const [y,m,dd]=iso.split('-'); return `${dd}/${m}/${y}`; }
+
+// Formato "QUA-25/04/26" usado nos cards e listagens
+function formatarDataComDia(iso){
+  if (!iso) return '—';
+  const partes = String(iso).split('-');
+  if (partes.length < 3) return iso;
+  const [y, m, d] = partes.map(Number);
+  if (!y || !m || !d) return iso;
+  const dias = ['DOM','SEG','TER','QUA','QUI','SEX','SAB'];
+  const dt = new Date(y, m-1, d);
+  const dia = dias[dt.getDay()];
+  const dd = String(d).padStart(2,'0');
+  const mm = String(m).padStart(2,'0');
+  const yy = String(y).slice(-2);
+  return `${dia}-${dd}/${mm}/${yy}`;
+}
+
+// ================ GOOGLE AGENDA =================
+function abrirGoogleAgenda() {
+  const data = $('proxData').value;
+  const hora = $('proxHora').value;
+  if (!data) { toast('⚠ Preenche a data da próxima reunião', 3500, true); return; }
+  if (!hora) { toast('⚠ Preenche o horário da próxima reunião', 3500, true); return; }
+
+  const empresa = $('empresa').value.trim() || 'Cliente';
+  const reuniao = $('reuniao').value || '?';
+  const proxReuniao = parseInt(reuniao) + 1;
+  const formato = $('proxFormato').value.trim();
+  const mentor = $('proxMentor').value.trim();
+  const pauta = $('proxPauta').value.trim();
+  const duracao = parseInt($('proxDuracao').value) || 60;
+
+  // Monta start e end no formato YYYYMMDDTHHmmss
+  const [y, m, d] = data.split('-');
+  const [h, min] = hora.split(':');
+  const start = new Date(parseInt(y), parseInt(m)-1, parseInt(d), parseInt(h), parseInt(min));
+  const end = new Date(start.getTime() + duracao * 60000);
+
+  const fmt = (dt) => {
+    const pad = (n) => String(n).padStart(2,'0');
+    return `${dt.getFullYear()}${pad(dt.getMonth()+1)}${pad(dt.getDate())}T${pad(dt.getHours())}${pad(dt.getMinutes())}00`;
+  };
+
+  // Detalhes do evento
+  const partes = [];
+  partes.push(`Reunião ${proxReuniao} · ${empresa}`);
+  partes.push(`Mentor: ${mentor || '—'}`);
+  partes.push(`Formato: ${formato || '—'}`);
+  if (pauta) {
+    partes.push('');
+    partes.push('PAUTA / MATERIAL A TRAZER:');
+    partes.push(pauta);
+  }
+  partes.push('');
+  partes.push('Reunião do programa Gestão PRO');
+
+  const titulo = `Reunião ${proxReuniao} · ${empresa} · Gestão PRO`;
+  const params = new URLSearchParams({
+    action: 'TEMPLATE',
+    text: titulo,
+    dates: `${fmt(start)}/${fmt(end)}`,
+    details: partes.join('\n'),
+    location: formato || ''
+  });
+
+  const url = `https://calendar.google.com/calendar/render?${params.toString()}`;
+  window.open(url, '_blank');
+  toast('✓ Abrindo Google Agenda em nova aba');
+}
 
 // ================ PDF =================
 function svgToPngDataUrl(svgStr, widthPx = 500) {
@@ -782,10 +857,8 @@ async function gerarPDF(d) {
   doc.setFillColor(...CL.bgDark); doc.rect(0,0,pageW,pageH,'F');
   doc.setFillColor(...CL.accent); doc.rect(0,0,6,pageH,'F');
   const logoW = 160, logoH = logoW * (532/1310);
-  doc.addImage(logoPro, 'PNG', (pageW - logoW)/2, 120, logoW, logoH);
-  doc.setFont('helvetica','bold'); doc.setFontSize(10); doc.setTextColor(...CL.accent);
-  doc.text('MÉTODO GESTÃO LIFE · GESTÃO PRO', pageW/2, 120 + logoH + 48, { align:'center', charSpace:2 });
-  const tituloY = 120 + logoH + 108;
+  doc.addImage(logoPro, 'PNG', (pageW - logoW)/2, 140, logoW, logoH);
+  const tituloY = 140 + logoH + 80;
   doc.setFont('helvetica','bold'); doc.setFontSize(34); doc.setTextColor(...CL.text);
   doc.text('PLANO DE AÇÃO', pageW/2, tituloY, { align:'center' });
   doc.setTextColor(...CL.accent);
