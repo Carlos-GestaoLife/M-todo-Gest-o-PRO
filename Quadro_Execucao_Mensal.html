@@ -1082,7 +1082,7 @@ async function enviar() {
   // gera PDF em base64 pra anexar no email (cliente não vê, não baixa)
   let pdfBase64 = '';
   try {
-    pdfBase64 = gerarPDFBase64();
+    pdfBase64 = await gerarPDFBase64();
     console.log('[PDF] base64 gerado, tamanho:', pdfBase64 ? pdfBase64.length : 0, 'chars');
   } catch (e) {
     console.error('[PDF] erro ao gerar:', e);
@@ -1130,206 +1130,257 @@ async function enviar() {
 }
 
 // ==================================================
-// GERAR PDF DO QUADRO · fundo branco, limpo, profissional
+// SVG GESTÃO PRO · embutido pra renderizar no PDF
+// ==================================================
+const SVG_GESTAO_PRO = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1393 262" width="1393" height="262">
+  <path d="M152.945 143.806L178.358 132.749C182.017 131.156 184.298 127.69 184.316 123.702C184.334 119.714 182.081 116.227 178.435 114.603L152.919 103.241L149.268 110.574L142.947 123.275L152.945 143.806Z" fill="#ffffff"/>
+  <path d="M136.705 135.82C136.235 136.683 136.081 136.935 135.719 137.49C135.241 138.15 134.714 138.782 134.275 139.26C134.218 139.689 134.262 140.149 134.298 140.679C134.313 141.416 134.287 142.161 134.218 142.917C134.131 143.531 134.01 144.186 133.894 144.682L125.106 179.759L151.652 187.632C155.476 188.768 159.454 187.581 162.033 184.538C164.613 181.496 165.13 177.377 163.385 173.79L151.149 148.665L141.223 128.281L140.842 127.5L136.705 135.82Z" fill="#ffffff"/>
+  <path d="M130.235 142.12C129.572 142.411 129.112 142.583 128.552 142.77C128.02 142.925 127.282 143.105 126.488 143.246C125.471 143.364 124.494 143.395 123.842 143.382C119.658 143.04 116.354 141.314 113.995 138.482L109.599 133.204L100.117 134.823L92.9145 136.054L108.81 145.345C115.041 148.986 117.366 156.88 114.106 163.317L113.587 164.342H113.527C112.602 165.835 111.397 167.125 109.933 168.186L80.6603 189.403L95.9311 212.513C98.1307 215.841 101.939 217.493 105.87 216.82C109.802 216.149 112.846 213.328 113.818 209.458L130.271 143.783C130.397 143.2 130.476 142.714 130.543 142.118C130.553 141.989 130.42 142.046 130.232 142.133Z" fill="#ffffff"/>
+  <path d="M90.3171 152.506C92.7685 159.321 89.4666 166.878 82.8012 169.707C82.1022 169.979 81.3956 170.211 80.6736 170.403C79.931 170.558 79.137 170.676 78.1785 170.758C77.5182 170.773 76.5238 170.74L40.4113 168.219L37.2533 195.724C36.7985 199.686 38.6537 203.396 42.0995 205.411C45.5452 207.423 49.6899 207.22 52.9224 204.879L76.4852 187.799L107.741 165.146C109.044 164.2 110.064 163.013 110.771 161.618L110.874 161.413C111.498 160.11 111.811 158.727 111.84 157.358C111.878 155.533 111.413 153.727 110.501 152.152C110.008 151.384 109.442 150.661C108.743 149.844 107.898 149.133 106.922 148.562L84.1065 135.229L90.3171 152.506Z" fill="#ffffff"/>
+  <path d="M71.287 146.735C71.0352 147.301 70.7525 147.861 70.4082 148.47C70.0305 149.063 69.6861 149.552 69.3161 150.029C68.9024 150.518 68.3937 151.06 67.8078 151.61C67.0446 152.239 66.3354 152.753 65.4361 153.311C64.7269 153.686 64.028 154.007 63.1209 154.354C62.3629 154.59 61.7976 154.737 61.0807 154.883C60.4512 154.981 59.8525 155.045 59.2615 155.084C58.6936 155.097 58.0743 155.084 57.4551 155.04C56.7073 154.95 56.1189 154.85 55.5099 154.716C54.9446 154.57 52.9352 153.963 49.8364 151.808C49.4252 151.443 49.2274 151.253L23.2209 126.12L3.1039 145.227C0.210589 147.974 -0.747854 152.013 0.601161 155.767C1.95018 159.521 5.25976 162.024 9.24 162.302L37.1017 164.247L76.7807 167.014C78.3738 167.125 79.9078 166.875 81.3391 166.267C81.7862 166.063C85.4478 164.293 87.5856 160.503 87.3698 156.587C87.2722 155.647 87.0203 154.393 86.7968 153.773L77.8702 128.941L71.287 146.735Z" fill="#ffffff"/>
+  <path d="M68.0084 144.867L77.138 120.135L61.2607 129.232C60.7314 129.519 60.1018 129.828 59.5134 130.077C58.8993 130.306 58.2646 130.509 57.6608 130.668C56.9978 130.812 56.3991 130.91 55.713 130.992C55.122 131.033 54.4745 131.051 53.6754 131.028C52.9122 130.961 52.0977 130.843 51.1855 130.653C50.4532 130.447 49.69 130.188C48.8061 129.828 48.12 129.491C47.4185 129.098 46.5963 128.566C45.9796 128.104 45.3603 127.582C44.6331 126.886C44.1038 126.3C43.5848 125.655C42.9809 124.799C41.8246 123.011 41.1231 121.004 40.8919 118.838L37.0709 82.8127L9.40971 84.5035C5.42947 84.7476 2.09933 87.2221 0.71691 90.9634C-0.665509 94.7072 0.25953 98.7542 3.12715 101.527L51.8125 148.575C52.9713 149.696 54.3203 150.492 55.8184 150.944C57.7122 151.366 58.65 151.371C59.5828 151.33C60.8085 151.158 61.3995 150.991C64.3519 150.148 66.8675 147.956 68.0084 144.867Z" fill="#ffffff"/>
+  <path d="M64.2437 109.659C57.067 108.37 52.1745 101.699 53.1047 94.4708C53.3745 92.3715 54.1248 90.3955 55.3325 88.5994L75.5497 58.5639L53.2178 42.0828C51.455 40.7801 49.4071 40.1223 47.3489 40.1223C45.6607 40.1223 43.9648 40.5642 42.4051 41.4584C38.9439 43.4421 37.0553 47.1397 37.4767 51.1045L40.4188 78.8505L44.1344 113.894L44.6149 118.432C44.7408 119.616 45.0594 120.732 45.5631 121.762C46.4855 123.317 47.3335 124.28C49.2144 126.228 51.7814 127.287 54.4075 127.302C55.4892 127.256 55.7976 127.212C57.0335 127.045 59.4027 125.984L61.5714 124.743L82.2511 112.892L64.2437 109.659Z" fill="#ffffff"/>
+  <path d="M76 86.2868C76.185 85.0303 76.5139 83.7995C77.2 81.5614 78.4668 79.4749 80.304 77.779C81.8637 76.335 83.7164 75.2969 85.8054 74.6956L120.613 64.6974L114.101 37.73C113.166 33.8525 110.144 31.0055 106.218 30.2988C105.609 30.1909 105.003 30.137 104.404 30.137C101.143 30.137 98.1239 31.7249 96.2404 34.5206L80.6509 57.6826L79.6514 59.1678L58.4346 90.6859C57.5532 91.9938 57.0085 93.4276 56.8132 94.9488C56.2427 99.3787 58.6838 103.518 62.5921 105.268C63.4786 105.628 64.2597 105.846 64.9047 105.98L90.8032 110.631L79.0809 96.5522C76.6064 93.5818 75.5992 89.8611 76 86.2868Z" fill="#ffffff"/>
+  <path d="M98.8251 114.416L103.992 120.624L116.866 136.082C118.577 138.138 120.975 139.394 123.616 139.618C126.27 139.841 128.938 138.991 130.932 137.282C131.939 136.424 132.753 135.373 133.36 134.155L138.782 123.255L140.881 119.031L145.074 110.605L163.519 73.5418C165.297 69.9701 164.814 65.846 162.26 62.7805C160.327 60.4628 157.588 59.1985 154.708 59.1985C153.78 59.1985 152.84 59.3296 151.907 59.5968L125.083 67.3003L86.833 78.2877C85.3118 78.7246 83.968 79.4775 82.8399 80.5207C82.4134 80.937 82.2155 81.1554C79.1475 84.542 78.798 89.6015 81.3624 93.3762C81.7402 93.9055 81.9534 94.1599L83.2279 95.6913L98.8251 114.416Z" fill="#ffffff"/>
+  <path d="M347.364 198.616C303.331 198.616 268.018 171.368 268.018 121.45C268.018 71.75 303.331 42.9764 346.274 42.9764C375.047 42.9764 394.884 54.9654 407.091 69.1342L388.78 86.3549C378.753 75.0198 364.148 67.8264 346.492 67.8264C317.936 67.8264 297.228 86.7908 297.228 120.578C297.228 154.365 317.936 173.766 348.453 173.766C361.314 173.766 375.047 170.278 383.549 162.431V136.055H347.364V112.949H411.014V173.548C394.884 190.114 371.996 198.616 347.364 198.616ZM487.075 198.398C456.993 198.398 431.489 178.997 431.489 144.556C431.489 110.987 455.685 88.3167 487.511 88.3167C518.464 88.3167 538.301 109.679 538.301 138.671C538.301 143.03 537.865 151.096 537.647 153.275H461.353C464.405 169.406 476.612 176.818 491.435 176.818C504.949 176.818 516.503 171.15 522.388 165.046L533.723 180.523C527.838 187.063 509.963 198.398 487.075 198.398ZM510.617 133.657C510.399 122.758 503.642 109.243 485.985 109.243C469.854 109.243 462.879 121.45 460.699 133.657H510.617ZM593.803 198.398C577.018 198.398 559.144 191.858 550.642 182.049L561.977 162.867C575.492 173.112 585.302 176.818 595.111 176.818C604.266 176.818 609.498 173.548 609.498 167.444C609.498 161.995 605.138 158.943 591.623 154.365L579.416 150.224C563.721 144.992 555.438 134.965 555.438 120.578C555.438 100.742 571.569 88.3167 595.547 88.3167C612.113 88.3167 623.884 94.2022 631.296 99.6518L619.307 118.398C613.203 113.821 604.484 109.897 594.457 109.897C585.519 109.897 580.942 112.949 580.942 117.962C580.942 122.54 584.212 125.81 595.765 129.733L603.612 132.349C626.282 139.979 635.002 148.262 635.002 163.303C635.002 183.575 619.307 198.398 593.803 198.398ZM690.073 198.398C664.569 198.398 658.247 184.665 658.247 161.123V112.295H643.206V90.7145H658.247V60.6329H686.149V90.7145H710.563V112.295H686.149V156.545C686.149 170.06 688.329 175.728 698.792 175.728C702.934 175.728 706.639 174.638 709.255 173.33L710.781 194.91C704.678 197.09 697.484 198.398 690.073 198.398ZM760.999 198.398C740.726 198.398 724.378 186.845 724.378 166.136C724.378 142.812 745.522 134.747 767.32 133.221L792.606 131.477V128.643C792.606 116.436 784.323 109.243 768.846 109.243C758.383 109.243 748.356 113.167 739.2 118.616L730.481 99.4338C744.65 91.3684 758.601 88.3167 772.988 88.3167C804.377 88.3167 820.508 102.922 820.508 135.619V196H793.696V183.793C789.336 191.422 776.911 198.398 760.999 198.398ZM769.936 179.433C780.399 179.433 789.118 173.112 792.824 167.88V148.262L774.296 149.57C759.473 150.66 752.715 155.455 752.715 164.393C752.715 173.33 759.909 179.433 769.936 179.433ZM896.253 198.398C863.992 198.398 839.142 177.036 839.142 143.684C839.142 110.115 863.992 88.3167 896.253 88.3167C928.297 88.3167 953.365 110.115 953.365 143.684C953.365 177.036 928.297 198.398 896.253 198.398ZM896.253 175.728C914.128 175.728 924.591 161.559 924.591 143.248C924.591 125.156 914.128 110.987 896.253 110.987C877.943 110.987 867.916 125.156 867.916 143.248C867.916 161.559 877.943 175.728 896.253 175.728ZM1062.85 155.673H1114.08V196H1013.81V45.5921H1062.85V155.673ZM1149.29 80.9053C1141.44 80.9053 1135.12 78.7981 1130.32 74.5838C1125.53 70.3695 1123.13 64.7019 1123.13 57.5812C1123.13 50.4604 1125.53 44.7929 1130.32 40.5785C1135.12 36.3642 1141.44 34.2571 1149.29 34.2571C1157.28 34.2571 1163.6 36.3642 1168.25 40.5785C1173.05 44.7929 1175.45 50.4604 1175.45 57.5812C1175.45 64.7019 1173.05 70.3695 1168.25 74.5838C1163.6 78.7981 1157.28 80.9053 1149.29 80.9053ZM1124.87 84.829H1173.92V196H1124.87V84.829ZM1271.94 45.5921L1269.76 78.2895C1265.11 77.2722 1260.39 76.7636 1255.6 76.7636C1249.06 76.7636 1245.79 78.7255 1245.79 82.6491V84.829H1267.58V120.796H1245.79V196H1196.74V120.796H1183.66V84.829H1196.74V83.7391C1196.74 69.7882 1200.16 59.6157 1206.99 53.2215C1214.98 45.9554 1226.82 42.3224 1242.52 42.3224C1251.24 42.3224 1261.05 43.4123 1271.94 45.5921ZM1389.23 138.235L1388.58 151.968H1315.55C1317.15 160.251 1324.27 164.393 1336.91 164.393C1348.68 164.393 1358.86 161.486 1367.43 155.673L1385.96 179.651L1384.87 180.523C1370.19 192.585 1351.81 198.616 1329.72 198.616C1311.41 198.616 1296.37 193.602 1284.6 183.575C1272.97 173.257 1267.16 158.943 1267.16 140.632C1267.16 122.322 1273.12 108.08 1285.03 97.9079C1296.95 87.7354 1312.06 82.6491 1330.37 82.6491C1348.1 82.6491 1362.27 87.7354 1372.88 97.9079C1383.78 107.935 1389.23 121.377 1389.23 138.235ZM1315.55 126.246H1343.89C1343.6 122.322 1342.14 119.198 1339.53 116.872C1337.06 114.402 1333.79 113.167 1329.72 113.167C1325.8 113.167 1322.53 114.402 1319.91 116.872C1317.29 119.198 1315.84 122.322 1315.55 126.246Z" fill="#ffffff"/>
+</svg>`;
+
+// SVG do título "QUADRO DE EXECUÇÃO" com fonte SF Expanded Black (desenhada como paths)
+const SVG_TITULO_QUADRO = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 432 119" width="432" height="119">
+  <path d="M25.3481 59.6492C20.6623 59.6492 16.56 58.793 13.041 57.0805C9.52199 55.3681 6.78394 52.9406 4.82686 49.7979C2.88859 46.6365 1.91945 42.9105 1.91945 38.6199V38.5635C1.91945 34.3106 2.88859 30.6222 4.82686 27.4984C6.78394 24.3558 9.52199 21.9282 13.041 20.2158C16.56 18.4845 20.6623 17.6189 25.3481 17.6189C30.0338 17.6189 34.1361 18.4845 37.6551 20.2158C41.1741 21.9282 43.9122 24.3558 45.8692 27.4984C47.8263 30.6222 48.8049 34.3106 48.8049 38.5635V38.6199C48.8049 42.9105 47.8263 46.6365 45.8692 49.7979C43.9122 52.9406 41.1741 55.3681 37.6551 57.0805C34.1549 58.793 30.0526 59.6492 25.3481 59.6492ZM25.3481 57.3346C29.5069 57.3346 33.1482 56.563 36.272 55.02C39.4146 53.4769 41.8516 51.3034 43.5828 48.4995C45.3329 45.6956 46.208 42.4024 46.208 38.6199V38.5635C46.208 34.781 45.3329 31.4973 43.5828 28.7122C41.8328 25.9271 39.3958 23.7724 36.272 22.2481C33.1482 20.7051 29.5069 19.9335 25.3481 19.9335C21.1892 19.9335 17.5479 20.7051 14.4241 22.2481C11.3003 23.7724 8.86335 25.9271 7.11326 28.7122C5.36317 31.4973 4.48813 34.781 4.48813 38.5635V38.6199C4.48813 42.4212 5.36317 45.7238 7.11326 48.5277C8.86335 51.3316 11.3003 53.5051 14.4241 55.0482C17.5667 56.5725 21.2081 57.3346 25.3481 57.3346ZM42.3973 63.968L28.82 48.3866H31.6992L45.2765 63.968H42.3973ZM74.04 59.6492C69.9565 59.6492 66.4375 58.9247 63.483 57.4757C60.5286 56.0267 58.2516 53.9661 56.652 51.294C55.0713 48.6218 54.281 45.4509 54.281 41.7814V18.2681H56.8214V41.6967C56.8214 44.9334 57.5083 47.7279 58.882 50.0802C60.2557 52.4136 62.2222 54.2108 64.7815 55.4716C67.3596 56.7136 70.4552 57.3346 74.0682 57.3346C77.7002 57.3346 80.7957 56.7136 83.355 55.4716C85.9331 54.2108 87.8996 52.4136 89.2545 50.0802C90.6094 47.7467 91.2869 44.9522 91.2869 41.6967V18.2681H93.8273V41.7814C93.8273 45.4509 93.0369 48.6312 91.4562 51.3222C89.8755 53.9944 87.6079 56.055 84.6535 57.504C81.699 58.9341 78.1612 59.6492 74.04 59.6492ZM96.5936 59L117.369 18.2681H119.429V21.0062H118.695L99.3598 59H96.5936ZM104.836 45.5638L105.852 43.3903H131.567L132.612 45.5638H104.836ZM138.116 59L118.78 21.0062V18.2681H120.079L140.882 59H138.116ZM145.06 59V18.2681H164.678C169.382 18.2681 173.372 19.0867 176.646 20.7239C179.92 22.3422 182.423 24.6757 184.154 27.7242C185.886 30.754 186.751 34.3764 186.751 38.5917V38.6482C186.751 42.8258 185.886 46.4389 184.154 49.4874C182.442 52.536 179.939 54.8882 176.646 56.5442C173.372 58.1814 169.382 59 164.678 59H145.06ZM147.6 56.7418H164.621C168.799 56.7418 172.337 56.0173 175.235 54.5683C178.133 53.1005 180.344 51.0117 181.868 48.3019C183.411 45.5921 184.183 42.3836 184.183 38.6764V38.6199C184.183 34.8375 183.421 31.6008 181.896 28.9098C180.372 26.2188 178.151 24.1488 175.235 22.6998C172.337 21.2508 168.799 20.5263 164.621 20.5263H147.6V56.7418ZM192.256 59V18.2681H215.515C218.281 18.2681 220.662 18.7386 222.656 19.6795C224.651 20.6204 226.185 21.9659 227.257 23.716C228.349 25.4661 228.895 27.5455 228.895 29.9542V30.0106C228.895 32.9651 228.029 35.4585 226.298 37.4909C224.566 39.5044 222.017 40.8028 218.648 41.3862L229.939 59H226.947L215.938 41.6967C215.807 41.6967 215.656 41.7061 215.487 41.7249C215.336 41.7249 215.195 41.7249 215.063 41.7249H194.796V59H192.256ZM194.796 39.5232H215.402C218.808 39.5232 221.471 38.6858 223.39 37.011C225.329 35.3174 226.298 32.9933 226.298 30.0389V29.9824C226.298 27.0091 225.319 24.6851 223.362 23.0103C221.424 21.3355 218.752 20.4981 215.346 20.4981H194.796V39.5232ZM256.755 59.6492C252.069 59.6492 247.967 58.793 244.448 57.0805C240.929 55.3681 238.191 52.9406 236.234 49.7979C234.295 46.6365 233.326 42.9105 233.326 38.6199V38.5635C233.326 34.3106 234.295 30.6222 236.234 27.4984C238.191 24.3558 240.929 21.9282 244.448 20.2158C247.967 18.4845 252.069 17.6189 256.755 17.6189C261.441 17.6189 265.543 18.4845 269.062 20.2158C272.581 21.9282 275.319 24.3558 277.276 27.4984C279.233 30.6222 280.212 34.3106 280.212 38.5635V38.6199C280.212 42.9105 279.233 46.6365 277.276 49.7979C275.319 52.9406 272.581 55.3681 269.062 57.0805C265.562 58.793 261.459 59.6492 256.755 59.6492ZM256.755 57.3346C260.914 57.3346 264.555 56.563 267.679 55.02C270.821 53.4769 273.258 51.3034 274.99 48.4995C276.74 45.6956 277.615 42.4024 277.615 38.6199V38.5635C277.615 34.781 276.74 31.4973 274.99 28.7122C273.24 25.9271 270.803 23.7724 267.679 22.2481C264.555 20.7051 260.914 19.9335 256.755 19.9335C252.596 19.9335 248.955 20.7051 245.831 22.2481C242.707 23.7724 240.27 25.9271 238.52 28.7122C236.77 31.4973 235.895 34.781 235.895 38.5635V38.6199C235.895 42.4212 236.77 45.7238 238.52 48.5277C240.27 51.3316 242.707 53.5051 245.831 55.0482C248.974 56.5725 252.615 57.3346 256.755 57.3346Z" fill="#030F3B"/>
+  <path d="M294.282 59.9866V38.1627H304.793C307.314 38.1627 309.451 38.6013 311.206 39.4785C312.96 40.3456 314.301 41.5959 315.229 43.2293C316.156 44.8526 316.62 46.7935 316.62 49.052V49.0822C316.62 51.3206 316.156 53.2565 315.229 54.8899C314.311 56.5233 312.97 57.7836 311.206 58.6709C309.451 59.5481 307.314 59.9866 304.793 59.9866H294.282ZM295.643 58.7767H304.763C307.001 58.7767 308.897 58.3885 310.45 57.6122C312.002 56.8257 313.187 55.7066 314.004 54.2547C314.831 52.8027 315.244 51.0837 315.244 49.0974V49.0671C315.244 47.0405 314.836 45.3063 314.019 43.8645C313.202 42.4226 312.012 41.3135 310.45 40.5372C308.897 39.7608 307.001 39.3726 304.763 39.3726H295.643V58.7767ZM319.569 59.9866V38.1627H337.461V39.3726H320.931V48.2051H336.402V49.3847H320.931V58.7767H337.461V59.9866H319.569Z" fill="#030F3B"/>
+  <path d="M64.9946 102.846V66.2578H99.935V75.1577H77.7233V80.4571H98.3629V88.4442H77.7233V93.9464H99.935V102.846H64.9946ZM103.51 102.846L121.209 80.6346L118.267 88.7231V84.2097L103.51 66.2578H118.622L127.218 77.7187H133.024L124.708 81.6235L135.813 66.2578H150.571L135.306 84.2605V88.7484L132.314 80.736L150.495 102.846H135.839L126.787 91.5883H121.006L129.576 87.7596L117.583 102.846H103.51ZM154.247 102.846V66.2578H189.188V75.1577H166.976V80.4571H187.615V88.4442H166.976V93.9464H189.188V102.846H154.247ZM216.394 103.582C211.678 103.582 207.596 102.812 204.147 101.274C200.716 99.736 198.071 97.5469 196.211 94.7071C194.352 91.8672 193.422 88.478 193.422 84.5394V84.4887C193.422 80.5501 194.352 77.1693 196.211 74.3463C198.071 71.5065 200.716 69.3259 204.147 67.8045C207.596 66.2663 211.678 65.4971 216.394 65.4971C220.553 65.4971 224.255 66.1564 227.5 67.4749C230.763 68.7934 233.374 70.6528 235.335 73.0532C237.296 75.4366 238.437 78.2342 238.758 81.446L238.784 81.7502H226.258L226.232 81.4967C225.894 80.1444 225.286 78.9864 224.407 78.0229C223.545 77.0594 222.438 76.3325 221.085 75.8423C219.75 75.3352 218.22 75.0816 216.496 75.0816C214.4 75.0816 212.591 75.462 211.07 76.2227C209.548 76.9664 208.382 78.0483 207.571 79.4682C206.759 80.8712 206.353 82.5447 206.353 84.4887V84.5394C206.353 86.4833 206.759 88.1653 207.571 89.5852C208.382 91.0051 209.548 92.0954 211.07 92.8561C212.591 93.6168 214.408 93.9971 216.521 93.9971C218.195 93.9971 219.699 93.752 221.034 93.2618C222.387 92.7547 223.511 92.0193 224.407 91.0558C225.303 90.0754 225.911 88.9006 226.232 87.5314L226.283 87.2524H238.809L238.758 87.5821C238.437 90.8107 237.288 93.6252 235.31 96.0256C233.349 98.409 230.746 100.268 227.5 101.604C224.255 102.922 220.553 103.582 216.394 103.582ZM263.784 103.506C259.643 103.506 256.017 102.863 252.907 101.578C249.796 100.277 247.371 98.3583 245.63 95.8227C243.905 93.2871 243.043 90.1346 243.043 86.365V66.2578H255.772V86.1114C255.772 87.8187 256.068 89.2556 256.659 90.4219C257.268 91.5714 258.164 92.4419 259.347 93.0336C260.547 93.6083 262.035 93.8957 263.81 93.8957C265.568 93.8957 267.038 93.6083 268.222 93.0336C269.422 92.4419 270.318 91.5714 270.909 90.4219C271.518 89.2556 271.822 87.8187 271.822 86.1114V66.2578H284.551V86.365C284.551 90.1177 283.68 93.2702 281.939 95.8227C280.215 98.3583 277.798 100.277 274.687 101.578C271.577 102.863 267.943 103.506 263.784 103.506ZM311.935 103.582C307.219 103.582 303.137 102.812 299.688 101.274C296.257 99.736 293.611 97.5469 291.752 94.7071C289.892 91.8672 288.963 88.478 288.963 84.5394V84.4887C288.963 80.5501 289.892 77.1693 291.752 74.3463C293.611 71.5065 296.257 69.3259 299.688 67.8045C303.137 66.2663 307.219 65.4971 311.935 65.4971C316.094 65.4971 319.795 66.1564 323.041 67.4749C326.303 68.7934 328.915 70.6528 330.876 73.0532C332.837 75.4366 333.978 78.2342 334.299 81.446L334.324 81.7502H321.799L321.773 81.4967C321.435 80.1444 320.827 78.9864 319.948 78.0229C319.086 77.0594 317.978 76.3325 316.626 75.8423C315.291 75.3352 313.761 75.0816 312.037 75.0816C309.941 75.0816 308.132 75.462 306.61 76.2227C305.089 76.9664 303.923 78.0483 303.111 79.4682C302.3 80.8712 301.894 82.5447 301.894 84.4887V84.5394C301.894 86.4833 302.3 88.1653 303.111 89.5852C303.923 91.0051 305.089 92.0954 306.61 92.8561C308.132 93.6168 309.949 93.9971 312.062 93.9971C313.735 93.9971 315.24 93.752 316.575 93.2618C317.928 92.7547 319.052 92.0193 319.948 91.0558C320.844 90.0754 321.452 88.9006 321.773 87.5314L321.824 87.2524H334.35L334.299 87.5821C333.978 90.8107 332.828 93.6252 330.851 96.0256C328.89 98.409 326.287 100.268 323.041 101.604C319.795 102.922 316.094 103.582 311.935 103.582ZM310.87 115.778C309.771 115.778 308.69 115.71 307.625 115.575C306.577 115.457 305.782 115.304 305.241 115.119V110.757C305.664 110.876 306.171 110.977 306.763 111.062C307.371 111.146 307.988 111.188 308.614 111.188C309.56 111.188 310.27 111.062 310.743 110.808C311.234 110.571 311.479 110.233 311.479 109.794V109.743C311.479 109.304 311.217 108.949 310.693 108.678C310.186 108.425 309.281 108.298 307.98 108.298H306.864V106.041L309.552 102.415H315.282V102.846L313.862 104.723C315.755 104.942 317.243 105.475 318.325 106.32C319.407 107.182 319.948 108.408 319.948 109.997V110.047C319.948 111.281 319.584 112.321 318.857 113.166C318.147 114.028 317.108 114.679 315.739 115.119C314.386 115.558 312.763 115.778 310.87 115.778ZM333.969 102.846L349.791 66.2578H362.267V75.5634H358.007L347.383 102.846H333.969ZM343.326 95.7974L346.597 87.7089H369.189L372.434 95.7974H343.326ZM368.834 102.846L358.21 75.5634V66.2578H366.4L382.222 102.846H368.834ZM363.078 63.5194C362.334 63.5194 361.59 63.418 360.847 63.2151C360.12 62.9954 359.368 62.7249 358.59 62.4037L356.993 61.7445C356.418 61.5078 355.911 61.3303 355.471 61.212C355.049 61.0768 354.643 61.0092 354.254 61.0092C353.646 61.0092 353.164 61.212 352.809 61.6177C352.471 62.0065 352.285 62.5897 352.251 63.3672L352.226 63.5194H346.444V62.9362C346.444 60.1301 347.028 57.9918 348.194 56.5212C349.377 55.0505 351.017 54.3152 353.113 54.3152C353.857 54.3152 354.592 54.4166 355.319 54.6195C356.063 54.8223 356.84 55.0843 357.652 55.4055L359.198 56.0901C359.807 56.3268 360.323 56.5043 360.745 56.6226C361.168 56.7409 361.565 56.8001 361.937 56.8001C362.545 56.8001 363.019 56.6057 363.357 56.2169C363.712 55.8112 363.915 55.228 363.965 54.4673L363.991 54.2899H369.747V54.8984C369.747 57.6537 369.172 59.7836 368.022 61.2881C366.89 62.7756 365.242 63.5194 363.078 63.5194ZM405.448 103.582C400.664 103.582 396.497 102.812 392.947 101.274C389.414 99.7191 386.684 97.5216 384.757 94.6817C382.83 91.825 381.867 88.4526 381.867 84.5647V84.514C381.867 80.6261 382.83 77.2622 384.757 74.4224C386.701 71.5656 389.44 69.3681 392.972 67.8299C396.505 66.2747 400.664 65.4971 405.448 65.4971C410.231 65.4971 414.39 66.2747 417.923 67.8299C421.456 69.3681 424.194 71.5656 426.138 74.4224C428.082 77.2622 429.054 80.6261 429.054 84.514V84.5647C429.054 88.4526 428.082 91.825 426.138 94.6817C424.194 97.5216 421.456 99.7191 417.923 101.274C414.407 102.812 410.248 103.582 405.448 103.582ZM405.448 94.0225C407.628 94.0225 409.513 93.6421 411.102 92.8814C412.691 92.1208 413.916 91.0305 414.778 89.6105C415.657 88.1906 416.097 86.5087 416.097 84.5647V84.514C416.097 82.5701 415.657 80.8966 414.778 79.4936C413.916 78.0736 412.682 76.9833 411.077 76.2227C409.488 75.462 407.611 75.0816 405.448 75.0816C403.267 75.0816 401.382 75.462 399.793 76.2227C398.204 76.9833 396.97 78.0736 396.091 79.4936C395.229 80.8966 394.798 82.5701 394.798 84.514V84.5647C394.798 86.5087 395.229 88.1906 396.091 89.6105C396.97 91.0305 398.204 92.1208 399.793 92.8814C401.382 93.6421 403.267 94.0225 405.448 94.0225Z" fill="#030F3B"/>
+</svg>`;
+
+// renderiza SVG em PNG (pra usar como imagem no jsPDF)
+function svgParaPng(svgString, scale) {
+  return new Promise((resolve, reject) => {
+    try {
+      const svgBlob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' });
+      const url = URL.createObjectURL(svgBlob);
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const s = scale || 4;
+        canvas.width = img.width * s;
+        canvas.height = img.height * s;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        URL.revokeObjectURL(url);
+        resolve(canvas.toDataURL('image/png'));
+      };
+      img.onerror = (e) => { URL.revokeObjectURL(url); reject(e); };
+      img.src = url;
+    } catch (e) { reject(e); }
+  });
+}
+
+// ==================================================
+// GERAR PDF DO QUADRO · estilo do quadro original
+// (dark navy, cards com label cyan, meta amarela, atual grande)
 // Retorna base64 pra ser anexado no e-mail (cliente NÃO baixa)
 // ==================================================
-function gerarPDFBase64() {
+async function gerarPDFBase64() {
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
 
   const PAGE_W = 297, PAGE_H = 210;
 
-  // paleta clara
-  const navy      = [11, 18, 48];     // texto principal
-  const navyDeep  = [26, 35, 87];     // títulos
-  const accent    = [77, 201, 255];   // ciano
-  const accentDark = [30, 64, 175];   // azul do texto "PRO"
-  const yellow    = [251, 191, 36];
-  const yellowSoft = [254, 243, 199]; // fundo amarelo claro da meta
-  const bgCard    = [248, 250, 252];  // cinza quase branco dos cards
-  const bgPlan    = [241, 245, 249];  // cinza claro do planejamento
-  const border    = [226, 232, 240];  // borda cinza
-  const dim       = [100, 116, 139];  // cinza médio (labels)
-  const darkText  = [15, 23, 42];     // texto bem escuro
+  // paleta CLARA (pra impressão · fundo branco)
+  const navyDeep   = [3, 15, 59];         // navy bem escuro (#030F3B do título)
+  const navyMid    = [30, 42, 88];        // navy médio
+  const cardBg     = [248, 250, 252];     // fundo dos cards (cinza muito claro)
+  const cardBorder = [203, 213, 225];     // borda dos cards
+  const headerBg   = [241, 245, 249];     // fundo dos headers de seção
+  const yellow     = [245, 193, 62];      // amarelo das metas
+  const yellowDark = [60, 40, 0];         // texto sobre amarelo
+  const dim        = [100, 116, 139];     // texto secundário cinza
+  const dimDark    = [71, 85, 105];       // cinza mais escuro
 
-  // fundo BRANCO
+  // ========= FUNDO BRANCO =========
   doc.setFillColor(255, 255, 255);
   doc.rect(0, 0, PAGE_W, PAGE_H, 'F');
 
-  // ========= HEADER =========
-  // faixa superior sutil
-  doc.setFillColor(...accent);
-  doc.rect(0, 0, PAGE_W, 1.5, 'F');
+  // borda externa arredondada (sutil)
+  doc.setDrawColor(...cardBorder);
+  doc.setLineWidth(0.4);
+  doc.roundedRect(5, 5, PAGE_W - 10, PAGE_H - 10, 4, 4, 'S');
 
-  // logo GESTÃO LIFE (esquerda, estilizada)
+  // ========= TAB DA EMPRESA NO TOPO =========
+  const empresaTxt = state.empresa || '';
   doc.setFont('helvetica', 'normal');
-  doc.setFontSize(20);
-  doc.setTextColor(...navyDeep);
-  doc.text('GESTÃO', 14, 18);
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(28);
-  doc.setTextColor(...accent);
-  doc.text('LIFE', 52, 18);
-
-  // kicker centro
-  doc.setFont('helvetica', 'bold');
   doc.setFontSize(9);
-  doc.setTextColor(...dim);
-  doc.text('QUADRO DE EXECUÇÃO', PAGE_W / 2, 13, { align: 'center' });
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(11);
+  const empW = doc.getTextWidth(empresaTxt) + 12;
+  doc.setFillColor(...headerBg);
+  doc.roundedRect(PAGE_W / 2 - empW / 2, 1.5, empW, 7, 3.5, 3.5, 'F');
   doc.setTextColor(...navyDeep);
-  const empresaRef = `${state.empresa}  ·  ${state.mesRef}/${state.anoRef}`;
-  doc.text(empresaRef, PAGE_W / 2, 19, { align: 'center' });
+  doc.text(empresaTxt, PAGE_W / 2, 6.2, { align: 'center' });
 
-  // logo GESTÃO PRO (direita, estilizada)
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(7);
-  doc.setTextColor(...dim);
-  doc.text('METODOLOGIA GUIADA DE EXECUÇÃO', PAGE_W - 14, 12, { align: 'right' });
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(11);
-  doc.setTextColor(...navyDeep);
-  doc.text('GESTÃO', PAGE_W - 31, 20, { align: 'right' });
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(18);
-  doc.setTextColor(...accentDark);
-  doc.text('PRO', PAGE_W - 14, 20, { align: 'right' });
+  // ========= TÍTULO QUADRO DE EXECUÇÃO (SVG, fonte SF Expanded Black) =========
+  try {
+    const tituloPng = await svgParaPng(SVG_TITULO_QUADRO, 4);
+    // posiciona à esquerda com altura controlada (proporção 432:119)
+    doc.addImage(tituloPng, 'PNG', 10, 10, 76, 21);
+  } catch (e) {
+    console.warn('[PDF] erro ao renderizar título:', e);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(22);
+    doc.setTextColor(...navyDeep);
+    doc.text('QUADRO DE EXECUÇÃO', 12, 24);
+  }
 
-  // linha divisória
-  doc.setDrawColor(...border);
-  doc.setLineWidth(0.3);
-  doc.line(14, 26, PAGE_W - 14, 26);
+  // ========= LOGO GESTÃO PRO (SVG renderizado em ESCURO) =========
+  try {
+    // troca o fill branco do SVG pra navy escuro (pra fundo branco)
+    const svgEscuro = SVG_GESTAO_PRO.replace(/fill="#ffffff"/g, 'fill="#030F3B"');
+    const logoPng = await svgParaPng(svgEscuro, 4);
+    doc.addImage(logoPng, 'PNG', PAGE_W - 75, 9, 65, 12);
+  } catch (e) {
+    console.warn('[PDF] erro ao renderizar logo, usando texto:', e);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(14);
+    doc.setTextColor(...navyDeep);
+    doc.text('GESTÃO PRO', PAGE_W - 14, 18, { align: 'right' });
+  }
 
-  // ========= FUNÇÕES DE DESENHO =========
+  // ========= FUNÇÕES DE DESENHO DOS CARDS =========
   function drawCard(x, y, w, h, titulo, meta, atual) {
-    // fundo do card
-    doc.setFillColor(...bgCard);
-    doc.roundedRect(x, y, w, h, 2, 2, 'F');
-    doc.setDrawColor(...border);
+    // fundo do card (cinza muito claro)
+    doc.setFillColor(...cardBg);
+    doc.roundedRect(x, y, w, h, 2.5, 2.5, 'F');
+    doc.setDrawColor(...cardBorder);
     doc.setLineWidth(0.3);
-    doc.roundedRect(x, y, w, h, 2, 2, 'S');
+    doc.roundedRect(x, y, w, h, 2.5, 2.5, 'S');
 
-    // título
+    // título do indicador (faixa branca/header)
+    doc.setFillColor(...headerBg);
+    doc.roundedRect(x + 2, y + 1.5, w - 4, 5, 2, 2, 'F');
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(6.5);
-    doc.setTextColor(...dim);
-    doc.text(titulo, x + w / 2, y + 4.5, { align: 'center' });
+    doc.setTextColor(...navyDeep);
+    doc.text(titulo, x + w / 2, y + 5, { align: 'center' });
 
-    // caixa META (amarela clara)
-    doc.setFillColor(...yellowSoft);
-    doc.setDrawColor(...yellow);
-    doc.setLineWidth(0.2);
-    doc.roundedRect(x + 2.5, y + 6.5, w - 5, 5.5, 0.8, 0.8, 'FD');
+    // caixa META (amarela)
+    doc.setFillColor(...yellow);
+    doc.roundedRect(x + 3, y + 8.5, w - 6, 5.5, 1.5, 1.5, 'F');
     doc.setFont('helvetica', 'bold');
-    doc.setFontSize(6);
-    doc.setTextColor(180, 83, 9);
-    doc.text('META', x + 4.5, y + 10);
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(7.5);
-    doc.setTextColor(...darkText);
-    doc.text(meta, x + w - 3, y + 10, { align: 'right' });
+    doc.setFontSize(6.5);
+    doc.setTextColor(...yellowDark);
+    doc.text('META: ' + meta, x + w / 2, y + 12, { align: 'center' });
 
     // label ATUAL
     doc.setFont('helvetica', 'normal');
-    doc.setFontSize(5.5);
+    doc.setFontSize(6);
     doc.setTextColor(...dim);
-    doc.text('ATUAL', x + w / 2, y + 17, { align: 'center' });
+    doc.text('ATUAL:', x + w / 2, y + 18.5, { align: 'center' });
 
-    // valor ATUAL destaque
+    // valor ATUAL grande (navy escuro)
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(13);
     doc.setTextColor(...navyDeep);
     doc.text(atual, x + w / 2, y + h - 3.5, { align: 'center' });
   }
 
-  function drawSectionLabel(x, y, txt) {
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(9);
-    doc.setTextColor(...accent);
-    doc.text(txt, x, y);
-    // traço ciano embaixo
-    doc.setDrawColor(...accent);
-    doc.setLineWidth(0.8);
-    const w = doc.getTextWidth(txt);
-    doc.line(x, y + 1.2, x + w, y + 1.2);
-  }
-
-  // ========= DIMENSÕES DO GRID =========
-  const marginX = 14;
+  // ========= GRID DE CARDS =========
+  const marginX = 12;
   const gridW = PAGE_W - marginX * 2;
-  const cardGap = 3.5;
-  const cardW = (gridW - cardGap * 3) / 4;  // 4 colunas
-  const cardH = 28;
+  const cardGap = 3;
+  const cardW = (gridW - cardGap * 3) / 4;
+  const cardH = 30;
 
   // ========= RECEITA =========
-  const receitaY = 33;
-  drawSectionLabel(marginX, receitaY, 'RECEITA');
+  const receitaY = 46;
+  doc.setFillColor(...headerBg);
+  doc.roundedRect(marginX, receitaY - 5, gridW, 6, 2, 2, 'F');
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(11);
+  doc.setTextColor(...navyDeep);
+  doc.text('RECEITA', PAGE_W / 2, receitaY - 0.8, { align: 'center' });
 
   const receitaCards = [
-    { t: 'FATURAMENTO',             m: fmtMoney(state.metas.faturamento, 'money'),     a: fmtMoney(state.atuais.faturamento, 'money') },
-    { t: 'TICKET MÉDIO · LOJA',     m: fmtMoney(state.metas.ticket_loja, 'money'),     a: fmtMoney(state.atuais.ticket_loja, 'money') },
-    { t: 'TICKET MÉDIO · DELIVERY', m: fmtMoney(state.metas.ticket_delivery, 'money'), a: fmtMoney(state.atuais.ticket_delivery, 'money') },
-    { t: '% DE SATISFAÇÃO',         m: fmtMoney(state.metas.satisfacao, 'percent'),    a: fmtMoney(state.atuais.satisfacao, 'percent') }
+    { t: 'FATURAMENTO',           m: fmtMoney(state.metas.faturamento, 'money'),     a: fmtMoney(state.atuais.faturamento, 'money') },
+    { t: 'TICKET MÉDIO - LOJA',   m: fmtMoney(state.metas.ticket_loja, 'money'),     a: fmtMoney(state.atuais.ticket_loja, 'money') },
+    { t: 'TICKET MÉDIO - DELIVERY', m: fmtMoney(state.metas.ticket_delivery, 'money'), a: fmtMoney(state.atuais.ticket_delivery, 'money') },
+    { t: '% DE SATISFAÇÃO',       m: fmtMoney(state.metas.satisfacao, 'percent'),    a: fmtMoney(state.atuais.satisfacao, 'percent') }
   ];
-  receitaCards.forEach((c, i) => drawCard(marginX + i * (cardW + cardGap), receitaY + 3, cardW, cardH, c.t, c.m, c.a));
+  receitaCards.forEach((c, i) => drawCard(marginX + i * (cardW + cardGap), receitaY + 4, cardW, cardH, c.t, c.m, c.a));
 
   // ========= DESPESA + DELIVERY =========
-  const meioY = receitaY + cardH + 12;
-  drawSectionLabel(marginX, meioY, 'DESPESA');
-  drawCard(marginX,                   meioY + 3, cardW, cardH, '% CMV', fmtMoney(state.metas.cmv, 'percent'), fmtMoney(state.atuais.cmv, 'percent'));
-  drawCard(marginX + cardW + cardGap, meioY + 3, cardW, cardH, '% CMO', fmtMoney(state.metas.cmo, 'percent'), fmtMoney(state.atuais.cmo, 'percent'));
+  const meioY = receitaY + cardH + 14;
+  doc.setFillColor(...headerBg);
+  doc.roundedRect(marginX, meioY - 5, cardW * 2 + cardGap, 6, 2, 2, 'F');
+  doc.roundedRect(marginX + 2 * (cardW + cardGap), meioY - 5, cardW * 2 + cardGap, 6, 2, 2, 'F');
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(11);
+  doc.setTextColor(...navyDeep);
+  doc.text('DESPESA', marginX + (cardW * 2 + cardGap) / 2, meioY - 0.8, { align: 'center' });
+  doc.text('DELIVERY', marginX + 2 * (cardW + cardGap) + (cardW * 2 + cardGap) / 2, meioY - 0.8, { align: 'center' });
 
-  drawSectionLabel(marginX + 2 * (cardW + cardGap), meioY, 'DELIVERY');
-  drawCard(marginX + 2 * (cardW + cardGap), meioY + 3, cardW, cardH, 'TEMPO DE ENTREGA', fmtMoney(state.metas.tempo_entrega, 'minutes'), fmtMoney(state.atuais.tempo_entrega, 'minutes'));
-  drawCard(marginX + 3 * (cardW + cardGap), meioY + 3, cardW, cardH, 'NOTA MARKETPLACE', fmtMoney(state.metas.nota_marketplace, 'decimal'), fmtMoney(state.atuais.nota_marketplace, 'decimal'));
+  drawCard(marginX,                       meioY + 4, cardW, cardH, '% CMV', fmtMoney(state.metas.cmv, 'percent'), fmtMoney(state.atuais.cmv, 'percent'));
+  drawCard(marginX + cardW + cardGap,     meioY + 4, cardW, cardH, '% CMO', fmtMoney(state.metas.cmo, 'percent'), fmtMoney(state.atuais.cmo, 'percent'));
+  drawCard(marginX + 2 * (cardW + cardGap), meioY + 4, cardW, cardH, 'TEMPO DE ENTREGA', fmtMoney(state.metas.tempo_entrega, 'minutes'), fmtMoney(state.atuais.tempo_entrega, 'minutes'));
+  drawCard(marginX + 3 * (cardW + cardGap), meioY + 4, cardW, cardH, 'NOTA MARKETPLACE', fmtMoney(state.metas.nota_marketplace, 'decimal'), fmtMoney(state.atuais.nota_marketplace, 'decimal'));
 
   // ========= LUCRO + PLANEJAMENTO =========
   const baixoY = meioY + cardH + 12;
-  drawSectionLabel(marginX, baixoY, 'RESULTADO');
-  drawCard(marginX, baixoY + 3, cardW, cardH, '% LUCRO', fmtMoney(state.metas.lucro, 'percent'), fmtMoney(state.atuais.lucro, 'percent'));
+  drawCard(marginX, baixoY, cardW, cardH + 8, '% LUCRO', fmtMoney(state.metas.lucro, 'percent'), fmtMoney(state.atuais.lucro, 'percent'));
 
-  // PLANEJAMENTO ESTRATÉGICO (ao lado do card de lucro, ocupa 3 colunas)
+  // PLANEJAMENTO ESTRATÉGICO (3 colunas)
   const planX = marginX + cardW + cardGap;
   const planW = gridW - cardW - cardGap;
-  const planY = baixoY + 3;
-  const planH = cardH;
+  const planY = baixoY;
+  const planH = cardH + 8;
 
-  doc.setFillColor(...bgPlan);
-  doc.roundedRect(planX, planY, planW, planH, 2, 2, 'F');
-  // faixa lateral ciano
-  doc.setFillColor(...accent);
-  doc.rect(planX, planY, 1.5, planH, 'F');
-  doc.setDrawColor(...border);
+  doc.setFillColor(...cardBg);
+  doc.roundedRect(planX, planY, planW, planH, 2.5, 2.5, 'F');
+  // faixa lateral navy
+  doc.setFillColor(...navyDeep);
+  doc.rect(planX, planY, 1.8, planH, 'F');
+  doc.setDrawColor(...cardBorder);
   doc.setLineWidth(0.3);
-  doc.roundedRect(planX, planY, planW, planH, 2, 2, 'S');
+  doc.roundedRect(planX, planY, planW, planH, 2.5, 2.5, 'S');
 
   doc.setFont('helvetica', 'bold');
-  doc.setFontSize(8);
+  doc.setFontSize(13);
   doc.setTextColor(...navyDeep);
-  doc.text('PLANEJAMENTO ESTRATÉGICO', planX + 4, planY + 5);
+  doc.text('PLANEJAMENTO ESTRATÉGICO', planX + 5, planY + 7);
 
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(8);
-  doc.setTextColor(...darkText);
+  doc.setTextColor(...dimDark);
   const planTexto = state.planejamento || '(sem planejamento preenchido)';
-  const linhas = doc.splitTextToSize(planTexto, planW - 8);
-  doc.text(linhas.slice(0, 8), planX + 4, planY + 9);
+  const linhas = doc.splitTextToSize(planTexto, planW - 9);
+  doc.text(linhas.slice(0, 10), planX + 5, planY + 13);
 
   // ========= FOOTER =========
-  doc.setDrawColor(...border);
-  doc.setLineWidth(0.3);
-  doc.line(14, PAGE_H - 12, PAGE_W - 14, PAGE_H - 12);
+  const tagY = PAGE_H - 11;
 
   doc.setFont('helvetica', 'normal');
+  doc.setFontSize(8);
+  doc.setTextColor(...navyDeep);
+
+  // tag mês (esquerda)
+  const mesTxt = `${String(state.mesRef).toUpperCase()} ${state.anoRef}`;
+  const mesW = doc.getTextWidth(mesTxt) + 10;
+  doc.setFillColor(...headerBg);
+  doc.roundedRect(10, tagY, mesW, 6, 3, 3, 'F');
+  doc.text(mesTxt, 10 + mesW / 2, tagY + 4.1, { align: 'center' });
+
+  // info central (cnpj + responsável)
   doc.setFontSize(7);
   doc.setTextColor(...dim);
-  doc.text(`${String(state.mesRef).toUpperCase()} ${state.anoRef}`, 14, PAGE_H - 7);
-  doc.text(`CNPJ ${state.cnpj}  ·  ${state.responsavel}`, PAGE_W / 2, PAGE_H - 7, { align: 'center' });
-  doc.text('MÉTODO GESTÃO LIFE · GESTÃO PRO', PAGE_W - 14, PAGE_H - 7, { align: 'right' });
+  doc.text(`CNPJ ${state.cnpj}  ·  ${state.responsavel}`, PAGE_W / 2, tagY + 4.1, { align: 'center' });
 
-  // retorna base64 puro (sem prefixo data:...)
-  // tenta doc.output('base64') primeiro (mais limpo); se falhar, extrai do datauristring
+  // tag handle (direita)
+  const handle = '@gestaoLife';
+  const hW = doc.getTextWidth(handle) + 10;
+  doc.setFontSize(8);
+  doc.setTextColor(...navyDeep);
+  doc.setFillColor(...headerBg);
+  doc.roundedRect(PAGE_W - 10 - hW, tagY, hW, 6, 3, 3, 'F');
+  doc.text(handle, PAGE_W - 10 - hW / 2, tagY + 4.1, { align: 'center' });
+
+  // retorna base64 puro
   let base64 = '';
   try {
     base64 = doc.output('datauristring');
