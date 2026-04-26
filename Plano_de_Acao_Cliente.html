@@ -1116,6 +1116,9 @@ async function salvarEGerar() {
   const btn = $('btn-salvar');
   const d = coletar();
   if (!d.empresa) { toast('⚠ Preencha a Empresa', 3500, true); return; }
+  if (!d.responsavel) { toast('⚠ Preencha o Responsável', 3500, true); return; }
+  if (!d.data) { toast('⚠ Preencha a Data da reunião', 3500, true); return; }
+  if (!d.reuniao || d.reuniao < 1) { toast('⚠ Número da reunião inválido', 3500, true); return; }
   if (d.vitorias.length < 2) { toast('⚠ Mínimo de 2 vitórias rápidas', 4000, true); return; }
   btn.disabled = true; btn.innerHTML = '<span class="spinner"></span>Salvando...';
   try {
