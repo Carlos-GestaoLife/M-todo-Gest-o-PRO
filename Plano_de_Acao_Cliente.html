@@ -335,7 +335,7 @@
         </div>
 
         <div class="field-group">
-          <div class="field"><label>CNPJ</label><input type="text" id="cnpj" placeholder="00.000.000/0000-00"></div>
+          <div class="field"><label>CNPJ</label><input type="text" id="cnpj" inputmode="numeric" maxlength="18" placeholder="00.000.000/0000-00" oninput="mascaraCNPJ(this)"></div>
           <div class="field"><label>Empresa</label><input type="text" id="empresa" placeholder="Ex.: Burger do João"></div>
           <div class="field"><label>Responsável</label><input type="text" id="responsavel"></div>
           <div class="field"><label>Data</label><input type="date" id="data"></div>
@@ -383,17 +383,9 @@
       </div>
     </section>
 
-    <!-- ATA -->
-    <section class="section">
-      <div class="section-head"><div class="num">02</div><div><h2>Ata da reunião</h2><div class="sub">Registro do que foi conversado, decisões e contextos importantes</div></div></div>
-      <div class="section-body">
-        <div class="field"><label>Ata</label><textarea id="ata" rows="5" placeholder="Anotações da conversa, decisões tomadas, frases marcantes do cliente, contextos importantes..."></textarea></div>
-      </div>
-    </section>
-
     <!-- SWOT -->
     <section class="section">
-      <div class="section-head"><div class="num">03</div><div><h2>Análise SWOT</h2><div class="sub">Forças, Fraquezas, Oportunidades, Ameaças</div></div></div>
+      <div class="section-head"><div class="num">02</div><div><h2>Análise SWOT</h2><div class="sub">Forças, Fraquezas, Oportunidades, Ameaças</div></div></div>
       <div class="section-body">
         <div class="swot-grid">
           <div class="swot-card forcas">
@@ -442,7 +434,7 @@
 
     <!-- VITÓRIAS -->
     <section class="section">
-      <div class="section-head"><div class="num">04</div><div><h2>Vitórias rápidas</h2><div class="sub">Mínimo 2 ações de impacto · use as sugestões ou crie do zero</div></div></div>
+      <div class="section-head"><div class="num">03</div><div><h2>Vitórias rápidas</h2><div class="sub">Mínimo 2 ações de impacto · use as sugestões ou crie do zero</div></div></div>
       <div class="section-body">
         <div id="sug-vitorias" style="display:none">
           <p style="font-size:12px;color:var(--text-dim);margin:0 0 10px"><strong style="color:var(--accent)">SUGESTÕES PRO NÍVEL SELECIONADO:</strong> clique pra adicionar como vitória editável</p>
@@ -455,7 +447,7 @@
 
     <!-- COMPROMISSOS -->
     <section class="section">
-      <div class="section-head"><div class="num">05</div><div><h2>Compromissos</h2><div class="sub">Ações com responsável, prazo e status</div></div></div>
+      <div class="section-head"><div class="num">04</div><div><h2>Compromissos</h2><div class="sub">Ações com responsável, prazo e status</div></div></div>
       <div class="section-body">
         <div class="compr-table" id="compr-list"></div>
         <button class="btn-add" onclick="addCompromisso()">+ Adicionar compromisso</button>
@@ -464,7 +456,7 @@
 
     <!-- INDICADORES -->
     <section class="section">
-      <div class="section-head"><div class="num">06</div><div><h2>Indicadores</h2><div class="sub">O que vamos medir</div></div></div>
+      <div class="section-head"><div class="num">05</div><div><h2>Indicadores</h2><div class="sub">O que vamos medir</div></div></div>
       <div class="section-body">
         <div class="field"><label>KPIs (um por linha)</label><textarea id="kpis" rows="4"></textarea></div>
         <div class="field"><label>Frequência de revisão</label><input type="text" id="frequencia"></div>
@@ -473,7 +465,7 @@
 
     <!-- PRÓXIMA REUNIÃO -->
     <section class="section">
-      <div class="section-head"><div class="num">07</div><div><h2>Próxima reunião</h2><div class="sub">Agenda fechada com o cliente</div></div></div>
+      <div class="section-head"><div class="num">06</div><div><h2>Próxima reunião</h2><div class="sub">Agenda fechada com o cliente</div></div></div>
       <div class="section-body">
         <div class="field-group">
           <div class="field"><label>Data</label><input type="date" id="proxData"></div>
@@ -486,6 +478,14 @@
         <div class="actions" style="margin-top:14px;justify-content:flex-start">
           <button type="button" class="btn btn-secondary" onclick="abrirGoogleAgenda()">📅 Adicionar ao Google Agenda</button>
         </div>
+      </div>
+    </section>
+
+    <!-- ATA (último, depois de tudo decidido) -->
+    <section class="section">
+      <div class="section-head"><div class="num">07</div><div><h2>Ata da reunião</h2><div class="sub">Registro do que foi conversado, decisões e contextos importantes · preencha por último, com tudo fresco na cabeça</div></div></div>
+      <div class="section-body">
+        <div class="field"><label>Ata</label><textarea id="ata" rows="6" placeholder="Anotações da conversa, decisões tomadas, frases marcantes do cliente, contextos importantes..."></textarea></div>
       </div>
     </section>
 
@@ -545,6 +545,23 @@ function formatarDataComDia(iso){
   const dias = ['DOM','SEG','TER','QUA','QUI','SEX','SAB'];
   const dt = new Date(y, m-1, d);
   return `${dias[dt.getDay()]}-${String(d).padStart(2,'0')}/${String(m).padStart(2,'0')}/${String(y).slice(-2)}`;
+}
+
+// =========== MÁSCARA DE CNPJ ===========
+function aplicarMascaraCNPJ(v) {
+  v = String(v || '').replace(/\D/g, '').slice(0, 14);
+  if (v.length > 12) return v.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{1,2})/, '$1.$2.$3/$4-$5');
+  if (v.length > 8) return v.replace(/(\d{2})(\d{3})(\d{3})(\d{1,4})/, '$1.$2.$3/$4');
+  if (v.length > 5) return v.replace(/(\d{2})(\d{3})(\d{1,3})/, '$1.$2.$3');
+  if (v.length > 2) return v.replace(/(\d{2})(\d{1,3})/, '$1.$2');
+  return v;
+}
+function mascaraCNPJ(inp) {
+  const formatado = aplicarMascaraCNPJ(inp.value);
+  if (inp.value !== formatado) {
+    inp.value = formatado;
+    try { inp.setSelectionRange(formatado.length, formatado.length); } catch(_) {}
+  }
 }
 
 async function chamarAPI(action, dados = {}) {
@@ -674,7 +691,7 @@ async function novaReuniaoEmpresaAtual() {
         renderCheckin(reuniaoAnteriorData);
         $('secao-checkin').style.display = 'block';
         // Restaura CNPJ da última pra facilitar import
-        if (r.plano.cnpj) $('cnpj').value = r.plano.cnpj;
+        if (r.plano.cnpj) $('cnpj').value = aplicarMascaraCNPJ(r.plano.cnpj);
       } catch(e) { console.warn(e); }
     }
   }
@@ -688,7 +705,7 @@ async function editarPlano(idPlano) {
     idPlanoAtual = idPlano;
     contextoImportado = p.contextoImportado || null;
     limparFormulario();
-    $('cnpj').value = p.cnpj || '';
+    $('cnpj').value = p.cnpj ? aplicarMascaraCNPJ(p.cnpj) : '';
     $('empresa').value = p.empresa || '';
     $('responsavel').value = p.responsavel || '';
     $('data').value = p.data || new Date().toISOString().slice(0,10);
@@ -819,7 +836,10 @@ function aplicarContextoImportado() {
     }
     return '';
   };
-  if (!$('cnpj').value) $('cnpj').value = buscar([/cnpj/i]);
+  if (!$('cnpj').value) {
+    const cnpjImp = buscar([/cnpj/i]);
+    if (cnpjImp) $('cnpj').value = aplicarMascaraCNPJ(cnpjImp);
+  }
   if (!$('empresa').value) $('empresa').value = ig['Empresa'] || buscar([/nome.*empresa/i]) || '';
   if (!$('responsavel').value) $('responsavel').value = ig['Responsável'] || '';
 
@@ -1262,9 +1282,6 @@ async function gerarPDF(d) {
     y += 8;
   }
 
-  // Ata
-  if (d.ata) { heading('ATA DA REUNIÃO'); para(d.ata); y += 6; }
-
   // SWOT
   const sw = d.swot || {};
   if (sw.forcas || sw.fraquezas || sw.oportunidades || sw.ameacas) {
@@ -1408,6 +1425,10 @@ async function gerarPDF(d) {
     doc.setFont('helvetica','normal'); doc.setFontSize(10); doc.setTextColor(...CL.textDim);
     doc.text(prxPauta, margin+16, subY);
   }
+  y += prxH + 16;
+
+  // Ata da reunião (último, depois de tudo)
+  if (d.ata) { heading('ATA DA REUNIÃO'); para(d.ata); y += 6; }
 
   const nomeArq = `Plano_Acao_R${d.reuniao}_${d.empresa.replace(/[^a-z0-9]/gi,'_').slice(0,30)}_${d.data.replace(/-/g,'')}.pdf`;
   doc.save(nomeArq);
