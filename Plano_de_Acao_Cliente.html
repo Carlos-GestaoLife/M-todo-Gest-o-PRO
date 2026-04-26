@@ -12,13 +12,13 @@
     --bg:#0b1230; --bg-2:#121a42; --card:#1a2357; --card-hover:#202b66;
     --accent:#4dc9ff; --accent-2:#7aa2ff;
     --text:#eef2ff; --text-dim:#a8b2d8;
-    --success:#4ade80; --warning:#fbbf24; --danger:#f87171;
+    --success:#4ade80; --warning:#fbbf24; --danger:#f87171; --purple:#c084fc;
     --border:rgba(255,255,255,0.08);
   }
   * { box-sizing: border-box; }
   html, body { background: #060a1f; }
   body { margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif; background: linear-gradient(180deg,#060a1f 0%,#0b1230 100%); color: var(--text); line-height: 1.55; min-height: 100vh; }
-  .container { max-width: 960px; margin: 0 auto; padding: 32px 24px 80px; }
+  .container { max-width: 1000px; margin: 0 auto; padding: 32px 24px 80px; }
   .site-logo { display:flex; align-items:center; justify-content:center; padding: 20px 16px 10px; }
   .site-logo svg { width: 160px; height: auto; }
 
@@ -33,7 +33,6 @@
   h1 .hl { color: var(--accent); }
   header p { color: var(--text-dim); font-size: 16px; margin: 8px auto 0; max-width: 720px; }
 
-  /* LOGIN */
   .login-card { max-width: 420px; margin: 80px auto 40px; background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 36px 32px; }
   .login-card h2 { margin: 0 0 8px; font-size: 22px; font-weight: 800; text-transform: uppercase; }
   .login-card p { margin: 0 0 24px; color: var(--text-dim); font-size: 14px; }
@@ -45,7 +44,6 @@
   .field input:focus, .field textarea:focus, .field select:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
   .field-group { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; }
 
-  /* DASHBOARD */
   .dash-header { display: flex; justify-content: space-between; align-items: center; padding-bottom: 20px; border-bottom: 1px solid var(--border); margin-bottom: 24px; flex-wrap: wrap; gap: 12px; }
   .dash-user { font-size: 13px; color: var(--text-dim); }
   .dash-user strong { color: var(--accent); }
@@ -65,16 +63,14 @@
   .empty-state { text-align: center; padding: 48px 24px; color: var(--text-dim); }
   .empty-state .icon { font-size: 48px; margin-bottom: 12px; }
 
-  /* HISTORICO DA EMPRESA */
   .timeline { display:grid; gap: 10px; margin-bottom: 24px; }
-  .timeline-item { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 16px 20px; display:flex; justify-content: space-between; align-items: center; cursor: pointer; transition: all .15s; }
+  .timeline-item { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 16px 20px; display:flex; justify-content: space-between; align-items: center; cursor: pointer; }
   .timeline-item:hover { background: var(--card-hover); border-color: var(--accent-2); }
   .timeline-item .num { background: var(--accent); color: #0b1230; padding: 6px 14px; border-radius: 20px; font-size: 13px; font-weight: 900; margin-right: 14px; }
   .timeline-item .meta { flex: 1; }
   .timeline-item .meta h4 { margin: 0 0 4px; font-size: 15px; font-weight: 700; }
   .timeline-item .meta p { margin: 0; color: var(--text-dim); font-size: 12px; }
 
-  /* FORMULARIO */
   .section { background: var(--card); border: 1px solid var(--border); border-radius: 14px; margin-bottom: 20px; overflow: hidden; }
   .section-head { padding: 16px 22px; background: linear-gradient(90deg, var(--card-hover), var(--card)); border-bottom: 1px solid var(--border); display:flex; align-items:center; gap: 12px; }
   .section-head .num { font-size: 24px; font-weight: 900; color: var(--accent); min-width: 34px; letter-spacing: -.03em; }
@@ -93,16 +89,74 @@
   .btn-add { background: rgba(77,201,255,.08); color: var(--accent); border: 1px dashed rgba(77,201,255,.4); padding: 10px 18px; border-radius: 8px; font-weight: 700; font-family: inherit; cursor: pointer; width: 100%; margin-top: 6px; font-size: 13px; }
   .btn-add:hover { background: rgba(77,201,255,.14); }
 
-  .suggestions { background: rgba(77,201,255,.06); border-left: 3px solid var(--accent); padding: 10px 12px; border-radius: 6px; margin-bottom: 10px; font-size: 12px; color: var(--text-dim); }
-  .suggestions strong { color: var(--accent); display: block; margin-bottom: 6px; font-size: 10px; letter-spacing: 1px; text-transform: uppercase; }
-  .suggestions ul { margin: 4px 0 0; padding-left: 16px; }
-  .suggestions li { margin-bottom: 3px; cursor: pointer; padding: 2px 4px; border-radius: 3px; }
-  .suggestions li:hover { background: rgba(77,201,255,.12); color: var(--text); }
+  /* Importar diagnostico */
+  .import-banner { background: rgba(77,201,255,.06); border: 1px solid rgba(77,201,255,.2); border-radius: 10px; padding: 14px 18px; margin-bottom: 14px; display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+  .import-banner .txt { flex: 1; min-width: 220px; font-size: 13px; color: var(--text-dim); }
+  .import-banner .txt strong { color: var(--accent); }
+  .btn-import { background: var(--accent); color: #0b1230; border: none; padding: 10px 18px; border-radius: 8px; font-weight: 700; font-family: inherit; cursor: pointer; font-size: 13px; }
+  .btn-import:hover { background: #67d4ff; }
 
-  /* CHECK-IN (reuniões > 1) */
+  /* Card de contexto */
+  .ctx-card { background: linear-gradient(135deg, rgba(77,201,255,.08), rgba(122,162,255,.04)); border: 1px solid rgba(77,201,255,.3); border-radius: 12px; padding: 18px 22px; margin-bottom: 20px; }
+  .ctx-card .ctx-head { display:flex; justify-content:space-between; align-items:center; margin-bottom: 14px; flex-wrap:wrap; gap: 8px; }
+  .ctx-card h3 { margin: 0; font-size: 14px; color: var(--accent); letter-spacing: 1px; text-transform: uppercase; font-weight: 800; }
+  .ctx-card .toggle-ctx { background: transparent; border: 1px solid var(--border); color: var(--text-dim); padding: 4px 10px; border-radius: 6px; font-size: 11px; cursor: pointer; }
+  .ctx-card .ctx-body { display: grid; gap: 8px; font-size: 13px; }
+  .ctx-card .ctx-row { display: flex; gap: 12px; }
+  .ctx-card .ctx-row .lbl { min-width: 130px; color: var(--text-dim); font-weight: 600; }
+  .ctx-card .ctx-row .val { flex: 1; color: var(--text); }
+  .niveis-badges { display:flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
+  .niveis-badges .nv-badge { padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 700; }
+  .niveis-badges .nv-badge.done { background: rgba(74,222,128,.15); color: #4ade80; border: 1px solid rgba(74,222,128,.3); }
+  .niveis-badges .nv-badge.progress { background: rgba(251,191,36,.15); color: #fbbf24; border: 1px solid rgba(251,191,36,.3); }
+  .niveis-badges .nv-badge.low { background: rgba(248,113,113,.15); color: #f87171; border: 1px solid rgba(248,113,113,.3); }
+
+  /* SWOT */
+  .swot-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  @media (max-width: 720px) { .swot-grid { grid-template-columns: 1fr; } }
+  .swot-card { background: var(--bg-2); border-left: 4px solid; border-radius: 10px; padding: 14px 16px; }
+  .swot-card.forcas { border-color: var(--accent); }
+  .swot-card.fraquezas { border-color: var(--purple); }
+  .swot-card.oportunidades { border-color: var(--success); }
+  .swot-card.ameacas { border-color: var(--danger); }
+  .swot-card .swot-head { display:flex; justify-content:space-between; align-items:center; margin-bottom: 10px; }
+  .swot-card .swot-title { font-weight: 800; font-size: 13px; letter-spacing: 1px; text-transform: uppercase; }
+  .swot-card.forcas .swot-title { color: var(--accent); }
+  .swot-card.fraquezas .swot-title { color: var(--purple); }
+  .swot-card.oportunidades .swot-title { color: var(--success); }
+  .swot-card.ameacas .swot-title { color: var(--danger); }
+  .swot-card .swot-q { font-size: 11px; color: var(--text-dim); font-style: italic; margin: 0 0 8px; }
+  .swot-card textarea { width: 100%; background: var(--bg); border: 1px solid var(--border); color: var(--text); padding: 10px 12px; border-radius: 6px; font-size: 13px; min-height: 100px; font-family: inherit; resize: vertical; }
+  .btn-dicas { background: transparent; border: 1px solid var(--border); color: var(--text-dim); padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 600; cursor: pointer; }
+  .btn-dicas:hover { background: var(--card); color: var(--text); }
+  .dicas-box { background: var(--bg); border: 1px dashed rgba(255,255,255,.1); border-radius: 6px; padding: 8px 12px; margin-top: 6px; margin-bottom: 8px; font-size: 11px; color: var(--text-dim); }
+  .dicas-box ul { margin: 4px 0; padding-left: 16px; }
+  .dicas-box li { margin: 3px 0; }
+
+  /* Sugestões vitorias */
+  .sug-vitoria-card { background: rgba(77,201,255,.05); border: 1px dashed rgba(77,201,255,.3); border-radius: 8px; padding: 12px; margin-bottom: 8px; cursor: pointer; transition: all .15s; }
+  .sug-vitoria-card:hover { background: rgba(77,201,255,.1); border-style: solid; }
+  .sug-vitoria-card .topico { font-size: 10px; color: var(--accent); font-weight: 700; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 4px; }
+  .sug-vitoria-card .vitoria { font-size: 13px; font-weight: 700; color: var(--text); margin-bottom: 4px; }
+  .sug-vitoria-card .solucao { font-size: 12px; color: var(--text-dim); font-style: italic; }
+  .sug-vitoria-card .add-icon { color: var(--accent); font-size: 14px; font-weight: 900; margin-right: 6px; }
+
+  /* Compromissos table */
+  .compr-table { width: 100%; }
+  .compr-row { background: var(--bg-2); border: 1px solid var(--border); border-radius: 10px; padding: 12px; margin-bottom: 10px; }
+  .compr-row .row-grid { display: grid; grid-template-columns: 1fr 1fr 2fr 1fr 1fr 1fr; gap: 8px; align-items: end; }
+  @media (max-width: 900px) { .compr-row .row-grid { grid-template-columns: 1fr 1fr; } }
+  .compr-row .row-grid .field-mini { display:flex; flex-direction: column; }
+  .compr-row .row-grid .field-mini label { font-size: 9px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; font-weight: 700; }
+  .compr-row .row-grid input, .compr-row .row-grid select, .compr-row .row-grid textarea { background: var(--bg); border: 1px solid var(--border); color: var(--text); padding: 6px 10px; border-radius: 6px; font-size: 12px; font-family: inherit; }
+  .compr-row .nota-row { margin-top: 8px; }
+  .compr-row .nota-row textarea { width: 100%; background: var(--bg); border: 1px solid var(--border); color: var(--text); padding: 8px 10px; border-radius: 6px; font-size: 12px; font-family: inherit; min-height: 50px; }
+  .compr-row .row-action { display:flex; justify-content:flex-end; }
+  .compr-row .btn-remove { background: transparent; border: none; color: var(--danger); cursor: pointer; font-size: 18px; padding: 4px 8px; border-radius: 4px; }
+
+  /* Check-in */
   .checkin-banner { background: linear-gradient(135deg, rgba(251,191,36,.14), rgba(245,158,11,.06)); border: 1px solid rgba(251,191,36,.3); border-radius: 10px; padding: 16px; margin-bottom: 14px; font-size: 13px; color: var(--text-dim); }
   .checkin-banner strong { color: var(--warning); display:block; margin-bottom: 4px; }
-
   .checkin-item { background: var(--bg-2); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; margin-bottom: 8px; }
   .checkin-item .titulo { font-weight: 700; margin-bottom: 8px; font-size: 14px; }
   .checkin-status { display:flex; gap: 6px; flex-wrap: wrap; margin-bottom: 8px; }
@@ -111,13 +165,6 @@
   .checkin-status button.active[data-s="parcial"] { background: var(--warning); color: #0b1230; border-color: var(--warning); }
   .checkin-status button.active[data-s="naofeita"] { background: var(--danger); color: #fff; border-color: var(--danger); }
   .checkin-item textarea { width: 100%; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 8px 10px; color: var(--text); font-size: 13px; font-family: inherit; min-height: 50px; }
-
-  .roadmap { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
-  @media (max-width: 720px) { .roadmap { grid-template-columns: 1fr 1fr; } }
-  @media (max-width: 480px) { .roadmap { grid-template-columns: 1fr; } }
-  .tri { background: var(--bg-2); border: 1px solid var(--border); border-radius: 10px; padding: 12px; }
-  .tri .tri-head { font-size: 10px; color: var(--accent); font-weight: 800; letter-spacing: 1px; margin-bottom: 6px; }
-  .tri textarea { width: 100%; background: transparent; border: none; color: var(--text); font-size: 12px; font-family: inherit; resize: vertical; min-height: 80px; padding: 0; line-height: 1.5; }
 
   .actions { display:flex; justify-content:center; gap: 10px; margin-top: 28px; flex-wrap: wrap; }
   button.btn { font-family: inherit; font-size: 14px; font-weight: 700; padding: 14px 26px; border-radius: 10px; border: none; cursor: pointer; transition: all .15s; letter-spacing: .3px; }
@@ -133,11 +180,19 @@
   .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(100px); background: var(--card); border: 1px solid var(--accent); color: var(--text); padding: 14px 22px; border-radius: 10px; font-size: 14px; font-weight: 600; box-shadow: 0 10px 40px rgba(0,0,0,.4); opacity: 0; transition: all .35s ease; z-index: 999; max-width: 90%; }
   .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
   .toast.error { border-color: var(--danger); }
+  .toast.success { border-color: var(--success); }
 
   .spinner { display:inline-block; width: 14px; height: 14px; border: 2px solid rgba(255,255,255,.3); border-top-color: var(--accent); border-radius: 50%; animation: spin .8s linear infinite; vertical-align: middle; margin-right: 6px; }
   @keyframes spin { to { transform: rotate(360deg); } }
 
   .loading { text-align: center; padding: 40px; color: var(--text-dim); }
+
+  .modal-bg { position: fixed; inset: 0; background: rgba(6,10,31,.85); backdrop-filter: blur(4px); display: none; align-items: center; justify-content: center; z-index: 1000; padding: 20px; }
+  .modal-bg.show { display: flex; }
+  .modal { background: var(--card); border: 1px solid var(--accent); border-radius: 14px; padding: 28px; max-width: 600px; width: 100%; }
+  .modal h3 { margin: 0 0 12px; }
+  .modal p { color: var(--text-dim); font-size: 14px; margin: 0 0 20px; }
+  .modal textarea { width: 100%; background: var(--bg-2); border: 1px solid var(--border); color: var(--text); padding: 10px; border-radius: 6px; font-family: monospace; font-size: 11px; min-height: 200px; }
 </style>
 </head>
 <body>
@@ -199,7 +254,7 @@
 
 <div class="container">
 
-  <!-- ======== LOGIN ======== -->
+  <!-- LOGIN -->
   <div class="view show" id="view-login">
     <div class="login-card">
       <h2>Login</h2>
@@ -211,24 +266,21 @@
     </div>
   </div>
 
-  <!-- ======== DASHBOARD ======== -->
+  <!-- DASHBOARD -->
   <div class="view" id="view-dashboard">
     <div class="dash-header">
       <div><div class="brand">Método Gestão Life · Planos de Ação</div><div class="dash-user">Logado como <strong id="dash-nome"></strong></div></div>
       <button class="btn-logout" onclick="sair()">Sair</button>
     </div>
-
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; flex-wrap:wrap; gap: 10px">
       <h1 style="text-transform:none;font-size:22px;margin:0">Empresas</h1>
       <button class="btn btn-primary" onclick="novaEmpresa()">+ Criar nova reunião</button>
     </div>
-
     <div class="search-bar"><input type="text" id="busca" placeholder="🔍 Buscar empresa..." oninput="filtrarEmpresas()"></div>
-
     <div id="empresas-root" class="empresa-grid"></div>
   </div>
 
-  <!-- ======== HISTÓRICO DA EMPRESA ======== -->
+  <!-- HISTÓRICO -->
   <div class="view" id="view-historico">
     <div class="dash-header">
       <div><button class="btn-logout" onclick="voltarDashboard()">← Voltar</button></div>
@@ -245,7 +297,7 @@
     </div>
   </div>
 
-  <!-- ======== FORMULÁRIO DO PLANO ======== -->
+  <!-- FORMULÁRIO -->
   <div class="view" id="view-form">
     <div class="dash-header">
       <div><button class="btn-logout" onclick="voltarDashboard()">← Voltar</button></div>
@@ -258,20 +310,19 @@
       <p id="form-subtitle">Preencha com o cliente durante a reunião.</p>
     </header>
 
-    <!-- CHECK-IN (só aparece se for reunião > 1) -->
-    <section class="section" id="secao-checkin" style="display:none">
-      <div class="section-head"><div class="num">🔁</div><div><h2>Check-in da reunião anterior</h2><div class="sub">Marca com o cliente o que foi feito desde a última reunião</div></div></div>
-      <div class="section-body">
-        <div class="checkin-banner"><strong>Puxado da reunião anterior:</strong>Vitórias rápidas e prioridades combinadas. Marcar cada item como: FEITA, PARCIAL ou NÃO FEITA + observação opcional.</div>
-        <div id="checkin-root"></div>
-      </div>
-    </section>
-
     <!-- 1. DADOS -->
     <section class="section">
-      <div class="section-head"><div class="num">01</div><div><h2>Dados da reunião</h2><div class="sub">Identificação e nível diagnóstico</div></div></div>
+      <div class="section-head"><div class="num">01</div><div><h2>Dados da reunião</h2><div class="sub">Identificação · Importação do diagnóstico</div></div></div>
       <div class="section-body">
+        <div class="import-banner">
+          <div class="txt">
+            <strong>Tem o diagnóstico do cliente?</strong> Preencha o CNPJ ou nome abaixo e clique em importar pra puxar dados do diagnóstico, planejamento estratégico e nível atual.
+          </div>
+          <button class="btn-import" onclick="importarDiagnostico()">📥 Importar do diagnóstico</button>
+        </div>
+
         <div class="field-group">
+          <div class="field"><label>CNPJ</label><input type="text" id="cnpj" placeholder="00.000.000/0000-00"></div>
           <div class="field"><label>Empresa</label><input type="text" id="empresa" placeholder="Ex.: Burger do João"></div>
           <div class="field"><label>Responsável</label><input type="text" id="responsavel"></div>
           <div class="field"><label>Data</label><input type="date" id="data"></div>
@@ -291,49 +342,104 @@
       </div>
     </section>
 
-    <!-- 2. RECAP -->
-    <section class="section">
-      <div class="section-head"><div class="num">02</div><div><h2>Recap do momento</h2><div class="sub">Onde está forte · Onde está travando</div></div></div>
+    <!-- CARD DE CONTEXTO (após importar) -->
+    <div id="ctx-card" class="ctx-card" style="display:none">
+      <div class="ctx-head">
+        <h3>📊 Contexto do diagnóstico</h3>
+        <button class="toggle-ctx" onclick="toggleCtx()">Ocultar</button>
+      </div>
+      <div class="ctx-body" id="ctx-body"></div>
+    </div>
+
+    <!-- CHECK-IN -->
+    <section class="section" id="secao-checkin" style="display:none">
+      <div class="section-head"><div class="num">🔁</div><div><h2>Check-in da reunião anterior</h2><div class="sub">Marca com o cliente o que foi feito desde a última reunião</div></div></div>
       <div class="section-body">
-        <div class="field"><label>Onde está forte</label><textarea id="fortes"></textarea></div>
-        <div class="field"><label>Onde está travando</label><textarea id="fracos"></textarea></div>
+        <div class="checkin-banner"><strong>Puxado da reunião anterior:</strong>Cada item: FEITA / PARCIAL / NÃO FEITA + observação opcional.</div>
+        <div id="checkin-root"></div>
       </div>
     </section>
 
-    <!-- 3. VITÓRIAS -->
+    <!-- ATA -->
     <section class="section">
-      <div class="section-head"><div class="num">03</div><div><h2>Vitórias rápidas (30 dias)</h2><div class="sub">Mínimo 2 ações de impacto imediato</div></div></div>
+      <div class="section-head"><div class="num">02</div><div><h2>Ata da reunião</h2><div class="sub">Registro do que foi conversado, decisões e contextos importantes</div></div></div>
       <div class="section-body">
-        <div class="suggestions" id="sug-vitorias" style="display:none"><strong>Sugestões pro nível selecionado — clique:</strong><ul id="sug-vitorias-list"></ul></div>
-        <div class="items-list" id="vitorias-list"></div>
-        <button class="btn-add" onclick="addVitoria()">+ Adicionar vitória</button>
+        <div class="field"><label>Ata</label><textarea id="ata" rows="5" placeholder="Anotações da conversa, decisões tomadas, frases marcantes do cliente, contextos importantes..."></textarea></div>
       </div>
     </section>
 
-    <!-- 4. PRIORIDADES -->
+    <!-- SWOT -->
     <section class="section">
-      <div class="section-head"><div class="num">04</div><div><h2>Prioridades (30-90 dias)</h2><div class="sub">Ações estruturais</div></div></div>
+      <div class="section-head"><div class="num">03</div><div><h2>Análise SWOT</h2><div class="sub">Forças, Fraquezas, Oportunidades, Ameaças</div></div></div>
       <div class="section-body">
-        <div class="suggestions" id="sug-prioridades" style="display:none"><strong>Sugestões pro nível selecionado — clique:</strong><ul id="sug-prioridades-list"></ul></div>
-        <div class="items-list" id="prioridades-list"></div>
-        <button class="btn-add" onclick="addPrioridade()">+ Adicionar prioridade</button>
-      </div>
-    </section>
-
-    <!-- 5. ROADMAP -->
-    <section class="section">
-      <div class="section-head"><div class="num">05</div><div><h2>Roadmap dos próximos meses</h2><div class="sub">Foco de cada trimestre</div></div></div>
-      <div class="section-body">
-        <div class="roadmap">
-          <div class="tri"><div class="tri-head">TRI 1 · MÊS 1-3</div><textarea id="tri1"></textarea></div>
-          <div class="tri"><div class="tri-head">TRI 2 · MÊS 4-6</div><textarea id="tri2"></textarea></div>
-          <div class="tri"><div class="tri-head">TRI 3 · MÊS 7-9</div><textarea id="tri3"></textarea></div>
-          <div class="tri"><div class="tri-head">TRI 4 · MÊS 10-12</div><textarea id="tri4"></textarea></div>
+        <div class="swot-grid">
+          <div class="swot-card forcas">
+            <div class="swot-head"><span class="swot-title">🔵 Forças</span><button class="btn-dicas" onclick="toggleDicas('dicas-forcas')">💡 Dicas</button></div>
+            <p class="swot-q">O que fazemos bem? (interno · positivo)</p>
+            <div class="dicas-box" id="dicas-forcas" style="display:none"><ul>
+              <li>Quais são as vantagens distintivas do negócio?</li>
+              <li>Em que áreas a empresa é superior aos concorrentes?</li>
+              <li>Quais recursos e habilidades únicos a empresa possui?</li>
+            </ul></div>
+            <textarea id="swot-forcas"></textarea>
+          </div>
+          <div class="swot-card fraquezas">
+            <div class="swot-head"><span class="swot-title">🟣 Fraquezas</span><button class="btn-dicas" onclick="toggleDicas('dicas-fraquezas')">💡 Dicas</button></div>
+            <p class="swot-q">O que podemos melhorar? (interno · negativo)</p>
+            <div class="dicas-box" id="dicas-fraquezas" style="display:none"><ul>
+              <li>Quais são as limitações da empresa?</li>
+              <li>Onde a empresa tem desvantagens em relação aos concorrentes?</li>
+              <li>Quais recursos ou habilidades estão faltando ou são deficientes?</li>
+            </ul></div>
+            <textarea id="swot-fraquezas"></textarea>
+          </div>
+          <div class="swot-card oportunidades">
+            <div class="swot-head"><span class="swot-title">🟢 Oportunidades</span><button class="btn-dicas" onclick="toggleDicas('dicas-oportunidades')">💡 Dicas</button></div>
+            <p class="swot-q">Que tendências podemos aproveitar? (externo · positivo)</p>
+            <div class="dicas-box" id="dicas-oportunidades" style="display:none"><ul>
+              <li>Quais tendências do mercado podem beneficiar a empresa?</li>
+              <li>Existem mudanças internas ou externas que criam oportunidades?</li>
+              <li>Existem novas tecnologias ou práticas que podem ser aproveitadas?</li>
+            </ul></div>
+            <textarea id="swot-oportunidades"></textarea>
+          </div>
+          <div class="swot-card ameacas">
+            <div class="swot-head"><span class="swot-title">🔴 Ameaças</span><button class="btn-dicas" onclick="toggleDicas('dicas-ameacas')">💡 Dicas</button></div>
+            <p class="swot-q">Que desafios podem ser prejudiciais? (externo · negativo)</p>
+            <div class="dicas-box" id="dicas-ameacas" style="display:none"><ul>
+              <li>Quais são os desafios externos que a empresa enfrenta?</li>
+              <li>Quais são as tendências que podem representar ameaças ao negócio?</li>
+              <li>Existem concorrentes ou mudanças no mercado que podem ameaçar?</li>
+            </ul></div>
+            <textarea id="swot-ameacas"></textarea>
+          </div>
         </div>
       </div>
     </section>
 
-    <!-- 6. INDICADORES -->
+    <!-- VITÓRIAS -->
+    <section class="section">
+      <div class="section-head"><div class="num">04</div><div><h2>Vitórias rápidas</h2><div class="sub">Mínimo 2 ações de impacto · use as sugestões ou crie do zero</div></div></div>
+      <div class="section-body">
+        <div id="sug-vitorias" style="display:none">
+          <p style="font-size:12px;color:var(--text-dim);margin:0 0 10px"><strong style="color:var(--accent)">SUGESTÕES PRO NÍVEL SELECIONADO:</strong> clique pra adicionar como vitória editável</p>
+          <div id="sug-vitorias-list"></div>
+        </div>
+        <div class="items-list" id="vitorias-list"></div>
+        <button class="btn-add" onclick="addVitoria()">+ Adicionar vitória do zero</button>
+      </div>
+    </section>
+
+    <!-- COMPROMISSOS -->
+    <section class="section">
+      <div class="section-head"><div class="num">05</div><div><h2>Compromissos</h2><div class="sub">Ações com responsável, prazo e status</div></div></div>
+      <div class="section-body">
+        <div class="compr-table" id="compr-list"></div>
+        <button class="btn-add" onclick="addCompromisso()">+ Adicionar compromisso</button>
+      </div>
+    </section>
+
+    <!-- INDICADORES -->
     <section class="section">
       <div class="section-head"><div class="num">06</div><div><h2>Indicadores</h2><div class="sub">O que vamos medir</div></div></div>
       <div class="section-body">
@@ -342,7 +448,7 @@
       </div>
     </section>
 
-    <!-- 7. PRÓXIMA REUNIÃO -->
+    <!-- PRÓXIMA REUNIÃO -->
     <section class="section">
       <div class="section-head"><div class="num">07</div><div><h2>Próxima reunião</h2><div class="sub">Agenda fechada com o cliente</div></div></div>
       <div class="section-body">
@@ -361,51 +467,74 @@
     </section>
 
     <div class="actions">
-      <button class="btn btn-primary btn-big" id="btn-salvar" onclick="salvarEGerar()">💾 Salvar e gerar PDF</button>
+      <button class="btn btn-primary btn-big" id="btn-salvar" onclick="salvarEGerar()">💾 Salvar plano (PDF + Google Doc)</button>
       <button class="btn btn-secondary" onclick="voltarDashboard()">Cancelar</button>
     </div>
   </div>
 
-  <footer>Método Gestão Life · Gestão PRO<br><small>Ferramenta interna · Planos de Ação</small></footer>
+  <footer>Método Gestão Life · Gestão PRO<br><small>Ferramenta interna · Planos de Ação v2</small></footer>
+</div>
+
+<!-- Modal de upload manual quando importação falha -->
+<div class="modal-bg" id="modal-paste">
+  <div class="modal">
+    <h3>📋 Colar dados manualmente</h3>
+    <p>Cole abaixo a linha do Painel-Diagnóstico (formato TSV — copia da planilha e cola aqui). O sistema vai parsear pra preencher o card de contexto.</p>
+    <textarea id="paste-area" placeholder="Cole aqui os dados copiados da planilha..."></textarea>
+    <div class="actions" style="justify-content:flex-end;margin-top:14px">
+      <button class="btn btn-secondary" onclick="fecharModalPaste()">Cancelar</button>
+      <button class="btn btn-primary" onclick="parsePastedData()">Importar texto colado</button>
+    </div>
+  </div>
 </div>
 
 <div class="toast" id="toast"></div>
 
 <script>
+
 const WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbwer2hhy5AXa8J1-lz09xoDnBrfhLzsBtoXoAMdc5cRF9hk0D7RMzgCqeB1axTqFKMV/exec";
 const TOKEN = "DxclbdFY8lbweT6J02kQ3kHX2vcoFpAG";
-const NIVEIS = [{"num": "01", "nome": "Saindo do Caos", "foco": "Mentalidade do Dono · Liderança Básica · Controle Financeiro e DRE", "vitorias_sugeridas": ["Separar a conta PF da conta PJ (conta bancária + cartão)", "Definir pró-labore fixo do(s) sócio(s)", "Começar a lançar 100% das vendas no sistema (VUCA)"], "prioridades": ["Mentalidade do dono: testes de personalidade, forças e sabotadores", "Definir e escrever o objetivo de 5 anos da empresa", "Desenhar organograma por cargo e montar RCF dos cargos de liderança", "Capacitação básica da liderança (feedback, delegação, cobrança)", "Configurar sistema VUCA com categorização correta", "Fechar DRE gerencial dos últimos 3 meses COM inventário", "Calcular capital de giro mínimo e regra de distribuição de lucros"]}, {"num": "02", "nome": "Colocando Ordem", "foco": "Precificação e Cardápio · Rotina Operacional · Experiência do Cliente", "vitorias_sugeridas": ["Preleção diária de 5 min antes da operação", "Pesquisa de satisfação ativa nos 4 pilares", "Ficha técnica dos 10 produtos mais vendidos"], "prioridades": ["Ficha técnica de 100% dos produtos e precificação com markup", "Engenharia de cardápio: classificar e agir nos cachorros", "Rotina semanal de reunião de resultados com liderança", "Padronização do atendimento: script + recepção + check-back", "Tempo-padrão por produto e monitoramento no pico", "Checklist diário de ambiente (limpeza, iluminação, som, temperatura)"]}, {"num": "03", "nome": "Virando Empresa", "foco": "Cultura · Processos, Checklist e Treinamento · Compras, Estoque e CMV", "vitorias_sugeridas": ["Instalar placas com Missão, Visão e Valores no ambiente", "Definir dias fixos de compra (2x por semana) com contagem prévia", "Começar feedback mensal 1:1 com a equipe"], "prioridades": ["Cultura completa: missão, visão, valores e rituais vividos", "Mapear e documentar os 2 processos mais críticos", "Criar checklist por cargo usado diariamente", "Gravar treinamentos técnicos em vídeo", "Aplicar pesquisa de engajamento e atuar nos 3 piores pontos", "Feedback mensal 1:1 registrado", "Controle de estoque (PVPS, contagem diária, acesso restrito)", "Ritmo de compras com cotação entre fornecedores"]}, {"num": "04", "nome": "Jogando o Jogo dos Números", "foco": "Liderança Avançada · Indicadores · Aumento de Faturamento · Redução de Custos", "vitorias_sugeridas": ["Instalar quadro de recordes no salão/cozinha", "Começar reunião semanal de indicadores com liderança", "Escolher 1 alavanca de ticket médio e implantar"], "prioridades": ["Capacitação completa da liderança", "Painel de indicadores visível", "Plano estruturado de aumento de faturamento", "Otimização do delivery", "Ação nos 8 momentos críticos do CMV", "Controle da produtividade", "Auditoria mensal com checklist único"]}, {"num": "05", "nome": "Pronto para Escalar", "foco": "R&S · Integração · Treinamentos Culturais · Avaliação de Desempenho e PDI", "vitorias_sugeridas": ["Atualizar RCF dos 3 cargos-chave", "Criar jornada de 10 dias de integração", "Agendar primeira avaliação de desempenho"], "prioridades": ["R&S padronizado com base no RCF", "Auditoria jurídica de conformidades trabalhistas", "Processo de integração estruturado", "Treinamentos culturais em vídeo", "Ciclo semestral de avaliação de desempenho", "PDI individual", "Feedback mensal ancorado no PDI"]}];
+const NIVEIS = [{"num": "01", "nome": "Saindo do Caos", "foco": "Mentalidade do Dono · Liderança Básica · Controle Financeiro e DRE", "topicos": [{"nome": "Mentalidade e Propósito (dono)", "vitoria": "Aplicar testes de personalidade, forças e sabotadores", "solucao": "Bloquear 1h por semana pra autoconhecimento e revisar com mentor mensalmente"}, {"nome": "Liderança Básica", "vitoria": "Capacitar líderes em feedback, delegação e cobrança", "solucao": "Treinamento de 4 encontros + checklist de líder + reunião semanal de gestão"}, {"nome": "Controle financeiro e confiança na DRE", "vitoria": "Separar PF de PJ + fechar DRE dos últimos 3 meses", "solucao": "Conta bancária separada + sistema VUCA configurado + inventário mensal"}]}, {"num": "02", "nome": "Colocando Ordem", "foco": "Precificação · Rotina Operacional · Experiência do Cliente", "topicos": [{"nome": "Precificação e cardápio", "vitoria": "Ficha técnica e markup nos produtos mais vendidos", "solucao": "Engenharia de cardápio mensal + revisão de preços trimestral"}, {"nome": "Rotina operacional", "vitoria": "Implantar preleção diária e reunião semanal de resultados", "solucao": "Pauta padronizada + indicadores visíveis pra equipe"}, {"nome": "Experiência do cliente (4 pilares)", "vitoria": "Ativar pesquisa de satisfação medindo atendimento, agilidade, produto, ambiente", "solucao": "Tablet ou QR code na mesa + acompanhar avaliações diariamente + retorno em todas avaliações negativas"}]}, {"num": "03", "nome": "Virando Empresa", "foco": "Cultura · Processos · Compras e Estoque", "topicos": [{"nome": "Cultura", "vitoria": "Instalar placas com missão, visão e valores no ambiente", "solucao": "Workshop de cultura com a equipe + 2 rituais que reforçam os valores no dia a dia"}, {"nome": "Processos, checklist e treinamento", "vitoria": "Mapear os 2 processos mais críticos e gravar treinamento em vídeo", "solucao": "Checklist por cargo usado diariamente + reciclagem mensal dos vídeos"}, {"nome": "Compras, estoque e CMV", "vitoria": "Definir dias fixos de compra com contagem prévia (PVPS aplicado)", "solucao": "Cadastro de fornecedores + cotação semanal + contagem diária dos itens A"}]}, {"num": "04", "nome": "Jogando o Jogo dos Números", "foco": "Liderança Avançada · Indicadores · Faturamento e Custos", "topicos": [{"nome": "Indicadores e metas", "vitoria": "Painel visível com ticket, NPS, CMV, CMO, lucro líquido", "solucao": "Reunião semanal de indicadores com a liderança + plano de ação por desvio"}, {"nome": "Aumentar faturamento", "vitoria": "Implantar 1 alavanca de ticket médio (combo, upsell ou adicional)", "solucao": "Quadro de recordes + meritocracia de vendas + capacitação de salão"}, {"nome": "Reduzir custos", "vitoria": "Atacar 1 dos 8 momentos críticos do CMV", "solucao": "Auditoria mensal aprovado/reprovado + ação pra cada não conformidade"}]}, {"num": "05", "nome": "Pronto para Escalar", "foco": "R&S · Integração · Avaliação e PDI", "topicos": [{"nome": "Jornada do colaborador", "vitoria": "Estruturar jornada de 10 dias de integração", "solucao": "Líder responsável + treinamento cultural em vídeo + acompanhamento dia a dia"}, {"nome": "Desenvolvimento de líderes", "vitoria": "Atualizar RCF dos 3 cargos-chave", "solucao": "R&S baseado no RCF + ciclo semestral de avaliação + PDI individual"}, {"nome": "Operação independente", "vitoria": "Aplicar primeira avaliação de desempenho semestral", "solucao": "Critérios técnicos + comportamentais + resultado + fit cultural + feedback mensal ancorado no PDI"}]}];
 const LOGO_LIFE_SVG_STR = document.getElementById('gestao-life-logo-hidden').innerHTML;
 const LOGO_PRO_SVG_STR = document.querySelector('.site-logo svg').outerHTML;
 
 let empresaAtual = null;
-let reuniaoAnteriorData = null; // usado no check-in
-let idPlanoAtual = null; // se tá editando
+let reuniaoAnteriorData = null;
+let idPlanoAtual = null;
 let consultorLogado = null;
+let contextoImportado = null;
 
 function $(id){return document.getElementById(id);}
-function toast(msg, ms=3500, isErr=false){ const t=$('toast'); t.textContent=msg; t.classList.remove('error'); if(isErr) t.classList.add('error'); t.classList.add('show'); clearTimeout(t._h); t._h=setTimeout(()=>t.classList.remove('show'), ms); }
+function toast(msg, ms=3500, isErr=false, isSuccess=false){
+  const t=$('toast'); t.textContent=msg;
+  t.classList.remove('error','success');
+  if(isErr) t.classList.add('error'); if(isSuccess) t.classList.add('success');
+  t.classList.add('show'); clearTimeout(t._h); t._h=setTimeout(()=>t.classList.remove('show'), ms);
+}
 function mostrarView(id){ document.querySelectorAll('.view').forEach(v=>v.classList.remove('show')); $(id).classList.add('show'); window.scrollTo({top:0,behavior:'smooth'}); }
+function formatarData(iso){ if(!iso) return '—'; const [y,m,dd]=iso.split('-'); return `${dd}/${m}/${y}`; }
+function formatarDataComDia(iso){
+  if (!iso) return '—';
+  const partes = String(iso).split('-');
+  if (partes.length < 3) return iso;
+  const [y, m, d] = partes.map(Number);
+  if (!y || !m || !d) return iso;
+  const dias = ['DOM','SEG','TER','QUA','QUI','SEX','SAB'];
+  const dt = new Date(y, m-1, d);
+  return `${dias[dt.getDay()]}-${String(d).padStart(2,'0')}/${String(m).padStart(2,'0')}/${String(y).slice(-2)}`;
+}
 
-// ================ API =================
 async function chamarAPI(action, dados = {}) {
-  if (WEBHOOK_URL.startsWith('COLE_AQUI')) {
-    toast('⚠ URL do Apps Script não configurada no HTML', 5000, true);
-    throw new Error('WEBHOOK_URL não configurada');
-  }
+  if (WEBHOOK_URL.startsWith('COLE_AQUI')) { toast('⚠ URL não configurada', 5000, true); throw new Error('WEBHOOK_URL não configurada'); }
   const payload = { token: TOKEN, action, ...dados };
-  const resp = await fetch(WEBHOOK_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-    body: JSON.stringify(payload)
-  });
+  const resp = await fetch(WEBHOOK_URL, { method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'}, body: JSON.stringify(payload) });
   if (!resp.ok) throw new Error('HTTP ' + resp.status);
   const json = await resp.json();
-  if (!json.ok) throw new Error(json.error || 'Erro desconhecido');
+  if (!json.ok) throw new Error(json.error || 'Erro');
   return json;
 }
 
-// ================ LOGIN =================
+// =========== LOGIN ===========
 async function fazerLogin() {
   const usuario = $('login-user').value.trim();
   const senha = $('login-pass').value;
@@ -415,19 +544,16 @@ async function fazerLogin() {
     consultorLogado = { usuario: r.usuario, nome: r.nome };
     localStorage.setItem('planoLogin', JSON.stringify(consultorLogado));
     irDashboard();
-  } catch(err) {
-    toast('❌ ' + err.message, 4000, true);
-  }
+  } catch(err) { toast('❌ ' + err.message, 4000, true); }
 }
 
 function sair() {
-  localStorage.removeItem('planoLogin');
-  consultorLogado = null;
-  $('login-user').value = ''; $('login-pass').value = '';
+  localStorage.removeItem('planoLogin'); consultorLogado = null;
+  $('login-user').value=''; $('login-pass').value='';
   mostrarView('view-login');
 }
 
-// ================ DASHBOARD =================
+// =========== DASHBOARD ===========
 async function irDashboard() {
   $('dash-nome').textContent = consultorLogado.nome;
   mostrarView('view-dashboard');
@@ -435,9 +561,7 @@ async function irDashboard() {
   try {
     const r = await chamarAPI('listar-empresas');
     renderEmpresas(r.empresas || []);
-  } catch(err) {
-    $('empresas-root').innerHTML = `<div class="empty-state"><div class="icon">⚠</div>${err.message}</div>`;
-  }
+  } catch(err) { $('empresas-root').innerHTML = `<div class="empty-state"><div class="icon">⚠</div>${err.message}</div>`; }
 }
 
 let _empresasCache = [];
@@ -448,21 +572,20 @@ function renderEmpresas(lista) {
     return;
   }
   const termo = $('busca').value.trim().toLowerCase();
-  const filtradas = termo ? lista.filter(e => e.empresa.toLowerCase().includes(termo)) : lista;
+  const filtradas = termo ? lista.filter(e => (e.empresa||'').toLowerCase().includes(termo) || (e.cnpj||'').includes(termo)) : lista;
   $('empresas-root').innerHTML = filtradas.map(e => `
-    <div class="empresa-card" onclick="abrirHistorico('${e.empresa.replace(/'/g,"\\'")}')">
+    <div class="empresa-card" onclick="abrirHistorico('${(e.empresa||'').replace(/'/g,"\'")}')">
       <div class="info">
         <h4>${e.empresa}</h4>
         <p>${e.responsavel || '—'} · última reunião: ${formatarDataComDia(e.ultimaData)}${e.ultimoConsultor ? ' · ' + e.ultimoConsultor : ''}</p>
       </div>
       <div class="count">${e.reunioes} reunião${e.reunioes > 1 ? 'ões' : ''}</div>
-    </div>
-  `).join('');
+    </div>`).join('');
 }
 
 function filtrarEmpresas() { renderEmpresas(_empresasCache); }
 
-// ================ HISTÓRICO EMPRESA =================
+// =========== HISTÓRICO ===========
 async function abrirHistorico(empresa) {
   empresaAtual = empresa;
   $('hist-nome').textContent = consultorLogado.nome;
@@ -473,39 +596,35 @@ async function abrirHistorico(empresa) {
   try {
     const r = await chamarAPI('listar-planos', { empresa });
     renderTimeline(r.planos || []);
-  } catch(err) {
-    $('timeline-root').innerHTML = `<div class="empty-state"><div class="icon">⚠</div>${err.message}</div>`;
-  }
+  } catch(err) { $('timeline-root').innerHTML = `<div class="empty-state"><div class="icon">⚠</div>${err.message}</div>`; }
 }
 
 function renderTimeline(planos) {
-  const html = planos.map(p => `
+  $('timeline-root').innerHTML = planos.map(p => `
     <div class="timeline-item" onclick="editarPlano('${p.id}')">
       <div style="display:flex;align-items:center;flex:1">
         <div class="num">R${p.reuniao}</div>
         <div class="meta">
           <h4>${p.headline || 'Plano de Ação'}</h4>
-          <p>${formatarDataComDia(p.data)} · ${p.consultor || '—'}${p.nivel ? ' · Nível ' + p.nivel : ''}</p>
+          <p>${formatarDataComDia(p.data)} · ${p.consultor || '—'}${p.nivel ? ' · Nível ' + p.nivel : ''}${p.urlDoc ? ' · 📝 Doc disponível' : ''}</p>
         </div>
       </div>
       <div style="color:var(--text-dim);font-size:12px">Abrir →</div>
-    </div>
-  `).join('');
-  $('timeline-root').innerHTML = html || `<div class="empty-state"><div class="icon">📅</div>Nenhuma reunião registrada ainda.</div>`;
+    </div>`).join('') || `<div class="empty-state"><div class="icon">📅</div>Nenhuma reunião ainda.</div>`;
   $('hist-empresa-info').textContent = planos.length ? `${planos.length} reuniã${planos.length > 1 ? 'ões' : 'o'} registrada${planos.length > 1 ? 's' : ''}` : 'Comece a primeira reunião abaixo';
-  // guarda a última reunião para o check-in
   window._planosEmpresa = planos;
 }
 
-function voltarDashboard(){ empresaAtual = null; idPlanoAtual = null; reuniaoAnteriorData = null; irDashboard(); }
+function voltarDashboard(){ empresaAtual = null; idPlanoAtual = null; reuniaoAnteriorData = null; contextoImportado = null; irDashboard(); }
 
-// ================ CRIAR/EDITAR PLANO =================
+// =========== CRIAR/EDITAR ===========
 function novaEmpresa() {
-  empresaAtual = null; idPlanoAtual = null; reuniaoAnteriorData = null;
+  empresaAtual = null; idPlanoAtual = null; reuniaoAnteriorData = null; contextoImportado = null;
   limparFormulario();
-  $('empresa').value = ''; $('responsavel').value = ''; $('reuniao').value = '1';
+  $('reuniao').value = '1';
   $('form-titulo-num').textContent = '1';
   $('secao-checkin').style.display = 'none';
+  $('ctx-card').style.display = 'none';
   $('form-nome').textContent = consultorLogado.nome;
   mostrarView('view-form');
 }
@@ -514,18 +633,14 @@ async function novaReuniaoEmpresaAtual() {
   if (!empresaAtual) return;
   const planos = window._planosEmpresa || [];
   const ultimaReuniao = planos.reduce((max, p) => Math.max(max, p.reuniao || 0), 0);
-  const proxReuniao = ultimaReuniao + 1;
   idPlanoAtual = null;
+  contextoImportado = null;
   limparFormulario();
   $('empresa').value = empresaAtual;
-  if (planos.length) {
-    $('responsavel').value = planos[planos.length - 1]?.responsavel || '';
-  }
-  $('reuniao').value = proxReuniao;
-  $('form-titulo-num').textContent = proxReuniao;
+  if (planos.length) $('responsavel').value = planos[planos.length - 1]?.responsavel || '';
+  $('reuniao').value = ultimaReuniao + 1;
+  $('form-titulo-num').textContent = ultimaReuniao + 1;
   $('form-nome').textContent = consultorLogado.nome;
-
-  // Se houver reunião anterior, carrega pra check-in
   if (ultimaReuniao > 0) {
     const ultima = planos.find(p => p.reuniao === ultimaReuniao);
     if (ultima && ultima.id) {
@@ -534,10 +649,10 @@ async function novaReuniaoEmpresaAtual() {
         reuniaoAnteriorData = r.plano;
         renderCheckin(reuniaoAnteriorData);
         $('secao-checkin').style.display = 'block';
+        // Restaura CNPJ da última pra facilitar import
+        if (r.plano.cnpj) $('cnpj').value = r.plano.cnpj;
       } catch(e) { console.warn(e); }
     }
-  } else {
-    $('secao-checkin').style.display = 'none';
   }
   mostrarView('view-form');
 }
@@ -545,168 +660,333 @@ async function novaReuniaoEmpresaAtual() {
 async function editarPlano(idPlano) {
   try {
     const r = await chamarAPI('carregar-plano', { idPlano });
-    const plano = r.plano;
+    const p = r.plano;
     idPlanoAtual = idPlano;
+    contextoImportado = p.contextoImportado || null;
     limparFormulario();
-    $('empresa').value = plano.empresa || '';
-    $('responsavel').value = plano.responsavel || '';
-    $('data').value = plano.data || new Date().toISOString().slice(0,10);
-    $('reuniao').value = plano.reuniao || 1;
-    $('form-titulo-num').textContent = plano.reuniao || 1;
-    $('nivel').value = plano.nivelNum || '';
-    $('objetivo12m').value = plano.objetivo12m || '';
-    $('fortes').value = plano.fortes || '';
-    $('fracos').value = plano.fracos || '';
-    (plano.vitorias || []).forEach(v => addVitoria(v.titulo, v.resp, v.prazo, v.ind));
-    (plano.prioridades || []).forEach(p => addPrioridade(p.titulo, p.resp, p.prazo, p.ind));
-    $('tri1').value = plano.tri1 || '';
-    $('tri2').value = plano.tri2 || '';
-    $('tri3').value = plano.tri3 || '';
-    $('tri4').value = plano.tri4 || '';
-    $('kpis').value = plano.kpis || '';
-    $('frequencia').value = plano.frequencia || '';
-    $('proxData').value = plano.proxData || '';
-    $('proxHora').value = plano.proxHora || '';
-    $('proxDuracao').value = plano.proxDuracao || 60;
-    $('proxFormato').value = plano.proxFormato || '';
-    $('proxMentor').value = plano.proxMentor || '';
-    $('proxPauta').value = plano.proxPauta || '';
+    $('cnpj').value = p.cnpj || '';
+    $('empresa').value = p.empresa || '';
+    $('responsavel').value = p.responsavel || '';
+    $('data').value = p.data || new Date().toISOString().slice(0,10);
+    $('reuniao').value = p.reuniao || 1;
+    $('form-titulo-num').textContent = p.reuniao || 1;
+    $('nivel').value = p.nivelNum || '';
+    $('objetivo12m').value = p.objetivo12m || '';
+    $('ata').value = p.ata || '';
+    if (p.swot) {
+      $('swot-forcas').value = p.swot.forcas || '';
+      $('swot-fraquezas').value = p.swot.fraquezas || '';
+      $('swot-oportunidades').value = p.swot.oportunidades || '';
+      $('swot-ameacas').value = p.swot.ameacas || '';
+    }
+    (p.vitorias || []).forEach(v => addVitoria(v.titulo, v.resp, v.prazo, v.ind, v.solucao));
+    (p.compromissos || []).forEach(c => addCompromisso(c));
+    $('kpis').value = p.kpis || '';
+    $('frequencia').value = p.frequencia || '';
+    $('proxData').value = p.proxData || '';
+    $('proxHora').value = p.proxHora || '';
+    $('proxDuracao').value = p.proxDuracao || 60;
+    $('proxFormato').value = p.proxFormato || '';
+    $('proxMentor').value = p.proxMentor || '';
+    $('proxPauta').value = p.proxPauta || '';
     aplicarSugestoes();
-    // Check-in: se houver plano anterior daquela mesma empresa
-    const reuniao = plano.reuniao || 1;
+
+    if (contextoImportado) renderContexto(contextoImportado);
+
+    const reuniao = p.reuniao || 1;
     if (reuniao > 1 && window._planosEmpresa) {
-      const anterior = window._planosEmpresa.find(p => p.reuniao === reuniao - 1);
-      if (anterior && anterior.id) {
-        const ra = await chamarAPI('carregar-plano', { idPlano: anterior.id });
+      const ant = window._planosEmpresa.find(pp => pp.reuniao === reuniao - 1);
+      if (ant && ant.id) {
+        const ra = await chamarAPI('carregar-plano', { idPlano: ant.id });
         reuniaoAnteriorData = ra.plano;
-        renderCheckin(reuniaoAnteriorData, plano.checkin || {});
+        renderCheckin(reuniaoAnteriorData, p.checkin || {});
         $('secao-checkin').style.display = 'block';
       }
     }
     $('form-nome').textContent = consultorLogado.nome;
     mostrarView('view-form');
+  } catch(err) { toast('❌ ' + err.message, 4000, true); }
+}
+
+// =========== IMPORTAR DIAGNÓSTICO ===========
+async function importarDiagnostico() {
+  const cnpj = $('cnpj').value.trim();
+  const nome = $('empresa').value.trim();
+  if (!cnpj && !nome) { toast('⚠ Preencha CNPJ ou nome da empresa pra importar', 4000, true); return; }
+  toast('⏳ Buscando no diagnóstico...', 2000);
+  try {
+    const r = await chamarAPI('importar-diagnostico', { cnpj, nomeEmpresa: nome });
+    contextoImportado = { ig: r.informacoesGerais, diag: r.diagnostico };
+    aplicarContextoImportado();
+    toast('✓ Diagnóstico importado!', 3000, false, true);
   } catch(err) {
-    toast('❌ ' + err.message, 4000, true);
+    if (/n[ãa]o encontrad/i.test(err.message)) {
+      if (confirm('Empresa não encontrada no diagnóstico. Deseja colar os dados manualmente?')) abrirModalPaste();
+      else toast('Preencha o formulário manualmente.', 3000);
+    } else {
+      toast('❌ ' + err.message, 4000, true);
+    }
   }
 }
 
-// ================ CHECK-IN =================
+function aplicarContextoImportado() {
+  if (!contextoImportado) return;
+  const ig = contextoImportado.ig || {};
+  const diag = contextoImportado.diag || null;
+
+  // Preenche campos básicos do form
+  // Procura keys flexivelmente nos dados gerais
+  const buscar = (regexes) => {
+    for (const k of Object.keys(ig)) {
+      for (const r of regexes) {
+        if (r.test(k)) return ig[k];
+      }
+    }
+    return '';
+  };
+  if (!$('cnpj').value) $('cnpj').value = buscar([/cnpj/i]);
+  if (!$('empresa').value) $('empresa').value = ig['Empresa'] || buscar([/nome.*empresa/i]) || '';
+  if (!$('responsavel').value) $('responsavel').value = ig['Responsável'] || '';
+
+  // Detecta o nível baseado no maior % consolidado (ou o primeiro com pct >= 50)
+  if (diag && diag.niveis) {
+    let nivelEscolhido = '';
+    for (let i = 0; i < diag.niveis.length; i++) {
+      const pct = parseFloat(diag.niveis[i].pct) || 0;
+      const pctNorm = pct > 1 ? pct : pct * 100; // normaliza decimal vs percent
+      if (pctNorm >= 50) nivelEscolhido = diag.niveis[i].num;
+      else break;
+    }
+    // Se nenhum >= 50, sugere o 01 (foco inicial)
+    if (!nivelEscolhido && diag.niveis.length) nivelEscolhido = diag.niveis[0].num;
+    if (nivelEscolhido && !$('nivel').value) {
+      $('nivel').value = nivelEscolhido;
+      aplicarSugestoes();
+    }
+  }
+
+  renderContexto(contextoImportado);
+}
+
+function renderContexto(ctx) {
+  const ig = ctx.ig || {};
+  const diag = ctx.diag || null;
+  $('ctx-card').style.display = 'block';
+  const linhas = [];
+
+  // Identificação
+  const cidade = ig['Cidade/Estado'] || '';
+  const segmento = Object.entries(ig).find(([k,v]) => /segmento/i.test(k))?.[1] || '';
+  if (cidade || segmento) linhas.push(`<div class="ctx-row"><div class="lbl">Localização / Segmento</div><div class="val">${[cidade, segmento].filter(Boolean).join(' · ') || '—'}</div></div>`);
+
+  // Faturamento
+  const fat3m = Object.entries(ig).find(([k,v]) => /faturamento.*total|faturamento.*3.*mes/i.test(k))?.[1] || '';
+  const lucro = Object.entries(ig).find(([k,v]) => /lucro/i.test(k))?.[1] || '';
+  const meta = Object.entries(ig).find(([k,v]) => /meta/i.test(k))?.[1] || '';
+  if (fat3m || lucro || meta) {
+    let s = '';
+    if (fat3m) s += `Faturamento médio 3m: <strong>${fat3m}</strong> · `;
+    if (lucro) s += `Lucro líquido: <strong>${lucro}</strong> · `;
+    if (meta) s += `Meta 12m: <strong>${meta}</strong>`;
+    linhas.push(`<div class="ctx-row"><div class="lbl">Resultado</div><div class="val">${s}</div></div>`);
+  }
+
+  // Equipe
+  const colab = Object.entries(ig).find(([k,v]) => /colaborador/i.test(k))?.[1] || '';
+  const lider = Object.entries(ig).find(([k,v]) => /l[ií]der/i.test(k))?.[1] || '';
+  if (colab || lider) linhas.push(`<div class="ctx-row"><div class="lbl">Equipe</div><div class="val">${colab ? colab + ' colaboradores' : ''}${colab && lider ? ' · ' : ''}${lider ? lider + ' líderes' : ''}</div></div>`);
+
+  // Headline + Próximo passo
+  if (diag && diag.headline) linhas.push(`<div class="ctx-row"><div class="lbl">Resultado diagnóstico</div><div class="val"><strong>${diag.headline}</strong></div></div>`);
+  if (diag && diag.proximoPasso) linhas.push(`<div class="ctx-row"><div class="lbl">Próximo passo</div><div class="val">${diag.proximoPasso}</div></div>`);
+
+  // Níveis (badges)
+  if (diag && diag.niveis && diag.niveis.length) {
+    const NIVEIS_NOMES = {'01':'Saindo do Caos','02':'Colocando Ordem','03':'Virando Empresa','04':'Jogando o Jogo dos Números','05':'Pronto para Escalar'};
+    const badges = diag.niveis.map(n => {
+      const pct = parseFloat(n.pct) || 0;
+      const pctN = pct > 1 ? pct : pct * 100;
+      const cls = pctN >= 80 ? 'done' : (pctN >= 50 ? 'progress' : 'low');
+      return `<span class="nv-badge ${cls}">N${n.num} ${NIVEIS_NOMES[n.num]||''} · ${Math.round(pctN)}%</span>`;
+    }).join('');
+    linhas.push(`<div class="ctx-row"><div class="lbl">Níveis</div><div class="val"><div class="niveis-badges">${badges}</div></div></div>`);
+  }
+
+  // Objetivos / dificuldades
+  const obj = Object.entries(ig).find(([k,v]) => /objetiv/i.test(k) && /metodologia|gest[ãa]o.*life/i.test(k))?.[1] || Object.entries(ig).find(([k,v]) => /objetiv/i.test(k))?.[1] || '';
+  const dif = Object.entries(ig).find(([k,v]) => /dificuldad/i.test(k))?.[1] || '';
+  if (obj) linhas.push(`<div class="ctx-row"><div class="lbl">Objetivos com a metodologia</div><div class="val">${obj}</div></div>`);
+  if (dif) linhas.push(`<div class="ctx-row"><div class="lbl">Principais dificuldades</div><div class="val">${dif}</div></div>`);
+
+  $('ctx-body').innerHTML = linhas.join('') || '<p style="color:var(--text-dim);font-size:13px">Sem dados encontrados.</p>';
+}
+
+function toggleCtx() {
+  const body = $('ctx-body');
+  const btn = document.querySelector('.toggle-ctx');
+  if (body.style.display === 'none') { body.style.display = ''; btn.textContent = 'Ocultar'; }
+  else { body.style.display = 'none'; btn.textContent = 'Mostrar'; }
+}
+
+function abrirModalPaste() { $('modal-paste').classList.add('show'); }
+function fecharModalPaste() { $('modal-paste').classList.remove('show'); }
+function parsePastedData() {
+  const txt = $('paste-area').value.trim();
+  if (!txt) { toast('⚠ Cola alguma coisa primeiro', 3000, true); return; }
+  // Tenta TSV (linhas e colunas separadas por tab)
+  const linhas = txt.split('\n').map(l => l.split('\t'));
+  // Procura headers e valores
+  const ig = {};
+  if (linhas.length >= 2 && linhas[0].length === linhas[1].length) {
+    linhas[0].forEach((h, i) => { if (h && linhas[1][i] !== undefined) ig[h.trim()] = linhas[1][i]; });
+  } else {
+    // pares chave:valor por linha
+    linhas.forEach(l => {
+      if (l.length >= 2) ig[l[0].trim()] = l.slice(1).join('\t').trim();
+    });
+  }
+  if (!Object.keys(ig).length) { toast('❌ Não consegui parsear o texto', 4000, true); return; }
+  contextoImportado = { ig, diag: null };
+  aplicarContextoImportado();
+  fecharModalPaste();
+  toast('✓ Dados importados manualmente', 3000, false, true);
+}
+
+// =========== CHECK-IN ===========
 function renderCheckin(planoAnterior, statusSalvo = {}) {
   const lista = [];
   (planoAnterior.vitorias || []).forEach((v,i) => lista.push({ key: 'v'+i, tipo: 'Vitória', titulo: v.titulo, prazo: v.prazo }));
-  (planoAnterior.prioridades || []).forEach((p,i) => lista.push({ key: 'p'+i, tipo: 'Prioridade', titulo: p.titulo, prazo: p.prazo }));
-  if (!lista.length) { $('checkin-root').innerHTML = '<p style="color:var(--text-dim);font-size:13px">Sem ações anteriores pra conferir.</p>'; return; }
+  (planoAnterior.compromissos || []).forEach((c,i) => lista.push({ key: 'c'+i, tipo: 'Compromisso', titulo: c.descricao, prazo: c.prazo }));
+  if (!lista.length) { $('checkin-root').innerHTML = '<p style="color:var(--text-dim);font-size:13px">Sem ações anteriores.</p>'; return; }
   $('checkin-root').innerHTML = lista.map(it => {
     const st = statusSalvo[it.key] || {};
-    return `
-      <div class="checkin-item" data-key="${it.key}">
-        <div class="titulo"><span style="color:var(--accent);font-size:10px;letter-spacing:1px">${it.tipo.toUpperCase()}${it.prazo ? ' · '+it.prazo : ''}</span><br>${it.titulo}</div>
-        <div class="checkin-status">
-          <button data-s="feita" onclick="marcarStatus(this)" class="${st.status==='feita'?'active':''}">✓ FEITA</button>
-          <button data-s="parcial" onclick="marcarStatus(this)" class="${st.status==='parcial'?'active':''}">◐ PARCIAL</button>
-          <button data-s="naofeita" onclick="marcarStatus(this)" class="${st.status==='naofeita'?'active':''}">✗ NÃO FEITA</button>
-        </div>
-        <textarea placeholder="Observação (opcional)">${st.obs || ''}</textarea>
+    return `<div class="checkin-item" data-key="${it.key}">
+      <div class="titulo"><span style="color:var(--accent);font-size:10px;letter-spacing:1px">${it.tipo.toUpperCase()}${it.prazo ? ' · '+it.prazo : ''}</span><br>${it.titulo}</div>
+      <div class="checkin-status">
+        <button data-s="feita" onclick="marcarStatus(this)" class="${st.status==='feita'?'active':''}">✓ FEITA</button>
+        <button data-s="parcial" onclick="marcarStatus(this)" class="${st.status==='parcial'?'active':''}">◐ PARCIAL</button>
+        <button data-s="naofeita" onclick="marcarStatus(this)" class="${st.status==='naofeita'?'active':''}">✗ NÃO FEITA</button>
       </div>
-    `;
+      <textarea placeholder="Observação (opcional)">${st.obs || ''}</textarea>
+    </div>`;
   }).join('');
 }
-
-function marcarStatus(btn) {
-  const parent = btn.parentElement;
-  parent.querySelectorAll('button').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-}
-
+function marcarStatus(btn) { btn.parentElement.querySelectorAll('button').forEach(b => b.classList.remove('active')); btn.classList.add('active'); }
 function coletarCheckin() {
   const out = {};
   document.querySelectorAll('#checkin-root .checkin-item').forEach(item => {
     const key = item.dataset.key;
-    const btnActive = item.querySelector('.checkin-status button.active');
-    const status = btnActive ? btnActive.dataset.s : null;
+    const btn = item.querySelector('.checkin-status button.active');
+    const status = btn ? btn.dataset.s : null;
     const obs = item.querySelector('textarea').value.trim();
     if (status || obs) out[key] = { status, obs };
   });
   return out;
 }
 
-// ================ VITÓRIAS / PRIORIDADES (cards dinâmicos) =================
-function addVitoria(titulo='', resp='', prazo='', ind=''){
+// =========== VITÓRIAS ===========
+function addVitoria(titulo='', resp='', prazo='', ind='', solucao=''){
   const card = document.createElement('div');
   card.className = 'item-card';
   const idx = $('vitorias-list').children.length + 1;
   card.innerHTML = `
     <div class="item-head"><div class="item-num">Vitória #${idx}</div><button class="btn-remove" onclick="this.closest('.item-card').remove(); renumerar('vitorias-list','Vitória')">×</button></div>
-    <div class="field" style="margin-bottom:6px"><input type="text" class="v-titulo" placeholder="Ação" value="${titulo.replace(/"/g,'&quot;')}"></div>
+    <div class="field" style="margin-bottom:6px"><label>Ação</label><input type="text" class="v-titulo" placeholder="Ex.: Separar conta PF/PJ" value="${titulo.replace(/"/g,'&quot;')}"></div>
+    <div class="field" style="margin-bottom:6px"><label>Sugestão de solução</label><textarea class="v-solucao" rows="2" placeholder="Como executar / passos">${solucao}</textarea></div>
     <div class="row-small">
-      <input type="text" class="v-resp" placeholder="Responsável" value="${resp.replace(/"/g,'&quot;')}">
-      <input type="text" class="v-prazo" placeholder="Prazo" value="${prazo.replace(/"/g,'&quot;')}">
-      <input type="text" class="v-ind" placeholder="Indicador" value="${ind.replace(/"/g,'&quot;')}">
-    </div>
-  `;
+      <div><label style="font-size:10px;color:var(--text-dim);text-transform:uppercase;letter-spacing:1px">Responsável</label><input type="text" class="v-resp" value="${resp.replace(/"/g,'&quot;')}"></div>
+      <div><label style="font-size:10px;color:var(--text-dim);text-transform:uppercase;letter-spacing:1px">Prazo</label><input type="text" class="v-prazo" value="${prazo.replace(/"/g,'&quot;')}"></div>
+      <div><label style="font-size:10px;color:var(--text-dim);text-transform:uppercase;letter-spacing:1px">Indicador</label><input type="text" class="v-ind" value="${ind.replace(/"/g,'&quot;')}"></div>
+    </div>`;
   $('vitorias-list').appendChild(card);
 }
-
-function addPrioridade(titulo='', resp='', prazo='', ind=''){
-  const card = document.createElement('div');
-  card.className = 'item-card';
-  const idx = $('prioridades-list').children.length + 1;
-  card.innerHTML = `
-    <div class="item-head"><div class="item-num">Prioridade #${idx}</div><button class="btn-remove" onclick="this.closest('.item-card').remove(); renumerar('prioridades-list','Prioridade')">×</button></div>
-    <div class="field" style="margin-bottom:6px"><input type="text" class="p-titulo" placeholder="Ação" value="${titulo.replace(/"/g,'&quot;')}"></div>
-    <div class="row-small">
-      <input type="text" class="p-resp" placeholder="Responsável" value="${resp.replace(/"/g,'&quot;')}">
-      <input type="text" class="p-prazo" placeholder="Prazo" value="${prazo.replace(/"/g,'&quot;')}">
-      <input type="text" class="p-ind" placeholder="Indicador" value="${ind.replace(/"/g,'&quot;')}">
-    </div>
-  `;
-  $('prioridades-list').appendChild(card);
-}
-
-function renumerar(listId, label){
-  document.querySelectorAll(`#${listId} .item-num`).forEach((el,i) => el.textContent = `${label} #${i+1}`);
-}
+function renumerar(listId, label){ document.querySelectorAll(`#${listId} .item-num`).forEach((el,i) => el.textContent = `${label} #${i+1}`); }
 
 function aplicarSugestoes() {
   const nivel = $('nivel').value;
-  const sugV = $('sug-vitorias'), sugP = $('sug-prioridades');
-  if (!nivel) { sugV.style.display='none'; sugP.style.display='none'; return; }
+  const sug = $('sug-vitorias');
+  if (!nivel) { sug.style.display = 'none'; return; }
   const d = NIVEIS.find(n => n.num === nivel);
-  if (!d) return;
-  $('sug-vitorias-list').innerHTML = d.vitorias_sugeridas.map(s=>`<li onclick="addVitoria('${s.replace(/'/g,"\\'")}')">+ ${s}</li>`).join('');
-  $('sug-prioridades-list').innerHTML = d.prioridades.map(s=>`<li onclick="addPrioridade('${s.replace(/'/g,"\\'")}')">+ ${s}</li>`).join('');
-  sugV.style.display = 'block'; sugP.style.display = 'block';
+  if (!d || !d.topicos) return;
+  $('sug-vitorias-list').innerHTML = d.topicos.map(t => `
+    <div class="sug-vitoria-card" onclick="addVitoria('${t.vitoria.replace(/'/g,"\\'")}', '', '', '', '${t.solucao.replace(/'/g,"\\'")}')">
+      <div class="topico"><span class="add-icon">+</span> ${t.nome}</div>
+      <div class="vitoria">${t.vitoria}</div>
+      <div class="solucao">💡 ${t.solucao}</div>
+    </div>`).join('');
+  sug.style.display = 'block';
 }
 
+// =========== COMPROMISSOS ===========
+function addCompromisso(c={}) {
+  const card = document.createElement('div');
+  card.className = 'compr-row';
+  const hoje = new Date().toISOString().slice(0,10);
+  card.innerHTML = `
+    <div class="row-grid">
+      <div class="field-mini"><label>Data criação</label><input type="date" class="c-criacao" value="${c.dataCriacao || hoje}"></div>
+      <div class="field-mini"><label>Conclusão</label><input type="date" class="c-conclusao" value="${c.dataConclusao || ''}"></div>
+      <div class="field-mini"><label>Descrição</label><input type="text" class="c-desc" value="${(c.descricao||'').replace(/"/g,'&quot;')}"></div>
+      <div class="field-mini"><label>Colaborador</label><input type="text" class="c-colab" value="${(c.colaborador||'').replace(/"/g,'&quot;')}"></div>
+      <div class="field-mini"><label>Prazo</label><input type="text" class="c-prazo" value="${(c.prazo||'').replace(/"/g,'&quot;')}"></div>
+      <div class="field-mini"><label>Status</label>
+        <select class="c-status">
+          <option value="Aberto" ${c.status==='Aberto'?'selected':''}>Aberto</option>
+          <option value="Em andamento" ${c.status==='Em andamento'?'selected':''}>Em andamento</option>
+          <option value="Concluído" ${c.status==='Concluído'?'selected':''}>Concluído</option>
+          <option value="Atrasado" ${c.status==='Atrasado'?'selected':''}>Atrasado</option>
+          <option value="Não feita" ${c.status==='Não feita'?'selected':''}>Não feita</option>
+        </select>
+      </div>
+    </div>
+    <div class="nota-row"><textarea class="c-nota" placeholder="Nota / observação">${c.nota||''}</textarea></div>
+    <div class="row-action"><button class="btn-remove" onclick="this.closest('.compr-row').remove()">× Remover</button></div>`;
+  $('compr-list').appendChild(card);
+}
+
+// =========== DICAS SWOT ===========
+function toggleDicas(id) {
+  const el = $(id);
+  el.style.display = el.style.display === 'none' ? 'block' : 'none';
+}
+
+// =========== LIMPAR ===========
 function limparFormulario(){
-  ['empresa','responsavel','objetivo12m','fortes','fracos','tri1','tri2','tri3','tri4','kpis','frequencia','proxFormato','proxMentor','proxPauta'].forEach(id => $(id).value = '');
+  ['cnpj','empresa','responsavel','objetivo12m','ata','swot-forcas','swot-fraquezas','swot-oportunidades','swot-ameacas','kpis','frequencia','proxFormato','proxMentor','proxPauta'].forEach(id => $(id).value = '');
   ['proxData','proxHora'].forEach(id => $(id).value = '');
+  $('proxDuracao').value = 60;
   $('nivel').value = '';
   $('data').value = new Date().toISOString().slice(0,10);
   $('vitorias-list').innerHTML = '';
-  $('prioridades-list').innerHTML = '';
-  $('sug-vitorias').style.display='none';
-  $('sug-prioridades').style.display='none';
-  $('secao-checkin').style.display='none';
-  $('checkin-root').innerHTML='';
+  $('compr-list').innerHTML = '';
+  $('sug-vitorias').style.display = 'none';
+  $('secao-checkin').style.display = 'none';
+  $('checkin-root').innerHTML = '';
+  $('ctx-card').style.display = 'none';
 }
 
-// ================ COLETAR + SALVAR + PDF =================
+// =========== COLETA + SALVAR ===========
 function coletar() {
   const vitorias = [...document.querySelectorAll('#vitorias-list .item-card')].map(c => ({
     titulo: c.querySelector('.v-titulo').value.trim(),
+    solucao: c.querySelector('.v-solucao').value.trim(),
     resp: c.querySelector('.v-resp').value.trim(),
     prazo: c.querySelector('.v-prazo').value.trim(),
     ind: c.querySelector('.v-ind').value.trim()
   })).filter(v => v.titulo);
-  const prioridades = [...document.querySelectorAll('#prioridades-list .item-card')].map(c => ({
-    titulo: c.querySelector('.p-titulo').value.trim(),
-    resp: c.querySelector('.p-resp').value.trim(),
-    prazo: c.querySelector('.p-prazo').value.trim(),
-    ind: c.querySelector('.p-ind').value.trim()
-  })).filter(p => p.titulo);
+  const compromissos = [...document.querySelectorAll('#compr-list .compr-row')].map(c => ({
+    dataCriacao: c.querySelector('.c-criacao').value,
+    dataConclusao: c.querySelector('.c-conclusao').value,
+    descricao: c.querySelector('.c-desc').value.trim(),
+    colaborador: c.querySelector('.c-colab').value.trim(),
+    prazo: c.querySelector('.c-prazo').value.trim(),
+    status: c.querySelector('.c-status').value,
+    nota: c.querySelector('.c-nota').value.trim()
+  })).filter(c => c.descricao);
+
   return {
     idPlano: idPlanoAtual || undefined,
+    cnpj: $('cnpj').value.trim(),
     empresa: $('empresa').value.trim(),
     responsavel: $('responsavel').value.trim(),
     data: $('data').value || new Date().toISOString().slice(0,10),
@@ -715,11 +995,14 @@ function coletar() {
     nivelNum: $('nivel').value || '',
     headline: $('nivel').value ? `Reunião ${$('reuniao').value} · Nível ${$('nivel').value}` : `Reunião ${$('reuniao').value}`,
     objetivo12m: $('objetivo12m').value.trim(),
-    fortes: $('fortes').value.trim(),
-    fracos: $('fracos').value.trim(),
-    vitorias, prioridades,
-    tri1: $('tri1').value.trim(), tri2: $('tri2').value.trim(),
-    tri3: $('tri3').value.trim(), tri4: $('tri4').value.trim(),
+    ata: $('ata').value.trim(),
+    swot: {
+      forcas: $('swot-forcas').value.trim(),
+      fraquezas: $('swot-fraquezas').value.trim(),
+      oportunidades: $('swot-oportunidades').value.trim(),
+      ameacas: $('swot-ameacas').value.trim()
+    },
+    vitorias, compromissos,
     kpis: $('kpis').value.trim(),
     frequencia: $('frequencia').value.trim(),
     proxData: $('proxData').value || '',
@@ -728,6 +1011,7 @@ function coletar() {
     proxFormato: $('proxFormato').value.trim(),
     proxMentor: $('proxMentor').value.trim(),
     proxPauta: $('proxPauta').value.trim(),
+    contextoImportado: contextoImportado,
     checkin: coletarCheckin()
   };
 }
@@ -741,87 +1025,48 @@ async function salvarEGerar() {
   try {
     const r = await chamarAPI('salvar-plano', { plano: d });
     idPlanoAtual = r.idPlano;
-    toast('✓ Plano salvo!');
+    d.idPlano = r.idPlano;
+    toast('✓ Plano salvo na planilha', 2500);
+    btn.innerHTML = '<span class="spinner"></span>Gerando Google Doc...';
+    const docResp = await chamarAPI('gerar-doc', { plano: d });
+    btn.innerHTML = '<span class="spinner"></span>Gerando PDF...';
     await gerarPDF(d);
+    btn.innerHTML = '✓ Pronto!';
+    setTimeout(() => { btn.disabled = false; btn.innerHTML = '💾 Salvar plano (PDF + Google Doc)'; }, 1500);
+    setTimeout(() => {
+      if (confirm('✓ Plano salvo!\n\n📄 PDF baixado\n📝 Google Doc criado\n\nQuer abrir o Google Doc agora?')) {
+        window.open(docResp.url, '_blank');
+      }
+    }, 800);
   } catch(err) {
+    btn.disabled = false; btn.innerHTML = '💾 Salvar plano (PDF + Google Doc)';
     toast('❌ ' + err.message, 5000, true);
-  } finally {
-    btn.disabled = false; btn.innerHTML = '💾 Salvar e gerar PDF';
   }
 }
 
-function formatarData(iso){ if(!iso) return '—'; const [y,m,dd]=iso.split('-'); return `${dd}/${m}/${y}`; }
-
-// Formato "QUA-25/04/26" usado nos cards e listagens
-function formatarDataComDia(iso){
-  if (!iso) return '—';
-  const partes = String(iso).split('-');
-  if (partes.length < 3) return iso;
-  const [y, m, d] = partes.map(Number);
-  if (!y || !m || !d) return iso;
-  const dias = ['DOM','SEG','TER','QUA','QUI','SEX','SAB'];
-  const dt = new Date(y, m-1, d);
-  const dia = dias[dt.getDay()];
-  const dd = String(d).padStart(2,'0');
-  const mm = String(m).padStart(2,'0');
-  const yy = String(y).slice(-2);
-  return `${dia}-${dd}/${mm}/${yy}`;
-}
-
-// ================ GOOGLE AGENDA =================
+// =========== GOOGLE AGENDA ===========
 function abrirGoogleAgenda() {
-  const data = $('proxData').value;
-  const hora = $('proxHora').value;
-  if (!data) { toast('⚠ Preenche a data da próxima reunião', 3500, true); return; }
-  if (!hora) { toast('⚠ Preenche o horário da próxima reunião', 3500, true); return; }
-
+  const data = $('proxData').value, hora = $('proxHora').value;
+  if (!data || !hora) { toast('⚠ Preencha data e horário', 3500, true); return; }
   const empresa = $('empresa').value.trim() || 'Cliente';
-  const reuniao = $('reuniao').value || '?';
-  const proxReuniao = parseInt(reuniao) + 1;
+  const reuniao = parseInt($('reuniao').value) || 1;
+  const proxReuniao = reuniao + 1;
   const formato = $('proxFormato').value.trim();
   const mentor = $('proxMentor').value.trim();
   const pauta = $('proxPauta').value.trim();
   const duracao = parseInt($('proxDuracao').value) || 60;
-
-  // Monta start e end no formato YYYYMMDDTHHmmss
-  const [y, m, d] = data.split('-');
-  const [h, min] = hora.split(':');
-  const start = new Date(parseInt(y), parseInt(m)-1, parseInt(d), parseInt(h), parseInt(min));
-  const end = new Date(start.getTime() + duracao * 60000);
-
-  const fmt = (dt) => {
-    const pad = (n) => String(n).padStart(2,'0');
-    return `${dt.getFullYear()}${pad(dt.getMonth()+1)}${pad(dt.getDate())}T${pad(dt.getHours())}${pad(dt.getMinutes())}00`;
-  };
-
-  // Detalhes do evento
-  const partes = [];
-  partes.push(`Reunião ${proxReuniao} · ${empresa}`);
-  partes.push(`Mentor: ${mentor || '—'}`);
-  partes.push(`Formato: ${formato || '—'}`);
-  if (pauta) {
-    partes.push('');
-    partes.push('PAUTA / MATERIAL A TRAZER:');
-    partes.push(pauta);
-  }
-  partes.push('');
-  partes.push('Reunião do programa Gestão PRO');
-
-  const titulo = `Reunião ${proxReuniao} · ${empresa} · Gestão PRO`;
-  const params = new URLSearchParams({
-    action: 'TEMPLATE',
-    text: titulo,
-    dates: `${fmt(start)}/${fmt(end)}`,
-    details: partes.join('\n'),
-    location: formato || ''
-  });
-
-  const url = `https://calendar.google.com/calendar/render?${params.toString()}`;
-  window.open(url, '_blank');
-  toast('✓ Abrindo Google Agenda em nova aba');
+  const [y,m,d] = data.split('-'), [h,mi] = hora.split(':');
+  const start = new Date(parseInt(y), parseInt(m)-1, parseInt(d), parseInt(h), parseInt(mi));
+  const end = new Date(start.getTime() + duracao*60000);
+  const fmt = (dt) => `${dt.getFullYear()}${String(dt.getMonth()+1).padStart(2,'0')}${String(dt.getDate()).padStart(2,'0')}T${String(dt.getHours()).padStart(2,'0')}${String(dt.getMinutes()).padStart(2,'0')}00`;
+  const partes = [`Reunião ${proxReuniao} · ${empresa}`, `Mentor: ${mentor || '—'}`, `Formato: ${formato || '—'}`];
+  if (pauta) { partes.push(''); partes.push('PAUTA / MATERIAL:'); partes.push(pauta); }
+  const params = new URLSearchParams({ action:'TEMPLATE', text:`Reunião ${proxReuniao} · ${empresa} · Gestão PRO`, dates:`${fmt(start)}/${fmt(end)}`, details:partes.join('\n'), location: formato||'' });
+  window.open(`https://calendar.google.com/calendar/render?${params.toString()}`, '_blank');
+  toast('✓ Abrindo Google Agenda', 2500);
 }
 
-// ================ PDF =================
+// =========== PDF ===========
 function svgToPngDataUrl(svgStr, widthPx = 500) {
   return new Promise((resolve, reject) => {
     const blob = new Blob([svgStr], { type:'image/svg+xml;charset=utf-8' });
@@ -841,17 +1086,14 @@ function svgToPngDataUrl(svgStr, widthPx = 500) {
 }
 
 async function gerarPDF(d) {
-  const nivelData = NIVEIS.find(n => n.num === d.nivelNum);
   const logoPro = await svgToPngDataUrl(LOGO_PRO_SVG_STR, 600);
   const logoLife = await svgToPngDataUrl(LOGO_LIFE_SVG_STR, 500);
-
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF({ unit:'pt', format:'a4' });
   const pageW = doc.internal.pageSize.getWidth();
   const pageH = doc.internal.pageSize.getHeight();
   const margin = 48;
-
-  const CL = { bgDark:[11,18,48], card:[26,35,87], accent:[77,201,255], text:[238,242,255], textDim:[168,178,216], lineLight:[225,230,245], textDark:[20,28,64], green:[34,197,94], yellow:[251,191,36], red:[248,113,113] };
+  const CL = { bgDark:[11,18,48], card:[26,35,87], accent:[77,201,255], text:[238,242,255], textDim:[168,178,216], lineLight:[225,230,245], textDark:[20,28,64], green:[34,197,94], yellow:[251,191,36], red:[248,113,113], purple:[192,132,252] };
 
   // CAPA
   doc.setFillColor(...CL.bgDark); doc.rect(0,0,pageW,pageH,'F');
@@ -859,23 +1101,23 @@ async function gerarPDF(d) {
   const logoW = 160, logoH = logoW * (532/1310);
   doc.addImage(logoPro, 'PNG', (pageW - logoW)/2, 140, logoW, logoH);
   const tituloY = 140 + logoH + 80;
-  doc.setFont('helvetica','bold'); doc.setFontSize(34); doc.setTextColor(...CL.text);
+  doc.setFont('helvetica','bold'); doc.setFontSize(32); doc.setTextColor(...CL.text);
   doc.text('PLANO DE AÇÃO', pageW/2, tituloY, { align:'center' });
   doc.setTextColor(...CL.accent);
-  doc.text(`REUNIÃO ${d.reuniao}`, pageW/2, tituloY + 44, { align:'center' });
+  doc.text(`REUNIÃO ${d.reuniao}`, pageW/2, tituloY + 42, { align:'center' });
   doc.setDrawColor(...CL.accent); doc.setLineWidth(2);
-  doc.line(pageW/2 - 40, tituloY + 68, pageW/2 + 40, tituloY + 68);
+  doc.line(pageW/2 - 40, tituloY + 66, pageW/2 + 40, tituloY + 66);
   doc.setFont('helvetica','normal'); doc.setFontSize(13); doc.setTextColor(...CL.textDim);
-  doc.text('Construído com o cliente na reunião', pageW/2, tituloY + 98, { align:'center' });
+  doc.text('Construído com o cliente na reunião', pageW/2, tituloY + 96, { align:'center' });
 
   const infoY = pageH - 240;
   doc.setFillColor(...CL.card); doc.roundedRect(margin, infoY, pageW-margin*2, 150, 10, 10, 'F');
   doc.setFillColor(...CL.accent); doc.roundedRect(margin, infoY, 4, 150, 2, 2, 'F');
   doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(...CL.accent);
   doc.text('INFORMAÇÕES DA REUNIÃO', margin+20, infoY+24, { charSpace:2 });
-  const info = [['Empresa', d.empresa],['Responsável', d.responsavel || '—'],['Data', formatarData(d.data)],['Consultor', d.consultor || '—'],['Nível', nivelData ? `Nível ${nivelData.num} · ${nivelData.nome}` : '—']];
+  const info = [['Empresa', d.empresa],['CNPJ', d.cnpj || '—'],['Responsável', d.responsavel || '—'],['Data', formatarData(d.data)],['Consultor', d.consultor || '—']];
   info.forEach((row,i) => {
-    const y = infoY + 54 + i*18;
+    const y = infoY + 50 + i*18;
     doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(...CL.textDim);
     doc.text(row[0].toUpperCase(), margin+20, y);
     doc.setFont('helvetica','bold'); doc.setFontSize(10); doc.setTextColor(...CL.text);
@@ -904,23 +1146,25 @@ async function gerarPDF(d) {
     doc.addImage(logoLife, 'PNG', (pageW-lW)/2, pageH-24-lH+2, lW, lH);
     doc.text(`Página ${pageNum}`, pageW-margin, pageH-24, { align:'right' });
   };
-  renderPage();
-  let y = 90;
+  renderPage(); let y = 90;
   const ensureSpace = (need) => { if (y + need > pageH - 50) { doc.addPage(); pageNum++; renderPage(); y = 90; } };
+  const heading = (txt) => { ensureSpace(40); doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(...CL.accent); doc.text(txt, margin, y, { charSpace:2 }); y += 18; };
+  const para = (txt, max = pageW-margin*2) => { doc.setFont('helvetica','normal'); doc.setFontSize(11); doc.setTextColor(60,70,100); const l = doc.splitTextToSize(txt, max); ensureSpace(l.length*14+8); doc.text(l, margin, y); y += l.length*14 + 8; };
 
-  // Check-in (se houver)
-  const checkinKeys = Object.keys(d.checkin || {});
-  if (checkinKeys.length && reuniaoAnteriorData) {
-    doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(...CL.accent);
-    doc.text('CHECK-IN DA REUNIÃO ANTERIOR', margin, y, { charSpace:2 }); y += 18;
+  // Objetivo
+  if (d.objetivo12m) { heading('OBJETIVO COMBINADO'); para(d.objetivo12m); y += 6; }
+
+  // Check-in
+  const ckKeys = Object.keys(d.checkin || {});
+  if (ckKeys.length && reuniaoAnteriorData) {
+    heading('CHECK-IN DA REUNIÃO ANTERIOR');
     const todos = [];
     (reuniaoAnteriorData.vitorias || []).forEach((v,i) => todos.push({ key: 'v'+i, tipo: 'Vitória', titulo: v.titulo }));
-    (reuniaoAnteriorData.prioridades || []).forEach((p,i) => todos.push({ key: 'p'+i, tipo: 'Prioridade', titulo: p.titulo }));
+    (reuniaoAnteriorData.compromissos || []).forEach((c,i) => todos.push({ key: 'c'+i, tipo: 'Compromisso', titulo: c.descricao }));
     todos.forEach(item => {
-      const ck = d.checkin[item.key];
-      if (!ck) return;
+      const ck = d.checkin[item.key]; if (!ck) return;
       const cor = ck.status === 'feita' ? CL.green : (ck.status === 'parcial' ? CL.yellow : CL.red);
-      const stLabel = ck.status === 'feita' ? '✓ FEITA' : (ck.status === 'parcial' ? '◐ PARCIAL' : '✗ NÃO FEITA');
+      const stLbl = ck.status === 'feita' ? '✓ FEITA' : (ck.status === 'parcial' ? '◐ PARCIAL' : '✗ NÃO FEITA');
       doc.setFont('helvetica','bold'); doc.setFontSize(10);
       const tL = doc.splitTextToSize(item.titulo, pageW-margin*2-120);
       const obsL = ck.obs ? doc.splitTextToSize(`Obs: ${ck.obs}`, pageW-margin*2-24) : [];
@@ -931,144 +1175,122 @@ async function gerarPDF(d) {
       doc.setFillColor(...cor); doc.roundedRect(margin, y, 3, h, 1.5, 1.5, 'F');
       doc.setFont('helvetica','bold'); doc.setFontSize(10); doc.setTextColor(...CL.textDark);
       doc.text(tL, margin+12, y+18);
-      // Status label
       doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor(...cor);
-      doc.text(stLabel, pageW-margin-12, y+18, { align:'right', charSpace:1 });
+      doc.text(stLbl, pageW-margin-12, y+18, { align:'right', charSpace:1 });
       if (obsL.length) {
         doc.setFont('helvetica','italic'); doc.setFontSize(9); doc.setTextColor(100,110,140);
         doc.text(obsL, margin+12, y+18+tL.length*13+10);
       }
       y += h + 6;
     });
-    y += 10;
+    y += 8;
   }
 
-  // Objetivo
-  if (d.objetivo12m) {
-    ensureSpace(50);
-    doc.setFont('helvetica','normal'); doc.setFontSize(11);
-    const objL = doc.splitTextToSize(d.objetivo12m, pageW-margin*2-32);
-    const objH = 24 + objL.length*14 + 14;
-    ensureSpace(objH + 8);
-    doc.setFillColor(246,248,254); doc.roundedRect(margin, y, pageW-margin*2, objH, 8, 8, 'F');
-    doc.setFillColor(...CL.accent); doc.roundedRect(margin, y, 4, objH, 2, 2, 'F');
-    doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(...CL.accent);
-    doc.text('OBJETIVO COMBINADO', margin+16, y+20, { charSpace:1 });
-    doc.setFont('helvetica','normal'); doc.setFontSize(11); doc.setTextColor(60,70,100);
-    doc.text(objL, margin+16, y+38);
-    y += objH + 16;
-  }
+  // Ata
+  if (d.ata) { heading('ATA DA REUNIÃO'); para(d.ata); y += 6; }
 
-  // Recap
-  if (d.fortes || d.fracos) {
-    ensureSpace(50);
-    doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(...CL.accent);
-    doc.text('RECAP DO MOMENTO', margin, y, { charSpace:2 }); y += 18;
-    if (d.fortes) {
-      doc.setFont('helvetica','bold'); doc.setFontSize(10); doc.setTextColor(...CL.green);
-      doc.text('ONDE ESTÁ FORTE', margin, y, { charSpace:1 }); y += 14;
+  // SWOT
+  const sw = d.swot || {};
+  if (sw.forcas || sw.fraquezas || sw.oportunidades || sw.ameacas) {
+    heading('ANÁLISE SWOT');
+    const swotItems = [
+      { label: 'FORÇAS', txt: sw.forcas, cor: CL.accent },
+      { label: 'FRAQUEZAS', txt: sw.fraquezas, cor: CL.purple },
+      { label: 'OPORTUNIDADES', txt: sw.oportunidades, cor: CL.green },
+      { label: 'AMEAÇAS', txt: sw.ameacas, cor: CL.red }
+    ];
+    swotItems.forEach(it => {
+      if (!it.txt) return;
+      doc.setFont('helvetica','normal'); doc.setFontSize(10);
+      const tL = doc.splitTextToSize(it.txt, pageW-margin*2-24);
+      const h = 24 + tL.length*13 + 12;
+      ensureSpace(h+6);
+      doc.setFillColor(250,252,255); doc.roundedRect(margin, y, pageW-margin*2, h, 6, 6, 'F');
+      doc.setFillColor(...it.cor); doc.roundedRect(margin, y, 4, h, 2, 2, 'F');
+      doc.setFont('helvetica','bold'); doc.setFontSize(10); doc.setTextColor(...it.cor);
+      doc.text(it.label, margin+14, y+16, { charSpace:1 });
       doc.setFont('helvetica','normal'); doc.setFontSize(10); doc.setTextColor(60,70,100);
-      const l = doc.splitTextToSize(d.fortes, pageW-margin*2);
-      ensureSpace(l.length*13+8); doc.text(l, margin, y); y += l.length*13 + 14;
-    }
-    if (d.fracos) {
-      doc.setFont('helvetica','bold'); doc.setFontSize(10); doc.setTextColor(...CL.red);
-      doc.text('ONDE ESTÁ TRAVANDO', margin, y, { charSpace:1 }); y += 14;
-      doc.setFont('helvetica','normal'); doc.setFontSize(10); doc.setTextColor(60,70,100);
-      const l = doc.splitTextToSize(d.fracos, pageW-margin*2);
-      ensureSpace(l.length*13+8); doc.text(l, margin, y); y += l.length*13 + 14;
-    }
+      doc.text(tL, margin+14, y+30);
+      y += h + 6;
+    });
     y += 4;
   }
 
   // Vitórias
-  ensureSpace(40);
-  doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(...CL.accent);
-  doc.text('VITÓRIAS RÁPIDAS · ATÉ 30 DIAS', margin, y, { charSpace:2 }); y += 18;
-  d.vitorias.forEach((v,i) => {
-    doc.setFont('helvetica','bold'); doc.setFontSize(11);
-    const tL = doc.splitTextToSize(v.titulo, pageW-margin*2-56);
-    const metas = [];
-    if (v.resp) metas.push(`Responsável: ${v.resp}`);
-    if (v.prazo) metas.push(`Prazo: ${v.prazo}`);
-    if (v.ind) metas.push(`Indicador: ${v.ind}`);
-    const topPad=16, bottomPad=14, gap = metas.length ? 8 : 0, metaH = metas.length*12;
-    const cardH = topPad + tL.length*16 + gap + metaH + bottomPad;
-    ensureSpace(cardH+8);
-    doc.setFillColor(255,251,235); doc.roundedRect(margin, y, pageW-margin*2, cardH, 8, 8, 'F');
-    doc.setFillColor(...CL.yellow); doc.roundedRect(margin, y, 4, cardH, 2, 2, 'F');
-    doc.setFont('helvetica','bold'); doc.setFontSize(16); doc.setTextColor(161,98,7);
-    doc.text(String(i+1).padStart(2,'0'), margin+14, y+topPad+10);
-    doc.setFont('helvetica','bold'); doc.setFontSize(11); doc.setTextColor(...CL.textDark);
-    doc.text(tL, margin+44, y+topPad+10);
-    if (metas.length) {
-      doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(140,120,60);
-      const startY = y + topPad + tL.length*16 + gap + 8;
-      metas.forEach((m,mi) => doc.text(m, margin+44, startY+mi*12));
-    }
-    y += cardH + 8;
-  });
-
-  // Prioridades
-  if (d.prioridades.length) {
-    y += 4;
-    ensureSpace(40);
-    doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(...CL.accent);
-    doc.text('PRIORIDADES · 30 A 90 DIAS', margin, y, { charSpace:2 }); y += 18;
-    d.prioridades.forEach((p,i) => {
+  if (d.vitorias.length) {
+    heading('VITÓRIAS RÁPIDAS');
+    d.vitorias.forEach((v,i) => {
       doc.setFont('helvetica','bold'); doc.setFontSize(11);
-      const tL = doc.splitTextToSize(p.titulo, pageW-margin*2-56);
+      const tL = doc.splitTextToSize(v.titulo, pageW-margin*2-56);
       const metas = [];
-      if (p.resp) metas.push(`Responsável: ${p.resp}`);
-      if (p.prazo) metas.push(`Prazo: ${p.prazo}`);
-      if (p.ind) metas.push(`Indicador: ${p.ind}`);
-      const topPad=16, bottomPad=14, gap = metas.length ? 8 : 0, metaH = metas.length*12;
-      const cardH = topPad + tL.length*16 + gap + metaH + bottomPad;
-      ensureSpace(cardH+8);
-      doc.setFillColor(250,252,255); doc.roundedRect(margin, y, pageW-margin*2, cardH, 8, 8, 'F');
-      doc.setDrawColor(226,232,240); doc.roundedRect(margin, y, pageW-margin*2, cardH, 8, 8, 'S');
-      doc.setFillColor(...CL.accent); doc.roundedRect(margin, y, 4, cardH, 2, 2, 'F');
-      doc.setFont('helvetica','bold'); doc.setFontSize(16); doc.setTextColor(...CL.accent);
+      if (v.solucao) metas.push(`Solução: ${v.solucao}`);
+      if (v.resp) metas.push(`Responsável: ${v.resp}`);
+      if (v.prazo) metas.push(`Prazo: ${v.prazo}`);
+      if (v.ind) metas.push(`Indicador: ${v.ind}`);
+      doc.setFont('helvetica','normal'); doc.setFontSize(9);
+      const metaLines = [];
+      metas.forEach(m => { metaLines.push(...doc.splitTextToSize(m, pageW-margin*2-56)); });
+      const topPad=14, bottomPad=12, gap = metaLines.length ? 8 : 0;
+      const cardH = topPad + tL.length*16 + gap + metaLines.length*12 + bottomPad;
+      ensureSpace(cardH+6);
+      doc.setFillColor(255,251,235); doc.roundedRect(margin, y, pageW-margin*2, cardH, 8, 8, 'F');
+      doc.setFillColor(...CL.yellow); doc.roundedRect(margin, y, 4, cardH, 2, 2, 'F');
+      doc.setFont('helvetica','bold'); doc.setFontSize(15); doc.setTextColor(161,98,7);
       doc.text(String(i+1).padStart(2,'0'), margin+14, y+topPad+10);
       doc.setFont('helvetica','bold'); doc.setFontSize(11); doc.setTextColor(...CL.textDark);
       doc.text(tL, margin+44, y+topPad+10);
-      if (metas.length) {
-        doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(90,100,130);
+      if (metaLines.length) {
+        doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(140,120,60);
         const startY = y + topPad + tL.length*16 + gap + 8;
-        metas.forEach((m,mi) => doc.text(m, margin+44, startY+mi*12));
+        metaLines.forEach((m,mi) => doc.text(m, margin+44, startY+mi*12));
       }
-      y += cardH + 8;
+      y += cardH + 6;
     });
+    y += 4;
   }
 
-  // Roadmap
-  if (d.tri1 || d.tri2 || d.tri3 || d.tri4) {
-    y += 6;
-    ensureSpace(40);
-    doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(...CL.accent);
-    doc.text('ROADMAP', margin, y, { charSpace:2 }); y += 18;
-    [['TRI 1 · MÊS 1-3', d.tri1],['TRI 2 · MÊS 4-6', d.tri2],['TRI 3 · MÊS 7-9', d.tri3],['TRI 4 · MÊS 10-12', d.tri4]].forEach(([label, txt]) => {
-      if (!txt) return;
-      doc.setFont('helvetica','normal'); doc.setFontSize(10);
-      const tL = doc.splitTextToSize(txt, pageW-margin*2-20);
-      const h = 24 + tL.length*12 + 10;
-      ensureSpace(h+6);
-      doc.setFillColor(246,248,254); doc.roundedRect(margin, y, pageW-margin*2, h, 6, 6, 'F');
-      doc.setFillColor(...CL.accent); doc.roundedRect(margin, y, 3, h, 1.5, 1.5, 'F');
-      doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(...CL.accent);
-      doc.text(label, margin+12, y+16, { charSpace:1 });
-      doc.setFont('helvetica','normal'); doc.setFontSize(10); doc.setTextColor(60,70,100);
-      doc.text(tL, margin+12, y+32);
-      y += h + 6;
+  // Compromissos
+  if (d.compromissos.length) {
+    heading('COMPROMISSOS');
+    d.compromissos.forEach((c,i) => {
+      doc.setFont('helvetica','bold'); doc.setFontSize(11);
+      const descL = doc.splitTextToSize(c.descricao, pageW-margin*2-100);
+      const metas = [];
+      if (c.colaborador) metas.push(`Colaborador: ${c.colaborador}`);
+      if (c.dataConclusao) metas.push(`Conclusão: ${formatarData(c.dataConclusao)}`);
+      if (c.prazo) metas.push(`Prazo: ${c.prazo}`);
+      if (c.nota) metas.push(`Nota: ${c.nota}`);
+      doc.setFont('helvetica','normal'); doc.setFontSize(9);
+      const metaLines = [];
+      metas.forEach(m => { metaLines.push(...doc.splitTextToSize(m, pageW-margin*2-50)); });
+
+      const corStatus = c.status === 'Concluído' ? CL.green : (c.status === 'Em andamento' ? CL.accent : (c.status === 'Atrasado' || c.status === 'Não feita' ? CL.red : CL.yellow));
+      const topPad=14, bottomPad=12, gap = metaLines.length ? 8 : 0;
+      const cardH = topPad + descL.length*16 + gap + metaLines.length*12 + bottomPad;
+      ensureSpace(cardH+6);
+      doc.setFillColor(250,252,255); doc.roundedRect(margin, y, pageW-margin*2, cardH, 8, 8, 'F');
+      doc.setDrawColor(226,232,240); doc.roundedRect(margin, y, pageW-margin*2, cardH, 8, 8, 'S');
+      doc.setFillColor(...corStatus); doc.roundedRect(margin, y, 4, cardH, 2, 2, 'F');
+      doc.setFont('helvetica','bold'); doc.setFontSize(15); doc.setTextColor(...CL.accent);
+      doc.text(String(i+1).padStart(2,'0'), margin+14, y+topPad+10);
+      doc.setFont('helvetica','bold'); doc.setFontSize(11); doc.setTextColor(...CL.textDark);
+      doc.text(descL, margin+44, y+topPad+10);
+      // Status pill
+      doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor(...corStatus);
+      doc.text((c.status||'').toUpperCase(), pageW-margin-12, y+topPad+10, { align:'right', charSpace:1 });
+      if (metaLines.length) {
+        doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(90,100,130);
+        const startY = y + topPad + descL.length*16 + gap + 8;
+        metaLines.forEach((m,mi) => doc.text(m, margin+44, startY+mi*12));
+      }
+      y += cardH + 6;
     });
+    y += 4;
   }
 
   // Indicadores
   if (d.kpis || d.frequencia) {
-    y += 4;
-    ensureSpace(50);
-    doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(...CL.accent);
-    doc.text('INDICADORES', margin, y, { charSpace:2 }); y += 18;
+    heading('INDICADORES');
     if (d.kpis) {
       d.kpis.split('\n').filter(k=>k.trim()).forEach(kpi => {
         doc.setFont('helvetica','normal'); doc.setFontSize(10);
@@ -1083,15 +1305,12 @@ async function gerarPDF(d) {
     if (d.frequencia) {
       doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(...CL.accent);
       doc.text('FREQUÊNCIA DE REVISÃO', margin, y, { charSpace:1 }); y += 12;
-      doc.setFont('helvetica','normal'); doc.setFontSize(10); doc.setTextColor(60,70,100);
-      const l = doc.splitTextToSize(d.frequencia, pageW-margin*2);
-      doc.text(l, margin, y); y += l.length*13 + 10;
+      para(d.frequencia);
     }
   }
 
   // Próxima reunião
-  y += 8;
-  ensureSpace(100);
+  y += 8; ensureSpace(80);
   const prxLines = [];
   if (d.proxData) prxLines.push(`Data: ${formatarData(d.proxData)}${d.proxHora ? ' às '+d.proxHora : ''}`);
   if (d.proxFormato) prxLines.push(`Formato: ${d.proxFormato}`);
@@ -1116,10 +1335,9 @@ async function gerarPDF(d) {
 
   const nomeArq = `Plano_Acao_R${d.reuniao}_${d.empresa.replace(/[^a-z0-9]/gi,'_').slice(0,30)}_${d.data.replace(/-/g,'')}.pdf`;
   doc.save(nomeArq);
-  toast('✓ PDF baixado: ' + nomeArq, 4000);
 }
 
-// ================ INIT =================
+// =========== INIT ===========
 (function init(){
   const salvo = localStorage.getItem('planoLogin');
   if (salvo) {
