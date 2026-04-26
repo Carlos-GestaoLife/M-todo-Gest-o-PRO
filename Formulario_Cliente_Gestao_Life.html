@@ -635,22 +635,95 @@ function renderPasso() {
   $('btn-voltar').disabled = passoAtual === 0;
 }
 
+// ===== Detecta tipo da pergunta atual (CNPJ tem máscara/validação especial) =====
+function tipoPerguntaGeral(gIdx) {
+  const t = (PERGUNTAS_GERAIS[gIdx] || '').toLowerCase();
+  if (t === 'cnpj' || t.indexOf('cnpj') === 0) return 'cnpj';
+  return 'texto';
+}
+
+// ===== Máscara de CNPJ: 00.000.000/0000-00 =====
+function aplicarMascaraCNPJ(v) {
+  v = String(v || '').replace(/\D/g, '').slice(0, 14);
+  if (v.length > 12) return v.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{1,2})/, '$1.$2.$3/$4-$5');
+  if (v.length > 8) return v.replace(/(\d{2})(\d{3})(\d{3})(\d{1,4})/, '$1.$2.$3/$4');
+  if (v.length > 5) return v.replace(/(\d{2})(\d{3})(\d{1,3})/, '$1.$2.$3');
+  if (v.length > 2) return v.replace(/(\d{2})(\d{1,3})/, '$1.$2');
+  return v;
+}
+
+// Reage ao input do CNPJ — só dígitos, com máscara
+function onInputCNPJ(e) {
+  const inp = e.target;
+  const pos = inp.selectionStart;
+  const antes = inp.value;
+  const formatado = aplicarMascaraCNPJ(antes);
+  if (antes !== formatado) {
+    inp.value = formatado;
+    // mantém o cursor no final
+    const novoPos = formatado.length;
+    try { inp.setSelectionRange(novoPos, novoPos); } catch(_) {}
+  }
+  validarProximo();
+}
+
 function renderGeral(p) {
-  $('qt-title').innerHTML = `${PERGUNTAS_GERAIS[p.gIdx]} <span class="q-required">OBRIGATÓRIA</span>`;
+  const tipo = tipoPerguntaGeral(p.gIdx);
+  let titulo = `${PERGUNTAS_GERAIS[p.gIdx]} <span class="q-required">OBRIGATÓRIA</span>`;
+  if (tipo === 'cnpj') {
+    titulo += ' <span style="display:block;font-size:11px;color:var(--text-dim);font-weight:500;letter-spacing:.5px;margin-top:6px;text-transform:none">Formato: 00.000.000/0000-00 · só números</span>';
+  }
+  $('qt-title').innerHTML = titulo;
   const inp = $('qt-input');
   inp.blur();
   inp.value = ''; inp.setAttribute('value', '');
+
+  // Configura listeners conforme o tipo
+  inp.removeEventListener('input', onInputCNPJ);
+  inp.oninput = null;
+  if (tipo === 'cnpj') {
+    inp.setAttribute('inputmode', 'numeric');
+    inp.setAttribute('maxlength', '18');
+    inp.setAttribute('placeholder', '00.000.000/0000-00');
+    inp.addEventListener('input', onInputCNPJ);
+  } else {
+    inp.removeAttribute('inputmode');
+    inp.removeAttribute('maxlength');
+    inp.setAttribute('placeholder', 'Digite sua resposta...');
+    inp.oninput = validarProximo;
+  }
+
   requestAnimationFrame(() => {
-    inp.value = respGerais[p.gIdx] || '';
+    let valSalvo = respGerais[p.gIdx] || '';
+    if (tipo === 'cnpj') valSalvo = aplicarMascaraCNPJ(valSalvo);
+    inp.value = valSalvo;
     validarProximo();
     setTimeout(() => inp.focus(), 120);
   });
 }
-function validarProximo() { $('qt-btn-next').disabled = $('qt-input').value.trim().length === 0; }
+function validarProximo() {
+  const p = PASSOS[passoAtual];
+  if (!p || p.tipo !== 'g') { $('qt-btn-next').disabled = $('qt-input').value.trim().length === 0; return; }
+  const v = $('qt-input').value.trim();
+  if (tipoPerguntaGeral(p.gIdx) === 'cnpj') {
+    const digitos = v.replace(/\D/g, '');
+    $('qt-btn-next').disabled = digitos.length !== 14;
+  } else {
+    $('qt-btn-next').disabled = v.length === 0;
+  }
+}
 function responderTexto() {
   const p = PASSOS[passoAtual];
-  const v = $('qt-input').value.trim();
+  let v = $('qt-input').value.trim();
   if (!v) { toast('⚠ Esta pergunta é obrigatória.', 3000, true); return; }
+  if (tipoPerguntaGeral(p.gIdx) === 'cnpj') {
+    const digitos = v.replace(/\D/g, '');
+    if (digitos.length !== 14) {
+      toast('⚠ CNPJ deve ter 14 dígitos. Confira o número e tente novamente.', 4000, true);
+      return;
+    }
+    v = aplicarMascaraCNPJ(digitos); // garante formatação final consistente
+  }
   respGerais[p.gIdx] = v; salvarEstadoDebounced(); avancar();
 }
 
