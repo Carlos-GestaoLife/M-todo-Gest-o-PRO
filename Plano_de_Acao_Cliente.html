@@ -716,15 +716,20 @@ async function importarDiagnostico() {
   toast('⏳ Buscando no diagnóstico...', 2000);
   try {
     const r = await chamarAPI('importar-diagnostico', { cnpj, nomeEmpresa: nome });
-    contextoImportado = { ig: r.informacoesGerais, diag: r.diagnostico };
+    contextoImportado = { ig: r.informacoesGerais, diag: r.diagnostico, idRegistro: r.idRegistro || '', modoBusca: r.modoBusca || '' };
     aplicarContextoImportado();
-    toast('✓ Diagnóstico importado!', 3000, false, true);
+    if (r.aviso) {
+      toast('⚠ ' + r.aviso, 6000, true);
+    } else {
+      const via = r.modoBusca === 'cnpj' ? ' (via CNPJ)' : (r.modoBusca === 'nome' ? ' (via nome)' : '');
+      toast('✓ Diagnóstico importado' + via + '!', 3000, false, true);
+    }
   } catch(err) {
     if (/n[ãa]o encontrad/i.test(err.message)) {
-      if (confirm('Empresa não encontrada no diagnóstico. Deseja colar os dados manualmente?')) abrirModalPaste();
+      if (confirm('Empresa não encontrada no diagnóstico:\n\n' + err.message + '\n\nDeseja colar os dados manualmente?')) abrirModalPaste();
       else toast('Preencha o formulário manualmente.', 3000);
     } else {
-      toast('❌ ' + err.message, 4000, true);
+      toast('❌ ' + err.message, 5000, true);
     }
   }
 }
