@@ -108,6 +108,16 @@
   .ctx-card .ctx-row .lbl { min-width: 130px; color: var(--text-dim); font-weight: 600; }
   .ctx-card .ctx-row .val { flex: 1; color: var(--text); }
 
+  /* Indicador de auto-save */
+  .save-indicator { position: fixed; bottom: 24px; right: 24px; background: var(--card); color: var(--text-dim); padding: 8px 14px; border-radius: 20px; font-size: 11px; font-weight: 600; border: 1px solid var(--border); opacity: 0; transition: opacity .3s; z-index: 998; pointer-events: none; }
+  .save-indicator.show { opacity: .9; }
+
+  /* Banner de rascunho recuperado */
+  .rascunho-banner { background: linear-gradient(135deg, rgba(251,191,36,.12), rgba(251,191,36,.04)); border: 1px solid rgba(251,191,36,.5); border-left: 5px solid #fbbf24; border-radius: 10px; padding: 14px 18px; margin-bottom: 16px; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+  .rascunho-banner .rascunho-info { flex: 1; min-width: 200px; }
+  .rascunho-banner strong { color: #fbbf24; font-size: 13px; letter-spacing: .5px; text-transform: uppercase; display: block; margin-bottom: 2px; }
+  .rascunho-banner p { margin: 0; font-size: 12px; color: var(--text-dim); }
+
   /* Banner de anexo */
   .anexo-banner { background: linear-gradient(135deg, rgba(251,191,36,.06), rgba(122,162,255,.04)); border: 1px dashed rgba(251,191,36,.4); border-radius: 12px; padding: 14px 18px; margin-top: 16px; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
   .anexo-banner strong { color: #fbbf24; font-size: 13px; letter-spacing: .5px; text-transform: uppercase; }
@@ -419,13 +429,25 @@
       <p id="form-subtitle">Preencha com o cliente durante a reunião.</p>
     </header>
 
+    <!-- Banner de rascunho recuperado / disponível -->
+    <div id="rascunho-banner" class="rascunho-banner" style="display:none">
+      <div class="rascunho-info">
+        <strong>📝 Rascunho não salvo encontrado</strong>
+        <p id="rascunho-meta">Você tem um rascunho local desta reunião que ainda não foi salvo na planilha.</p>
+      </div>
+      <div style="display:flex;gap:6px">
+        <button type="button" class="btn btn-primary" onclick="recuperarRascunho()">Recuperar</button>
+        <button type="button" class="btn btn-secondary" onclick="descartarRascunho()">Descartar</button>
+      </div>
+    </div>
+
     <!-- 1. DADOS DA EMPRESA -->
     <section class="section">
       <div class="section-head"><div class="num">01</div><div><h2>Dados da empresa</h2><div class="sub">Identificação · Participantes · Objetivo desta reunião</div></div></div>
       <div class="section-body">
         <div class="field-group">
           <div class="field"><label>CNPJ</label><input type="text" id="cnpj" inputmode="numeric" maxlength="18" placeholder="00.000.000/0000-00" oninput="mascaraCNPJ(this)"></div>
-          <div class="field"><label>Nome da empresa</label><input type="text" id="empresa" placeholder="Ex.: Burger do João"></div>
+          <div class="field"><label>Nome da empresa</label><input type="text" id="empresa" placeholder="Ex.: Burger do João" onblur="checarRascunho()"></div>
         </div>
 
         <!-- Participantes (lista dinâmica) -->
@@ -696,6 +718,7 @@
 </div>
 
 <div class="toast" id="toast"></div>
+<div class="save-indicator" id="save-indicator">💾 Salvo automaticamente</div>
 
 <script>
 
@@ -890,6 +913,9 @@ function _abrirFormVazio() {
   $('alert-import').style.display = 'none';
   $('form-nome').textContent = consultorLogado.nome;
   mostrarView('view-form');
+  bindAutoSave();
+  // Não checa rascunho aqui pq não temos empresa ainda — checa quando preencher empresa
+  $('rascunho-banner').style.display = 'none';
 }
 
 // =========== MODAL DE BUSCA DE EMPRESA (antes de criar reunião) ===========
@@ -1012,6 +1038,8 @@ async function novaReuniaoEmpresaAtual() {
     }
   }
   mostrarView('view-form');
+  bindAutoSave();
+  checarRascunho();
 }
 
 async function editarPlano(idPlano) {
@@ -1077,6 +1105,8 @@ async function editarPlano(idPlano) {
     }
     $('form-nome').textContent = consultorLogado.nome;
     mostrarView('view-form');
+    bindAutoSave();
+    checarRascunho();
   } catch(err) { toast('❌ ' + err.message, 4000, true); }
 }
 
@@ -1810,6 +1840,129 @@ function limparFormulario(){
 }
 
 // =========== COLETA + SALVAR ===========
+// =========== AUTO-SAVE / RASCUNHO LOCAL ===========
+const RASCUNHO_PREFIX = 'planoRascunho_';
+let _rascunhoTimer = null;
+let _rascunhoPendente = null; // dado encontrado no localStorage aguardando recuperar
+
+function rascunhoKey() {
+  if (idPlanoAtual) return RASCUNHO_PREFIX + idPlanoAtual;
+  // Pra reuniões novas (sem id ainda): chave por empresa+reunião
+  const emp = ($('empresa')?.value || '').trim().toLowerCase().replace(/\s+/g,'_');
+  const num = parseInt($('reuniao')?.value) || 1;
+  if (emp) return RASCUNHO_PREFIX + 'novo_' + emp + '_R' + num;
+  return RASCUNHO_PREFIX + 'novo_sem_empresa';
+}
+
+function salvarRascunhoDebounced() {
+  clearTimeout(_rascunhoTimer);
+  _rascunhoTimer = setTimeout(() => {
+    try {
+      const dados = coletar();
+      const key = rascunhoKey();
+      const payload = { ts: Date.now(), dados };
+      localStorage.setItem(key, JSON.stringify(payload));
+      mostrarSaveIndicator();
+    } catch (e) {
+      console.warn('Falha ao salvar rascunho:', e);
+    }
+  }, 800);
+}
+
+function mostrarSaveIndicator() {
+  const ind = document.getElementById('save-indicator');
+  if (!ind) return;
+  ind.textContent = '💾 Salvo automaticamente';
+  ind.classList.add('show');
+  clearTimeout(window._saveIndTimer);
+  window._saveIndTimer = setTimeout(() => ind.classList.remove('show'), 1800);
+}
+
+function checarRascunho() {
+  // Procura rascunho no localStorage que case com a reunião atual
+  const key = rascunhoKey();
+  const raw = localStorage.getItem(key);
+  if (!raw) { $('rascunho-banner').style.display = 'none'; return; }
+  try {
+    const payload = JSON.parse(raw);
+    _rascunhoPendente = payload.dados;
+    const dt = new Date(payload.ts);
+    const ago = Math.round((Date.now() - payload.ts) / 60000); // minutos
+    const meta = ago < 1 ? 'agora mesmo' : (ago < 60 ? `há ${ago} min` : (ago < 1440 ? `há ${Math.round(ago/60)}h` : `em ${dt.toLocaleDateString('pt-BR')}`));
+    $('rascunho-meta').innerHTML = `Você tem um rascunho local <strong>(salvo ${meta})</strong> que não foi enviado pra planilha. Quer recuperar os dados?`;
+    $('rascunho-banner').style.display = 'flex';
+  } catch (e) {
+    $('rascunho-banner').style.display = 'none';
+  }
+}
+
+function recuperarRascunho() {
+  if (!_rascunhoPendente) return;
+  const p = _rascunhoPendente;
+  // Aplica os dados no form (mesma lógica do editarPlano, sem chamar API)
+  $('cnpj').value = p.cnpj ? aplicarMascaraCNPJ(p.cnpj) : '';
+  $('empresa').value = p.empresa || '';
+  preencherParticipantes(p.participantes || []);
+  $('data').value = p.data || new Date().toISOString().slice(0,10);
+  $('reuniao').value = p.reuniao || 1;
+  $('form-titulo-num').textContent = p.reuniao || 1;
+  $('nivel').value = p.nivelNum || '';
+  $('objetivoReuniao').value = p.objetivoReuniao || '';
+  if (p.swot) {
+    $('swot-forcas').value = p.swot.forcas || '';
+    $('swot-fraquezas').value = p.swot.fraquezas || '';
+    $('swot-oportunidades').value = p.swot.oportunidades || '';
+    $('swot-ameacas').value = p.swot.ameacas || '';
+  }
+  // Listas dinâmicas — limpa e re-popula
+  $('prioridades-list').innerHTML = '';
+  (p.prioridades || []).forEach(pri => addPrioridade(pri));
+  $('vitorias-list').innerHTML = '';
+  (p.vitorias || []).forEach(v => addVitoria(typeof v === 'string' ? v : (v.titulo || '')));
+  $('compr-body').innerHTML = '';
+  (p.compromissos || []).forEach(c => addCompromisso(c));
+  if (p.indicadores) preencherIndicadores(p.indicadores, p.indicadoresReferencia || '');
+  $('proxData').value = p.proxData || '';
+  $('proxHora').value = p.proxHora || '';
+  setSelectIfExists('proxFormato', p.proxFormato || '');
+  setSelectIfExists('proxMentor', p.proxMentor || '');
+  preencherConvidados(p.proxConvidados || []);
+  $('ata').value = p.ata || '';
+  aplicarSugestoes();
+  atualizarSugestoesCompromissos();
+  $('rascunho-banner').style.display = 'none';
+  toast('✓ Rascunho recuperado!', 3000, false, true);
+}
+
+function descartarRascunho() {
+  if (!confirm('Descartar o rascunho local? Essa ação não pode ser desfeita.')) return;
+  try { localStorage.removeItem(rascunhoKey()); } catch(e) {}
+  _rascunhoPendente = null;
+  $('rascunho-banner').style.display = 'none';
+  toast('Rascunho descartado', 2500);
+}
+
+function limparRascunhoApósSalvar() {
+  // Após salvar com sucesso na planilha, apaga o rascunho local
+  try {
+    // Apaga tanto a chave atual quanto a "novo_*" caso tenha mudado de chave
+    localStorage.removeItem(rascunhoKey());
+    const empKey = ($('empresa')?.value || '').trim().toLowerCase().replace(/\s+/g,'_');
+    const reuniao = parseInt($('reuniao')?.value) || 1;
+    if (empKey) localStorage.removeItem(RASCUNHO_PREFIX + 'novo_' + empKey + '_R' + reuniao);
+  } catch (e) {}
+}
+
+function bindAutoSave() {
+  // Conecta o auto-save em todos os inputs/selects/textareas relevantes
+  const root = document.getElementById('view-form');
+  if (!root) return;
+  root.removeEventListener('input', salvarRascunhoDebounced);
+  root.removeEventListener('change', salvarRascunhoDebounced);
+  root.addEventListener('input', salvarRascunhoDebounced, true);
+  root.addEventListener('change', salvarRascunhoDebounced, true);
+}
+
 function coletar() {
   const prioridades = coletarPrioridades();
   const vitorias = coletarVitorias();
@@ -1889,6 +2042,7 @@ async function salvarEGerar() {
     btn.innerHTML = '<span class="spinner"></span>Gerando PDF...';
     await gerarPDF(d);
     btn.innerHTML = '✓ Pronto!';
+    limparRascunhoApósSalvar();
     setTimeout(() => { btn.disabled = false; btn.innerHTML = '💾 Salvar plano (PDF + Google Doc)'; }, 1500);
     setTimeout(() => {
       if (confirm('✓ Plano salvo!\n\n📄 PDF baixado\n📝 Google Doc criado\n\nQuer abrir o Google Doc agora?')) {
