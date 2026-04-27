@@ -207,6 +207,11 @@
     .cal-evento { font-size: 10px; padding: 2px 4px; max-height: 28px; }
   }
 
+  /* Tags de pessoa no modal */
+  .pessoa-tag { display: inline-block; padding: 4px 12px; border-radius: 14px; font-size: 12.5px; font-weight: 700; margin: 3px 4px 3px 0; letter-spacing: .3px; }
+  .pessoa-tag.mentor { background: linear-gradient(135deg, rgba(77,201,255,.25), rgba(122,162,255,.15)); color: var(--accent); border: 1px solid rgba(77,201,255,.5); }
+  .pessoa-tag.outro { background: rgba(255,255,255,.06); color: var(--text); border: 1px solid var(--border); font-weight: 600; }
+
   /* Modal de visualização do evento */
   .evv-grid { display: flex; flex-direction: column; gap: 14px; padding: 8px 0; }
   .evv-item { display: flex; flex-direction: column; gap: 4px; padding: 10px 14px; background: rgba(255,255,255,.02); border: 1px solid var(--border); border-radius: 8px; }
@@ -1034,6 +1039,34 @@
   <footer>Método Gestão Life · Gestão PRO<br><small>Ferramenta interna · Planos de Ação v2</small></footer>
 </div>
 
+<!-- Modal: VISUALIZAR compromisso (read-only) com botões de cobrança -->
+<div class="modal-bg" id="modal-compromisso-view">
+  <div class="modal modal-crm-content">
+    <div style="display:flex;align-items:flex-start;gap:14px;margin-bottom:12px">
+      <div style="font-size:32px">✅</div>
+      <div style="flex:1">
+        <h3 id="cv-titulo" style="margin:0 0 6px;font-size:18px">—</h3>
+        <p id="cv-status-line" style="margin:0;font-size:12px;color:var(--text-dim)">—</p>
+      </div>
+    </div>
+    <div class="evv-grid">
+      <div class="evv-item"><span class="evv-lbl">📌 Descrição (ação)</span><span class="evv-val" id="cv-desc">—</span></div>
+      <div class="evv-item"><span class="evv-lbl">🏢 Empresa · Reunião</span><span class="evv-val" id="cv-empresa">—</span></div>
+      <div class="evv-item"><span class="evv-lbl">👤 Responsável</span><span class="evv-val" id="cv-resp">—</span></div>
+      <div class="evv-item"><span class="evv-lbl">🎓 Consultor da empresa</span><span class="evv-val" id="cv-consultor">—</span></div>
+      <div class="evv-item"><span class="evv-lbl">📆 Data de criação</span><span class="evv-val" id="cv-criacao">—</span></div>
+      <div class="evv-item"><span class="evv-lbl">⏰ Prazo</span><span class="evv-val" id="cv-prazo">—</span></div>
+      <div class="evv-item" id="cv-obs-wrap"><span class="evv-lbl">📝 Observação</span><span class="evv-val" id="cv-obs">—</span></div>
+    </div>
+    <div class="actions" style="justify-content:flex-end;gap:8px;margin-top:18px;flex-wrap:wrap">
+      <button class="btn btn-secondary" onclick="fecharModalCompromisso()">Fechar</button>
+      <button class="btn btn-secondary" id="cv-btn-zap-pessoal" onclick="cobrarPessoalDoModal()" style="background:rgba(34,197,94,.15);color:#22c55e;border-color:rgba(34,197,94,.4)">📱 WhatsApp pessoal</button>
+      <button class="btn btn-secondary" id="cv-btn-zap-grupo" onclick="cobrarGrupoDoModal()" style="background:rgba(34,197,94,.15);color:#22c55e;border-color:rgba(34,197,94,.4)">👥 WhatsApp do grupo</button>
+      <button class="btn btn-primary" onclick="abrirReuniaoDoModal()">↗ Abrir reunião</button>
+    </div>
+  </div>
+</div>
+
 <!-- Modal: VISUALIZAR evento (read-only) -->
 <div class="modal-bg" id="modal-evento-view">
   <div class="modal modal-crm-content">
@@ -1047,8 +1080,8 @@
     <div class="evv-grid">
       <div class="evv-item" id="evv-empresa-wrap"><span class="evv-lbl">🏢 Empresa</span><span class="evv-val" id="evv-empresa">—</span></div>
       <div class="evv-item" id="evv-local-wrap"><span class="evv-lbl">📍 Local</span><span class="evv-val" id="evv-local">—</span></div>
-      <div class="evv-item" id="evv-mentor-wrap"><span class="evv-lbl">👤 Mentor</span><span class="evv-val" id="evv-mentor">—</span></div>
-      <div class="evv-item" id="evv-conv-wrap"><span class="evv-lbl">👥 Convidados</span><span class="evv-val" id="evv-conv">—</span></div>
+      <div class="evv-item" id="evv-mentor-wrap"><span class="evv-lbl">🎓 Mentor(es)</span><span class="evv-val" id="evv-mentor">—</span></div>
+      <div class="evv-item" id="evv-conv-wrap"><span class="evv-lbl">👥 Outros convidados</span><span class="evv-val" id="evv-conv">—</span></div>
       <div class="evv-item" id="evv-desc-wrap"><span class="evv-lbl">📝 Pauta / Descrição</span><span class="evv-val" id="evv-desc">—</span></div>
     </div>
     <div class="actions" style="justify-content:flex-end;gap:8px;margin-top:18px;flex-wrap:wrap">
@@ -1726,10 +1759,29 @@ function extrairEmpresaDoTitulo(titulo) {
   return '';
 }
 
+// Identifica quais convidados são consultores/mentores (cruzando com _consultoresCache)
+function identificarMentoresEvento(ev) {
+  const mentores = [];
+  const outros = [];
+  (ev.convidados || []).forEach(c => {
+    const email = (c.email || '').toLowerCase();
+    const nomeConv = c.nome || '';
+    const consultor = (_consultoresCache || []).find(cc => cc.email && cc.email.toLowerCase() === email);
+    if (consultor) {
+      mentores.push(consultor.nome);
+    } else if (nomeConv) {
+      outros.push(nomeConv);
+    } else {
+      outros.push(email);
+    }
+  });
+  return { mentores, outros };
+}
+
 function montarTextoTooltipEvento(ev) {
-  const conv = (ev.convidados || []).map(c => c.nome || c.email).filter(Boolean).slice(0, 5);
   const titulo = ev.titulo || 'Sem título';
   const empresa = extrairEmpresaDoTitulo(titulo);
+  const { mentores, outros } = identificarMentoresEvento(ev);
 
   const linhas = [];
   linhas.push('📌 ' + titulo);
@@ -1751,7 +1803,8 @@ function montarTextoTooltipEvento(ev) {
   }
 
   if (ev.local) linhas.push('📍 ' + (ev.local.length > 60 ? ev.local.slice(0,60) + '…' : ev.local));
-  if (conv.length) linhas.push('👥 ' + conv.join(', ') + (ev.convidados.length > 5 ? ' +' + (ev.convidados.length - 5) : ''));
+  if (mentores.length) linhas.push('🎓 Mentor(es): ' + mentores.join(', '));
+  if (outros.length) linhas.push('👥 Outros: ' + outros.slice(0, 4).join(', ') + (outros.length > 4 ? ' +' + (outros.length - 4) : ''));
   if (ev.descricao) linhas.push('\n📝 ' + (ev.descricao.length > 200 ? ev.descricao.slice(0,200) + '…' : ev.descricao));
   return linhas.join('\n');
 }
@@ -1810,13 +1863,13 @@ function verEvento(idEvento) {
     ? (eLink ? `<a href="${local}" target="_blank">${local}</a>` : local.replace(/</g,'&lt;'))
     : '—';
 
-  // Mentor (heurística — primeiro consultor presente nos convidados)
-  const mentor = (_consultoresCache || []).find(c => c.email && (ev.convidados || []).some(x => (x.email || '').toLowerCase() === c.email.toLowerCase()));
-  $('evv-mentor').textContent = mentor ? mentor.nome : (ev.criador || '—');
-
-  // Convidados
-  const convs = (ev.convidados || []).map(c => c.nome ? `${c.nome} <${c.email}>` : c.email);
-  $('evv-conv').textContent = convs.length ? convs.join('\n') : '—';
+  // Mentores (todos os consultores nos convidados) e outros
+  const { mentores, outros } = identificarMentoresEvento(ev);
+  const renderTags = (lista, classe) => lista.length
+    ? lista.map(n => `<span class="pessoa-tag ${classe}">${n.replace(/</g,'&lt;')}</span>`).join('')
+    : '—';
+  $('evv-mentor').innerHTML = renderTags(mentores, 'mentor');
+  $('evv-conv').innerHTML = outros.length ? renderTags(outros, 'outro') : '<span style="color:var(--text-dim)">Apenas mentores</span>';
 
   // Descrição
   $('evv-desc').textContent = ev.descricao || '—';
@@ -2270,19 +2323,12 @@ function renderCalendarioCompromissos(lista) {
     const evsHtml = evs.slice(0, 3).map(c => {
       const cls = classeStatusCompromisso(c.status, c.prazo);
       const safeDesc = (c.descricao || '').replace(/</g,'&lt;').slice(0, 60);
-      const tooltip = [
-        '📌 ' + (c.descricao || ''),
-        '🏢 ' + (c.empresa || '') + ' · R' + (c.reuniao || '?'),
-        c.responsavel ? '👤 ' + c.responsavel : '',
-        c.prazo ? '📅 Prazo: ' + new Date(c.prazo).toLocaleDateString('pt-BR') : '',
-        '🔵 Status: ' + (c.status || 'Aberto'),
-        c.obs ? '\n' + (c.obs.length > 100 ? c.obs.slice(0,100) + '…' : c.obs) : ''
-      ].filter(Boolean).join('\n').replace(/"/g, '&quot;').replace(/`/g, '\\`').replace(/\$/g, '\\$').replace(/'/g, "\\'");
+      const tooltip = montarTextoTooltipCompromisso(c).replace(/"/g, '&quot;').replace(/`/g, '\\`').replace(/\$/g, '\\$').replace(/'/g, "\\'");
       const safeIdPlano = (c.idPlano || '').replace(/'/g, "\\'");
       return `<div class="cal-evento compromisso ${cls}"
         onmouseenter="mostrarTooltipEvento(this, '${tooltip}')"
         onmouseleave="esconderTooltipEvento()"
-        onclick="event.stopPropagation();esconderTooltipEvento();editarPlano('${safeIdPlano}')">${safeDesc}</div>`;
+        onclick="event.stopPropagation();esconderTooltipEvento();verCompromisso('${safeIdPlano}', ${c.idxCompromisso})">${safeDesc}</div>`;
     }).join('');
     const mais = evs.length > 3 ? `<div class="cal-mais">+${evs.length - 3} mais</div>` : '';
     html += `<div class="cal-dia ${ehHoje ? 'hoje' : ''}"><div class="num-dia">${dia}</div>${evsHtml}${mais}</div>`;
@@ -2432,17 +2478,22 @@ function renderListaCompromissos(lista) {
     const dataFmt = c.prazo ? new Date(c.prazo).toLocaleDateString('pt-BR') : '—';
     const escapeAttr = (s) => String(s || '').replace(/'/g, "\\'").replace(/"/g, '&quot;');
 
+    const tooltip = montarTextoTooltipCompromisso(c).replace(/"/g, '&quot;').replace(/'/g, "\\'");
     return `
-      <div class="compr-item ${classeItem}">
+      <div class="compr-item ${classeItem}"
+        onmouseenter="mostrarTooltipEvento(this, '${tooltip}')"
+        onmouseleave="esconderTooltipEvento()"
+        onclick="if(event.target.closest('.compr-status-sel') || event.target.closest('.compr-acoes-fase3')) return; esconderTooltipEvento(); verCompromisso('${escapeAttr(c.idPlano)}', ${c.idxCompromisso})"
+        style="cursor:pointer">
         <div class="principal">
           <div class="desc">${(c.descricao || '').replace(/</g,'&lt;')}</div>
-          <div class="meta">🏢 <b>${(c.empresa || '—').replace(/</g,'&lt;')}</b> · R${c.reuniao || '?'}${c.responsavel ? ' · 👤 ' + c.responsavel : ''}${c.consultorEmpresa ? ' · 🎯 ' + c.consultorEmpresa : ''}</div>
+          <div class="meta">🏢 <b>${(c.empresa || '—').replace(/</g,'&lt;')}</b> · R${c.reuniao || '?'}${c.responsavel ? ' · 👤 ' + c.responsavel : ''}${c.consultorEmpresa ? ' · 🎓 ' + c.consultorEmpresa : ''}</div>
         </div>
         <div class="compr-prazo ${classePrazo}">
           <span class="data">${dataFmt}</span>
           ${textoRel ? `<span class="relativa">${textoRel}</span>` : ''}
         </div>
-        <select class="compr-status-sel" onchange="mudarStatusCompromisso(this, '${escapeAttr(c.idPlano)}', ${c.idxCompromisso})">
+        <select class="compr-status-sel" onchange="mudarStatusCompromisso(this, '${escapeAttr(c.idPlano)}', ${c.idxCompromisso})" onclick="event.stopPropagation()">
           <option value="Aberto" ${c.status==='Aberto'?'selected':''}>Aberto</option>
           <option value="Em andamento" ${c.status==='Em andamento'?'selected':''}>Em andamento</option>
           <option value="Concluído" ${c.status==='Concluído'?'selected':''}>Concluído</option>
@@ -2450,12 +2501,90 @@ function renderListaCompromissos(lista) {
           <option value="Não feita" ${c.status==='Não feita'?'selected':''}>Não feita</option>
         </select>
         <div class="compr-acoes-fase3">
-          <button class="compr-btn-wa" title="Cobrar via WhatsApp" ${c.telefoneEmpresa ? '' : 'disabled'} onclick="cobrarWhatsApp('${escapeAttr(c.empresa)}', '${escapeAttr(c.descricao)}', '${escapeAttr(c.prazo)}', '${escapeAttr(c.telefoneEmpresa)}')">📱</button>
-          <button class="compr-btn-abrir" title="Abrir reunião" onclick="editarPlano('${escapeAttr(c.idPlano)}')">↗</button>
+          <button class="compr-btn-wa" title="Cobrar via WhatsApp" ${c.telefoneEmpresa ? '' : 'disabled'} onclick="event.stopPropagation();cobrarWhatsApp('${escapeAttr(c.empresa)}', '${escapeAttr(c.descricao)}', '${escapeAttr(c.prazo)}', '${escapeAttr(c.telefoneEmpresa)}')">📱</button>
+          <button class="compr-btn-abrir" title="Ver detalhes" onclick="event.stopPropagation();verCompromisso('${escapeAttr(c.idPlano)}', ${c.idxCompromisso})">👁</button>
         </div>
       </div>
     `;
   }).join('');
+}
+
+// Tooltip do compromisso
+function montarTextoTooltipCompromisso(c) {
+  const fmtData = (d) => d ? new Date(d).toLocaleDateString('pt-BR') : '—';
+  const linhas = [];
+  linhas.push('📌 ' + (c.descricao || ''));
+  linhas.push('🏢 ' + (c.empresa || '—') + ' · R' + (c.reuniao || '?'));
+  if (c.responsavel) linhas.push('👤 Responsável: ' + c.responsavel);
+  if (c.consultorEmpresa) linhas.push('🎓 Consultor: ' + c.consultorEmpresa);
+  if (c.dataCriacao) linhas.push('📆 Criado: ' + fmtData(c.dataCriacao));
+  if (c.prazo) linhas.push('⏰ Prazo: ' + fmtData(c.prazo));
+  linhas.push('🔵 Status: ' + (c.status || 'Aberto'));
+  if (c.obs) linhas.push('\n📝 ' + (c.obs.length > 120 ? c.obs.slice(0,120) + '…' : c.obs));
+  return linhas.join('\n');
+}
+
+// Modal de visualização do compromisso
+let _compromissoVisualizando = null;
+
+function verCompromisso(idPlano, idxCompromisso) {
+  const c = _compromissosCache.find(x => x.idPlano === idPlano && x.idxCompromisso === idxCompromisso);
+  if (!c) return;
+  _compromissoVisualizando = c;
+
+  const fmtData = (d) => d ? new Date(d).toLocaleDateString('pt-BR', { weekday: 'short', day: '2-digit', month: 'short', year: 'numeric' }).replace(/\.$/,'') : '—';
+
+  $('cv-titulo').textContent = c.descricao || 'Sem descrição';
+  // Linha de status com cor
+  let statusCor = 'var(--text-dim)';
+  if (c.status === 'Concluído') statusCor = '#22c55e';
+  else if (c.status === 'Atrasado' || c.status === 'Não feita') statusCor = '#f87171';
+  else if (c.status === 'Em andamento') statusCor = '#fbbf24';
+  else if (c.status === 'Aberto') statusCor = 'var(--accent)';
+  $('cv-status-line').innerHTML = `<span style="color:${statusCor};font-weight:700">● ${c.status || 'Aberto'}</span>`;
+
+  $('cv-desc').textContent = c.descricao || '—';
+  $('cv-empresa').textContent = (c.empresa || '—') + ' · R' + (c.reuniao || '?');
+  $('cv-resp').textContent = c.responsavel || '—';
+  $('cv-consultor').textContent = c.consultorEmpresa || c.consultorPlano || '—';
+  $('cv-criacao').textContent = fmtData(c.dataCriacao);
+  $('cv-prazo').textContent = fmtData(c.prazo);
+  $('cv-obs').textContent = c.obs || '—';
+  $('cv-obs-wrap').style.display = c.obs ? '' : 'none';
+
+  // Habilita/desabilita botões de zap conforme telefone
+  const tel = c.telefoneEmpresa || '';
+  const ehGrupo = ehLinkGrupoWhatsApp(tel);
+  $('cv-btn-zap-pessoal').disabled = !tel || ehGrupo;
+  $('cv-btn-zap-pessoal').style.opacity = (!tel || ehGrupo) ? '.4' : '1';
+  $('cv-btn-zap-grupo').disabled = !tel || !ehGrupo;
+  $('cv-btn-zap-grupo').style.opacity = (!tel || !ehGrupo) ? '.4' : '1';
+
+  $('modal-compromisso-view').classList.add('show');
+}
+
+function fecharModalCompromisso() {
+  $('modal-compromisso-view').classList.remove('show');
+  _compromissoVisualizando = null;
+}
+
+function cobrarPessoalDoModal() {
+  if (!_compromissoVisualizando) return;
+  const c = _compromissoVisualizando;
+  cobrarWhatsApp(c.empresa, c.descricao, c.prazo, c.telefoneEmpresa);
+}
+
+function cobrarGrupoDoModal() {
+  if (!_compromissoVisualizando) return;
+  const c = _compromissoVisualizando;
+  cobrarWhatsApp(c.empresa, c.descricao, c.prazo, c.telefoneEmpresa);
+}
+
+function abrirReuniaoDoModal() {
+  if (!_compromissoVisualizando) return;
+  const id = _compromissoVisualizando.idPlano;
+  fecharModalCompromisso();
+  setTimeout(() => editarPlano(id), 100);
 }
 
 async function mudarStatusCompromisso(sel, idPlano, idxCompromisso) {
