@@ -844,12 +844,12 @@ function abrirModalBuscaEmpresa() {
   $('buscar-msg').style.color = 'var(--text-dim)';
   $('btn-buscar-confirmar').disabled = false;
   $('btn-buscar-confirmar').innerHTML = 'Buscar e continuar →';
-  $('modal-buscar-empresa').classList.add('open');
+  $('modal-buscar-empresa').classList.add('show');
   setTimeout(() => $('buscar-input').focus(), 60);
 }
 
 function fecharModalBuscaEmpresa() {
-  $('modal-buscar-empresa').classList.remove('open');
+  $('modal-buscar-empresa').classList.remove('show');
 }
 
 function pularBuscaEmpresa() {
@@ -1986,7 +1986,7 @@ async function gerarPDF(d) {
       e.preventDefault();
       confirmarBuscaEmpresa();
     }
-    if (e.key === 'Escape' && $('modal-buscar-empresa')?.classList.contains('open')) {
+    if (e.key === 'Escape' && $('modal-buscar-empresa')?.classList.contains('show')) {
       fecharModalBuscaEmpresa();
     }
   });
