@@ -1604,15 +1604,12 @@ function popularFiltroConsultor() {
   const sel = $('filtro-consultor');
   if (!sel) return;
   const atual = sel.value;
-  // Junta consultores cadastrados + especialistas da Base + consultores principais do CRM
-  const nomes = new Set();
-  _consultoresCache.forEach(c => { if (c.nome) nomes.add(c.nome.trim()); });
-  (_baseCache || []).forEach(b => { if (b.especialista) nomes.add(String(b.especialista).trim()); });
-  (_crmCache || []).forEach(c => {
-    if (c.consultorPrincipal) nomes.add(String(c.consultorPrincipal).trim());
-    if (Array.isArray(c.consultoresApoio)) c.consultoresApoio.forEach(a => { if (a) nomes.add(String(a).trim()); });
-  });
-  const lista = [...nomes].filter(Boolean).sort((a, b) => a.localeCompare(b, 'pt-BR'));
+  // Apenas consultores oficiais da aba Consultores
+  // (o filtro continua sendo permissivo: bate com qualquer variação de capitalização da Base/CRM)
+  const lista = (_consultoresCache || [])
+    .map(c => (c.nome || '').trim())
+    .filter(Boolean)
+    .sort((a, b) => a.localeCompare(b, 'pt-BR'));
   const opcoes = ['<option value="">Todos</option>']
     .concat(lista.map(n => `<option value="${n.replace(/"/g,'&quot;')}">${n}</option>`));
   sel.innerHTML = opcoes.join('');
