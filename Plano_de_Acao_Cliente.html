@@ -1617,6 +1617,28 @@ function coletarIndicadores() {
   return out;
 }
 
+function formatarReferencia(ref) {
+  if (!ref) return '—';
+  const MESES = ['JANEIRO','FEVEREIRO','MARÇO','ABRIL','MAIO','JUNHO','JULHO','AGOSTO','SETEMBRO','OUTUBRO','NOVEMBRO','DEZEMBRO'];
+  // 1) Se for Date object stringificado tipo "Thu Jul 01 2027 ..." ou ISO
+  const dt = new Date(ref);
+  if (!isNaN(dt) && dt.getFullYear() > 1990 && String(ref).match(/\d{4}/)) {
+    return MESES[dt.getMonth()] + '/' + String(dt.getFullYear()).slice(-2);
+  }
+  // 2) Se for string tipo "janeiro/2027", "março/2026", etc.
+  const m = String(ref).match(/^([a-zçãéíóú]+)\s*\/\s*(\d{2,4})$/i);
+  if (m) {
+    const mesIdx = MESES.findIndex(mm => mm.toLowerCase() === m[1].toLowerCase());
+    if (mesIdx >= 0) {
+      const ano = m[2].length === 4 ? m[2].slice(-2) : m[2];
+      return MESES[mesIdx] + '/' + ano;
+    }
+    return (m[1].toUpperCase() + '/' + (m[2].length === 4 ? m[2].slice(-2) : m[2]));
+  }
+  // 3) fallback: retorna como está em caps
+  return String(ref).toUpperCase();
+}
+
 function preencherIndicadores(ind, referencia) {
   QE_FIELDS.forEach(f => {
     const el = $('qe-'+f);
@@ -1624,7 +1646,7 @@ function preencherIndicadores(ind, referencia) {
     atualizarProgressoQE(f);
   });
   _indicadoresRefAtual = referencia || '';
-  $('qe-mes-atual').textContent = referencia || '—';
+  $('qe-mes-atual').textContent = formatarReferencia(referencia);
 }
 
 function preencherMetasQE(metas) {
@@ -1775,7 +1797,7 @@ function limparFormulario(){
   const sc = $('sug-compromissos'); if (sc) sc.style.display = 'none';
   // Limpa indicadores
   QE_FIELDS.forEach(f => { const el = $('qe-'+f); if (el) el.value = ''; });
-  $('qe-mes-atual').textContent = '—';
+  const me = $('qe-mes-atual'); if (me) me.textContent = '—';
   _quadroExecucaoMeses = []; _quadroExecucaoIdx = 0; _indicadoresRefAtual = '';
   $('secao-checkin').style.display = 'none';
   $('checkin-root').innerHTML = '';
