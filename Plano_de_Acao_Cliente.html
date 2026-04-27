@@ -108,6 +108,22 @@
   .ctx-card .ctx-row .lbl { min-width: 130px; color: var(--text-dim); font-weight: 600; }
   .ctx-card .ctx-row .val { flex: 1; color: var(--text); }
 
+  /* Empresa com rascunho pendente */
+  .empresa-card.tem-rascunho { border-color: rgba(251,191,36,.6); background: linear-gradient(135deg, rgba(251,191,36,.06), rgba(255,255,255,.02)); position: relative; }
+  .empresa-card.tem-rascunho::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: #fbbf24; border-radius: 12px 0 0 12px; }
+  .badge-rascunho { display: inline-flex; align-items: center; gap: 4px; background: rgba(251,191,36,.15); color: #fbbf24; padding: 3px 9px; border-radius: 12px; font-size: 10.5px; font-weight: 700; letter-spacing: .5px; text-transform: uppercase; margin-top: 6px; }
+
+  /* Card de rascunhos novos (sem reunião salva ainda) */
+  .rascunhos-novos-section { background: linear-gradient(135deg, rgba(251,191,36,.08), rgba(251,191,36,.02)); border: 1px solid rgba(251,191,36,.4); border-left: 5px solid #fbbf24; border-radius: 12px; padding: 16px 20px; margin-bottom: 18px; }
+  .rascunhos-novos-section h3 { margin: 0 0 4px; color: #fbbf24; font-size: 13px; letter-spacing: 1px; text-transform: uppercase; font-weight: 800; }
+  .rascunhos-novos-section .sub { margin: 0 0 12px; font-size: 12px; color: var(--text-dim); }
+  .rascunho-novo-card { display: flex; align-items: center; gap: 12px; background: rgba(0,0,0,.2); border: 1px solid rgba(251,191,36,.3); border-radius: 10px; padding: 10px 14px; cursor: pointer; transition: all .15s; margin-bottom: 6px; }
+  .rascunho-novo-card:hover { background: rgba(251,191,36,.1); border-color: rgba(251,191,36,.5); }
+  .rascunho-novo-card .info { flex: 1; }
+  .rascunho-novo-card h4 { margin: 0 0 2px; font-size: 14px; color: var(--text); }
+  .rascunho-novo-card p { margin: 0; font-size: 11.5px; color: var(--text-dim); }
+  .rascunho-novo-card .descartar-mini { background: transparent; color: #f87171; border: 1px solid rgba(248,113,113,.3); border-radius: 6px; width: 28px; height: 28px; cursor: pointer; font-size: 13px; }
+
   /* Indicador de auto-save */
   .save-indicator { position: fixed; bottom: 24px; right: 24px; background: var(--card); color: var(--text-dim); padding: 8px 14px; border-radius: 20px; font-size: 11px; font-weight: 600; border: 1px solid var(--border); opacity: 0; transition: opacity .3s; z-index: 998; pointer-events: none; }
   .save-indicator.show { opacity: .9; }
@@ -396,6 +412,7 @@
       </div>
     </div>
     <div class="search-bar"><input type="text" id="busca" placeholder="🔍 Buscar empresa..." oninput="filtrarEmpresas()"></div>
+    <div id="rascunhos-novos-root"></div>
     <div id="empresas-root" class="empresa-grid"></div>
   </div>
 
@@ -844,22 +861,124 @@ async function irDashboard() {
 }
 
 let _empresasCache = [];
+
+// Lista todos os rascunhos do localStorage
+function listarRascunhosLocais() {
+  const out = [];
+  for (let i = 0; i < localStorage.length; i++) {
+    const key = localStorage.key(i);
+    if (!key || !key.startsWith(RASCUNHO_PREFIX)) continue;
+    try {
+      const payload = JSON.parse(localStorage.getItem(key));
+      if (!payload || !payload.dados) continue;
+      out.push({
+        key,
+        ts: payload.ts,
+        dados: payload.dados,
+        ehNovo: key.startsWith(RASCUNHO_PREFIX + 'novo_')
+      });
+    } catch (e) {}
+  }
+  return out;
+}
+
+// Verifica se uma empresa específica tem rascunho local (sem reunião salva ainda)
+function temRascunhoEmpresa(empresa) {
+  const empKey = (empresa || '').trim().toLowerCase();
+  return listarRascunhosLocais().some(r => {
+    const e = (r.dados.empresa || '').trim().toLowerCase();
+    return e === empKey;
+  });
+}
+
+// Verifica se uma reunião específica (por idPlano) tem rascunho
+function temRascunhoPlano(idPlano) {
+  if (!idPlano) return false;
+  return localStorage.getItem(RASCUNHO_PREFIX + idPlano) !== null;
+}
+
+function tempoAtras(ts) {
+  const ago = Math.round((Date.now() - ts) / 60000);
+  if (ago < 1) return 'agora mesmo';
+  if (ago < 60) return `há ${ago} min`;
+  if (ago < 1440) return `há ${Math.round(ago/60)}h`;
+  return `em ${new Date(ts).toLocaleDateString('pt-BR')}`;
+}
+
+function renderRascunhosNovos() {
+  const root = $('rascunhos-novos-root');
+  if (!root) return;
+  // Pega só rascunhos NOVOS (que ainda não foram salvos pela primeira vez)
+  // ou rascunhos cuja empresa ainda não está na lista de empresas
+  const rascunhos = listarRascunhosLocais().filter(r => r.ehNovo && r.dados.empresa);
+  // Remove duplicatas que já estão como empresa cadastrada
+  const empresasCadastradas = new Set((_empresasCache || []).map(e => (e.empresa || '').trim().toLowerCase()));
+  const novosFiltrados = rascunhos.filter(r => !empresasCadastradas.has((r.dados.empresa || '').trim().toLowerCase()));
+  if (!novosFiltrados.length) { root.innerHTML = ''; return; }
+  root.innerHTML = `
+    <div class="rascunhos-novos-section">
+      <h3>📝 Rascunhos não salvos</h3>
+      <p class="sub">Reuniões em andamento que ainda não foram salvas na planilha</p>
+      ${novosFiltrados.map(r => {
+        const emp = (r.dados.empresa || 'Sem nome').replace(/</g,'&lt;');
+        const reu = r.dados.reuniao || 1;
+        const ago = tempoAtras(r.ts);
+        const keySafe = r.key.replace(/'/g, "\\'");
+        return `
+        <div class="rascunho-novo-card" onclick="abrirRascunhoNovo('${keySafe}')">
+          <div class="info">
+            <h4>${emp} · Reunião ${reu}</h4>
+            <p>Editado ${ago}${r.dados.consultor ? ' por ' + r.dados.consultor : ''}</p>
+          </div>
+          <span class="badge-rascunho">📝 Rascunho</span>
+          <button class="descartar-mini" title="Descartar" onclick="event.stopPropagation(); descartarRascunhoKey('${keySafe}')">×</button>
+        </div>
+      `; }).join('')}
+    </div>
+  `;
+}
+
+async function abrirRascunhoNovo(key) {
+  const raw = localStorage.getItem(key);
+  if (!raw) { toast('Rascunho não encontrado', 3000, true); return; }
+  try {
+    const payload = JSON.parse(raw);
+    _abrirFormVazio();
+    _rascunhoPendente = payload.dados;
+    recuperarRascunho();
+  } catch (e) { toast('Erro ao abrir rascunho', 3000, true); }
+}
+
+function descartarRascunhoKey(key) {
+  if (!confirm('Descartar este rascunho? Essa ação não pode ser desfeita.')) return;
+  try { localStorage.removeItem(key); } catch(e) {}
+  renderRascunhosNovos();
+  renderEmpresas(_empresasCache);
+  toast('Rascunho descartado', 2500);
+}
+
 function renderEmpresas(lista) {
   _empresasCache = lista;
+  // Atualiza card de rascunhos novos no topo
+  renderRascunhosNovos();
   if (!lista.length) {
     $('empresas-root').innerHTML = `<div class="empty-state"><div class="icon">📂</div><p>Nenhuma empresa cadastrada ainda.</p><p>Clique em <strong>"+ Criar nova reunião"</strong> para começar.</p></div>`;
     return;
   }
   const termo = $('busca').value.trim().toLowerCase();
   const filtradas = termo ? lista.filter(e => (e.empresa||'').toLowerCase().includes(termo) || (e.cnpj||'').includes(termo)) : lista;
-  $('empresas-root').innerHTML = filtradas.map(e => `
-    <div class="empresa-card" onclick="abrirHistorico('${(e.empresa||'').replace(/'/g,"\'")}')">
+  $('empresas-root').innerHTML = filtradas.map(e => {
+    const temRasc = temRascunhoEmpresa(e.empresa);
+    return `
+    <div class="empresa-card ${temRasc ? 'tem-rascunho' : ''}" onclick="abrirHistorico('${(e.empresa||'').replace(/'/g,"\'")}')">
       <div class="info">
         <h4>${e.empresa}</h4>
         <p>${e.responsavel || '—'} · última reunião: ${formatarDataComDia(e.ultimaData)}${e.ultimoConsultor ? ' · ' + e.ultimoConsultor : ''}</p>
+        ${temRasc ? '<span class="badge-rascunho">📝 Rascunho não salvo</span>' : ''}
       </div>
       <div class="count">${e.reunioes} reunião${e.reunioes > 1 ? 'ões' : ''}</div>
-    </div>`).join('');
+    </div>`;
+  }).join('');
 }
 
 function filtrarEmpresas() { renderEmpresas(_empresasCache); }
@@ -879,17 +998,21 @@ async function abrirHistorico(empresa) {
 }
 
 function renderTimeline(planos) {
-  $('timeline-root').innerHTML = planos.map(p => `
-    <div class="timeline-item" onclick="editarPlano('${p.id}')">
+  $('timeline-root').innerHTML = planos.map(p => {
+    const temRasc = temRascunhoPlano(p.id);
+    return `
+    <div class="timeline-item ${temRasc ? 'tem-rascunho' : ''}" onclick="editarPlano('${p.id}')" ${temRasc ? 'style="border-color:rgba(251,191,36,.6);background:linear-gradient(135deg,rgba(251,191,36,.06),rgba(255,255,255,.02))"' : ''}>
       <div style="display:flex;align-items:center;flex:1">
         <div class="num">R${p.reuniao}</div>
         <div class="meta">
           <h4>${p.headline || 'Plano de Ação'}</h4>
           <p>${formatarDataComDia(p.data)} · ${p.consultor || '—'}${p.nivel ? ' · Nível ' + p.nivel : ''}${p.urlDoc ? ' · 📝 Doc disponível' : ''}</p>
+          ${temRasc ? '<span class="badge-rascunho">📝 Rascunho não salvo</span>' : ''}
         </div>
       </div>
       <div style="color:var(--text-dim);font-size:12px">Abrir →</div>
-    </div>`).join('') || `<div class="empty-state"><div class="icon">📅</div>Nenhuma reunião ainda.</div>`;
+    </div>`;
+  }).join('') || `<div class="empty-state"><div class="icon">📅</div>Nenhuma reunião ainda.</div>`;
   $('hist-empresa-info').textContent = planos.length ? `${planos.length} reuniã${planos.length > 1 ? 'ões' : 'o'} registrada${planos.length > 1 ? 's' : ''}` : 'Comece a primeira reunião abaixo';
   window._planosEmpresa = planos;
 }
