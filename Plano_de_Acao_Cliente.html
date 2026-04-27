@@ -578,8 +578,12 @@
       <div id="reunioes-semana-root"></div>
 
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; flex-wrap:wrap; gap: 10px">
-        <h1 style="text-transform:none;font-size:22px;margin:0">Empresas</h1>
+        <div style="display:flex;flex-direction:column;gap:4px">
+          <h1 style="text-transform:none;font-size:22px;margin:0">Empresas</h1>
+          <p id="base-sync-info" style="margin:0;font-size:11px;color:var(--text-dim)">—</p>
+        </div>
         <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn btn-secondary" onclick="sincronizarBaseClientesManual()" title="Atualizar lista da Base Clientes">🔄 Sincronizar base</button>
           <button class="btn btn-secondary" onclick="gerarPDFBranco()" title="PDF em branco pra reunião presencial">📄 PDF em branco</button>
           <button class="btn btn-primary" onclick="novaEmpresa()">+ Criar nova reunião</button>
         </div>
@@ -606,9 +610,22 @@
           <option value="05">Nível 05</option>
         </select>
       </div>
-      <div class="filtro-mini"><label>Consultor</label>
+      <div class="filtro-mini"><label>Especialista</label>
         <select id="filtro-consultor" onchange="filtrarEmpresas()">
           <option value="">Todos</option>
+        </select>
+      </div>
+      <div class="filtro-mini"><label>Segmento</label>
+        <select id="filtro-segmento" onchange="filtrarEmpresas()">
+          <option value="">Todos</option>
+        </select>
+      </div>
+      <div class="filtro-mini"><label>Diagnóstico</label>
+        <select id="filtro-diag" onchange="filtrarEmpresas()">
+          <option value="">Todos</option>
+          <option value="completo">✅ Completo</option>
+          <option value="pendente">⏳ Pendente Fase 2</option>
+          <option value="sem">🔴 Sem diagnóstico</option>
         </select>
       </div>
       <div class="filtro-mini"><label>Última reunião</label>
@@ -621,6 +638,7 @@
         </select>
       </div>
       <button type="button" class="toggle-minhas" id="btn-minhas" onclick="toggleMinhasEmpresas()">👤 Minhas empresas</button>
+      <button type="button" class="toggle-minhas" id="btn-cancelados" onclick="abrirCancelados()">🗑 Cancelados</button>
     </div>
 
     <div id="rascunhos-novos-root"></div>
@@ -653,7 +671,7 @@
             <option value="05">Nível 05</option>
           </select>
         </div>
-        <div class="filtro-mini"><label>Consultor</label>
+        <div class="filtro-mini"><label>Especialista</label>
           <select id="ag-filtro-consultor" onchange="renderCalendario()">
             <option value="">Todos</option>
           </select>
@@ -710,7 +728,7 @@
         <div class="filtro-mini"><label>Empresa</label>
           <select id="cf-empresa" onchange="filtrarCompromissos()"><option value="">Todas</option></select>
         </div>
-        <div class="filtro-mini"><label>Consultor da empresa</label>
+        <div class="filtro-mini"><label>Especialista da empresa</label>
           <select id="cf-consultor" onchange="filtrarCompromissos()"><option value="">Todos</option></select>
         </div>
         <div class="filtro-mini"><label>Responsável</label>
@@ -1137,6 +1155,18 @@
   </div>
 </div>
 
+<!-- Modal: Cancelados -->
+<div class="modal-bg" id="modal-cancelados">
+  <div class="modal" style="max-width:760px;max-height:80vh;overflow-y:auto">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+      <h3 style="margin:0">🗑 Empresas canceladas</h3>
+      <button class="btn btn-secondary" onclick="$('modal-cancelados').classList.remove('show')">Fechar</button>
+    </div>
+    <p style="margin:0 0 14px;font-size:12px;color:var(--text-dim)">Histórico de empresas que cancelaram o contrato</p>
+    <div id="cancelados-lista" class="compromissos-lista"></div>
+  </div>
+</div>
+
 <!-- Modal: editar dados CRM da empresa -->
 <div class="modal-bg" id="modal-crm">
   <div class="modal modal-crm-content">
@@ -1355,17 +1385,134 @@ async function irDashboard() {
   try {
     const [rEmp] = await Promise.all([
       chamarAPI('listar-empresas'),
-      carregarCRM()
+      carregarCRM(),
+      carregarBaseClientes(),
+      carregarInadimplencia(),
+      carregarCancelados()
     ]);
     renderEmpresas(rEmp.empresas || []);
-    // Carrega reuniões da semana em paralelo (não bloqueia)
     carregarReunioesSemana();
   } catch(err) { $('empresas-root').innerHTML = `<div class="empty-state"><div class="icon">⚠</div>${err.message}</div>`; }
 }
 
 let _empresasCache = [];
 let _crmCache = []; // empresas do CRM (telefone, status, etc)
+let _baseCache = []; // empresas da Base Clientes sincronizada
+let _baseUltimaSync = '';
 let _filtroMinhasAtivo = false;
+
+let _inadCache = []; // inadimplência
+let _canceladosCache = []; // empresas canceladas
+
+// Carrega Base Clientes (do cache local na planilha)
+async function carregarBaseClientes() {
+  try {
+    const r = await chamarAPI('listar-empresas-base');
+    _baseCache = r.empresas || [];
+    _baseUltimaSync = r.ultimaSync || '';
+    atualizarInfoSync();
+    popularFiltroSegmento();
+  } catch (e) { console.warn('Erro Base Clientes:', e); _baseCache = []; }
+}
+
+async function carregarInadimplencia() {
+  try {
+    const r = await chamarAPI('listar-inadimplencia');
+    _inadCache = r.registros || [];
+  } catch (e) { _inadCache = []; }
+}
+
+async function carregarCancelados() {
+  try {
+    const r = await chamarAPI('listar-cancelados');
+    _canceladosCache = r.empresas || [];
+  } catch (e) { _canceladosCache = []; }
+}
+
+function getInadByCnpj(cnpj) {
+  const cnpjN = String(cnpj || '').replace(/\D/g, '');
+  if (!cnpjN) return null;
+  return _inadCache.find(i => String(i.cnpj || '').replace(/\D/g, '') === cnpjN) || null;
+}
+
+function popularFiltroSegmento() {
+  const sel = $('filtro-segmento');
+  if (!sel) return;
+  const atual = sel.value;
+  const segmentos = [...new Set((_baseCache || []).map(b => b.segmento).filter(Boolean))].sort();
+  sel.innerHTML = '<option value="">Todos</option>' + segmentos.map(s =>
+    `<option value="${s.replace(/"/g,'&quot;')}">${s}</option>`
+  ).join('');
+  sel.value = atual || '';
+}
+
+function abrirCancelados() {
+  const root = $('cancelados-lista');
+  if (!_canceladosCache.length) {
+    root.innerHTML = '<div class="empty-state"><div class="icon">📋</div>Nenhuma empresa cancelada · sincronize a base pra carregar</div>';
+  } else {
+    root.innerHTML = _canceladosCache.map(c => {
+      const nome = c.razaoSocial || c.nomeFantasia;
+      const tel = c.telefone || '';
+      const wa = tel ? gerarLinkWhatsApp(tel) : '';
+      return `
+      <div class="compr-item" style="border-left:4px solid #94a3b8">
+        <div class="principal">
+          <div class="desc">${nome.replace(/</g,'&lt;')}</div>
+          <div class="meta">${c.segmento ? '🍴 ' + c.segmento + ' · ' : ''}${c.cnpj || '—'}${c.especialista ? ' · 🎓 ' + c.especialista : ''}${c.sistema ? ' · ⚙ ' + c.sistema : ''}</div>
+          ${c.observacao ? '<div class="meta" style="margin-top:4px;font-style:italic">📝 ' + c.observacao.replace(/</g,'&lt;') + '</div>' : ''}
+        </div>
+        <div></div>
+        <div></div>
+        <div class="compr-acoes-fase3">
+          ${wa ? `<a href="${wa}" target="_blank" class="compr-btn-wa" title="WhatsApp">📱</a>` : ''}
+        </div>
+      </div>`;
+    }).join('');
+  }
+  $('modal-cancelados').classList.add('show');
+}
+
+function atualizarInfoSync() {
+  const el = $('base-sync-info');
+  if (!el) return;
+  if (_baseCache.length) {
+    const dt = _baseUltimaSync ? ` · sincronizado ${_baseUltimaSync}` : '';
+    el.textContent = `${_baseCache.length} empresas na base${dt}`;
+  } else {
+    el.textContent = 'Base Clientes ainda não sincronizada — clique em "Sincronizar base"';
+  }
+}
+
+async function sincronizarBaseClientesManual() {
+  if (!confirm('Sincronizar a Base Clientes agora?\n\nIsso vai puxar os dados mais recentes da planilha "GESTÃO LIFE - Base Clientes". Pode levar alguns segundos.')) return;
+  const btns = document.querySelectorAll('button[onclick*="sincronizarBaseClientesManual"]');
+  btns.forEach(b => { b.disabled = true; b.innerHTML = '<span class="spinner"></span> Sincronizando...'; });
+  try {
+    const r = await chamarAPI('sincronizar-base-clientes');
+    toast(`✓ Base sincronizada · ${r.sincronizados || 0} empresas`, 4000, false, true);
+    await carregarBaseClientes();
+    if (_empresasCache.length) renderEmpresas(_empresasCache);
+  } catch (err) {
+    toast('❌ ' + err.message, 5000, true);
+  } finally {
+    btns.forEach(b => { b.disabled = false; b.innerHTML = '🔄 Sincronizar base'; });
+  }
+}
+
+function getBaseByEmpresa(nome, cnpj) {
+  if (!_baseCache || !_baseCache.length) return null;
+  const cnpjN = String(cnpj || '').replace(/\D/g, '');
+  if (cnpjN) {
+    const m = _baseCache.find(b => String(b.cnpj || '').replace(/\D/g, '') === cnpjN);
+    if (m) return m;
+  }
+  const k = String(nome || '').trim().toLowerCase();
+  return _baseCache.find(b =>
+    (b.razaoSocial || '').trim().toLowerCase() === k ||
+    (b.nomeFantasia || '').trim().toLowerCase() === k
+  ) || null;
+}
 
 // Carrega CRM em paralelo com lista de empresas
 async function carregarCRM() {
@@ -1495,7 +1642,28 @@ function descartarRascunhoKey(key) {
 }
 
 function renderEmpresas(lista) {
-  _empresasCache = lista;
+  // Mescla com empresas da Base Clientes que ainda não estão na lista
+  const cache = lista.slice();
+  const chavesExistentes = new Set(cache.map(e => (e.empresa || '').trim().toLowerCase()));
+  (_baseCache || []).forEach(b => {
+    const nome = b.nomeFantasia || b.razaoSocial;
+    if (!nome) return;
+    const k = nome.trim().toLowerCase();
+    // Se a empresa já tá na lista (por reunião/diagnóstico), skip — só pra adicionar as que faltam
+    if (chavesExistentes.has(k)) return;
+    cache.push({
+      empresa: nome,
+      cnpj: b.cnpj || '',
+      responsavel: '',
+      reunioes: 0,
+      ultimaData: null,
+      ultimoConsultor: '',
+      origemBase: true,
+      statusContrato: b.status || ''
+    });
+    chavesExistentes.add(k);
+  });
+  _empresasCache = cache;
   popularFiltroConsultor();
   // Atualiza card de rascunhos novos no topo
   renderRascunhosNovos();
@@ -1508,10 +1676,13 @@ function renderEmpresas(lista) {
   const fNivel = $('filtro-nivel')?.value || '';
   const fConsultor = $('filtro-consultor')?.value || '';
   const fData = $('filtro-data')?.value || '';
+  const fSegmento = $('filtro-segmento')?.value || '';
+  const fDiag = $('filtro-diag')?.value || '';
   const meuNome = consultorLogado?.nome || '';
 
   let filtradas = lista.filter(e => {
     const crm = getCRMByEmpresa(e.empresa) || {};
+    const base = getBaseByEmpresa(e.empresa, e.cnpj || crm.cnpj);
     if (termo && !(e.empresa||'').toLowerCase().includes(termo) && !(e.cnpj||'').includes(termo) && !(crm.cnpj||'').includes(termo)) return false;
     if (fStatus && (crm.status || 'Ativo') !== fStatus) return false;
     if (fNivel) {
@@ -1536,6 +1707,13 @@ function renderEmpresas(lista) {
       if (fData === '+30' && dias <= 30) return false;
       if (fData === '+60' && dias <= 60) return false;
     }
+    if (fSegmento && (!base || base.segmento !== fSegmento)) return false;
+    if (fDiag) {
+      const semReuniao = !e.reunioes;
+      if (fDiag === 'completo' && e.statusDiagnostico !== 'COMPLETO') return false;
+      if (fDiag === 'pendente' && e.statusDiagnostico !== 'PENDENTE_FASE2') return false;
+      if (fDiag === 'sem' && (!e.origemBase || e.statusDiagnostico === 'COMPLETO' || e.statusDiagnostico === 'PENDENTE_FASE2')) return false;
+    }
     return true;
   });
 
@@ -1546,27 +1724,70 @@ function renderEmpresas(lista) {
 
   $('empresas-root').innerHTML = filtradas.map(e => {
     const crm = getCRMByEmpresa(e.empresa) || {};
+    const base = getBaseByEmpresa(e.empresa, e.cnpj || crm.cnpj);
     const temRasc = temRascunhoEmpresa(e.empresa);
     const status = crm.status || 'Ativo';
     const statusClass = status.toLowerCase();
-    const telef = crm.telefone || '';
+    const telef = crm.telefone || (base && base.telefone) || '';
     const ehGrupo = ehLinkGrupoWhatsApp(telef);
     const telefLabel = telef ? (ehGrupo ? '👥 Grupo' : '📱 ' + telef) : '';
     const principal = crm.consultorPrincipal || '';
     const semReuniao = !e.reunioes;
-    const subInfo = semReuniao
-      ? (e.statusDiagnostico === 'COMPLETO' ? '✅ Diagnóstico completo · sem reuniões ainda' : (e.statusDiagnostico === 'PENDENTE_FASE2' ? '⏳ Diagnóstico pendente (Fase 1 só)' : '🆕 Recém-cadastrado'))
-      : 'última reunião: ' + formatarDataComDia(e.ultimaData);
+
+    // Determina situação do diagnóstico
+    let badgeDiag = '';
+    if (semReuniao) {
+      if (e.statusDiagnostico === 'COMPLETO') badgeDiag = '<span class="status-badge" style="background:rgba(34,197,94,.15);color:#22c55e">✅ Diagnóstico OK</span>';
+      else if (e.statusDiagnostico === 'PENDENTE_FASE2') badgeDiag = '<span class="status-badge" style="background:rgba(251,191,36,.15);color:#fbbf24">⏳ Fase 1 só</span>';
+      else if (e.origemBase) badgeDiag = '<span class="status-badge" style="background:rgba(248,113,113,.15);color:#f87171">🔴 Sem diagnóstico</span>';
+    }
+
+    let subInfo;
+    if (e.origemBase && semReuniao) {
+      subInfo = '🔴 Cliente na base · sem diagnóstico nem reunião';
+    } else if (semReuniao) {
+      subInfo = e.statusDiagnostico === 'COMPLETO' ? '✅ Diagnóstico completo · sem reuniões ainda'
+              : (e.statusDiagnostico === 'PENDENTE_FASE2' ? '⏳ Diagnóstico pendente (Fase 1 só)' : '🆕 Recém-cadastrado');
+    } else {
+      subInfo = 'última reunião: ' + formatarDataComDia(e.ultimaData);
+    }
+
+    // Info adicional da Base (especialista, origem, canal de venda, segmento)
+    const linhaBase = base ? [
+      base.cidadeUF ? '📍 ' + base.cidadeUF : '',
+      base.segmento ? '🍴 ' + base.segmento : '',
+      base.especialista ? '🎓 ' + base.especialista : '',
+      base.sistema ? '⚙ ' + base.sistema : '',
+      base.origem ? '🔗 ' + base.origem : '',
+      base.canalVenda ? '📣 ' + base.canalVenda : '',
+      base.plano ? '📦 ' + base.plano : ''
+    ].filter(Boolean).join(' · ') : '';
+
+    // Badge de inadimplência (se houver)
+    const inad = getInadByCnpj(e.cnpj || (crm && crm.cnpj) || (base && base.cnpj));
+    let badgeInad = '';
+    if (inad) {
+      const valor = Number(inad.valorDebito) || 0;
+      const boletos = Number(inad.boletosAbertos) || 0;
+      if (valor > 0 || boletos > 0) {
+        const valorFmt = valor > 0 ? 'R$ ' + valor.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '';
+        badgeInad = `<span class="status-badge" style="background:rgba(248,113,113,.18);color:#f87171">🔴 Inadimplente${valorFmt ? ' · ' + valorFmt : ''}</span>`;
+      } else if ((inad.statusPagto || '').toLowerCase().includes('quitad')) {
+        badgeInad = `<span class="status-badge" style="background:rgba(34,197,94,.12);color:#22c55e">💚 Em dia</span>`;
+      }
+    }
+
     return `
     <div class="empresa-card ${temRasc ? 'tem-rascunho' : ''}" onclick="abrirHistorico('${(e.empresa||'').replace(/'/g,"\'")}')">
       <div class="info">
         <h4>${e.empresa}</h4>
         <p>${telefLabel ? telefLabel + ' · ' : ''}${principal ? '👤 ' + principal + ' · ' : ''}${subInfo}</p>
+        ${linhaBase ? '<p style="font-size:11.5px;color:var(--text-dim);margin-top:4px">' + linhaBase + '</p>' : ''}
         <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px">
           <span class="status-badge ${statusClass}">${status}</span>
           ${crm.nivel ? '<span class="status-badge ativo" style="background:rgba(77,201,255,.15);color:var(--accent)">' + crm.nivel + '</span>' : ''}
-          ${semReuniao && e.statusDiagnostico === 'COMPLETO' ? '<span class="status-badge" style="background:rgba(34,197,94,.15);color:#22c55e">✅ Diagnóstico OK</span>' : ''}
-          ${semReuniao && e.statusDiagnostico === 'PENDENTE_FASE2' ? '<span class="status-badge" style="background:rgba(251,191,36,.15);color:#fbbf24">⏳ Fase 1 só</span>' : ''}
+          ${badgeDiag}
+          ${badgeInad}
           ${temRasc ? '<span class="badge-rascunho">📝 Rascunho</span>' : ''}
         </div>
       </div>
