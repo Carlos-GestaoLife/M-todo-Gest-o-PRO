@@ -780,8 +780,9 @@
     </header>
     <div id="crm-card-empresa"></div>
     <div id="timeline-root" class="timeline"></div>
-    <div class="actions">
+    <div class="actions" style="flex-direction:column;gap:10px">
       <button class="btn btn-primary btn-big" onclick="novaReuniaoEmpresaAtual()">+ Nova reunião desta empresa</button>
+      <button class="btn btn-secondary" onclick="cancelarEmpresaAtual()" style="background:rgba(248,113,113,.12);color:#f87171;border-color:rgba(248,113,113,.4)">🚫 Marcar empresa como cancelada</button>
     </div>
   </div>
 
@@ -1159,11 +1160,26 @@
 <div class="modal-bg" id="modal-cancelados">
   <div class="modal" style="max-width:760px;max-height:80vh;overflow-y:auto">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
-      <h3 style="margin:0">🗑 Empresas canceladas</h3>
-      <button class="btn btn-secondary" onclick="$('modal-cancelados').classList.remove('show')">Fechar</button>
+      <h3 style="margin:0">🚫 Empresas canceladas</h3>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-secondary" onclick="$('modal-cancelados').classList.remove('show'); abrirLixeira()" style="background:rgba(248,113,113,.12);color:#f87171;border-color:rgba(248,113,113,.4)">🗑 Ver lixeira</button>
+        <button class="btn btn-secondary" onclick="$('modal-cancelados').classList.remove('show')">Fechar</button>
+      </div>
     </div>
-    <p style="margin:0 0 14px;font-size:12px;color:var(--text-dim)">Histórico de empresas que cancelaram o contrato</p>
+    <p style="margin:0 0 14px;font-size:12px;color:var(--text-dim)">Histórico de empresas que cancelaram. Clique em <strong>🗑</strong> pra mover pra lixeira (apaga em 60 dias).</p>
     <div id="cancelados-lista" class="compromissos-lista"></div>
+  </div>
+</div>
+
+<!-- Modal: Lixeira (apaga em 60 dias) -->
+<div class="modal-bg" id="modal-lixeira">
+  <div class="modal" style="max-width:760px;max-height:80vh;overflow-y:auto">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+      <h3 style="margin:0">🗑 Lixeira</h3>
+      <button class="btn btn-secondary" onclick="fecharModalLixeira()">Fechar</button>
+    </div>
+    <p style="margin:0 0 14px;font-size:12px;color:var(--text-dim)">Empresas aqui são <strong>apagadas definitivamente em 60 dias</strong>. Você pode restaurar antes do prazo.</p>
+    <div id="lixeira-lista" class="compromissos-lista"></div>
   </div>
 </div>
 
@@ -1486,6 +1502,8 @@ function abrirCancelados() {
       const nome = c.razaoSocial || c.nomeFantasia;
       const tel = c.telefone || '';
       const wa = tel ? gerarLinkWhatsApp(tel) : '';
+      const cnpjEsc = (c.cnpj||'').replace(/'/g,"\\'");
+      const nomeEsc = (nome||'').replace(/'/g,"\\'");
       return `
       <div class="compr-item" style="border-left:4px solid #94a3b8">
         <div class="principal">
@@ -1497,6 +1515,7 @@ function abrirCancelados() {
         <div></div>
         <div class="compr-acoes-fase3">
           ${wa ? `<a href="${wa}" target="_blank" class="compr-btn-wa" title="WhatsApp">📱</a>` : ''}
+          <button class="compr-btn-abrir" title="Apagar (mover pra lixeira · 60 dias)" onclick="apagarEmpresaCancelada('${nomeEsc}', '${cnpjEsc}')" style="background:rgba(248,113,113,.12);color:#f87171;border-color:rgba(248,113,113,.4)">🗑</button>
         </div>
       </div>`;
     }).join('');
@@ -3217,6 +3236,89 @@ async function confirmarBuscaEmpresa() {
     }
   }
 }
+
+// =========== CANCELAMENTO + LIXEIRA ===========
+async function cancelarEmpresaAtual() {
+  if (!empresaAtual) return;
+  const motivo = prompt('Por que está cancelando "' + empresaAtual + '"?\n\nMotivo (opcional, mas recomendado):');
+  if (motivo === null) return; // cancelou o prompt
+  if (!confirm('Confirma cancelar "' + empresaAtual + '"?\n\nA empresa irá pra aba "Cancelados" e o status no CRM mudará pra Cancelado. Você pode apagar definitivamente em até 60 dias depois.')) return;
+  const crm = getCRMByEmpresa(empresaAtual) || {};
+  const base = getBaseByEmpresa(empresaAtual, crm.cnpj) || {};
+  const cnpj = crm.cnpj || base.cnpj || '';
+  try {
+    await chamarAPI('cancelar-empresa', { empresa: empresaAtual, cnpj, motivo: motivo || '' });
+    toast('✓ Empresa marcada como cancelada', 3500, false, true);
+    await carregarCRM();
+    await carregarCancelados();
+    renderCRMCard(empresaAtual);
+  } catch (err) {
+    toast('❌ ' + err.message, 5000, true);
+  }
+}
+
+async function apagarEmpresaCancelada(empresa, cnpj) {
+  const motivo = prompt('Por que está apagando "' + empresa + '"?\n\nMotivo (opcional):');
+  if (motivo === null) return;
+  if (!confirm('Apagar "' + empresa + '" definitivamente?\n\nA empresa irá pra "Lixeira" e será EXCLUÍDA AUTOMATICAMENTE em 60 dias.\n\nVocê ainda pode restaurar dentro desse prazo.')) return;
+  try {
+    await chamarAPI('mover-empresa-lixeira', { empresa, cnpj, motivo: motivo || '' });
+    toast('🗑 Movido pra lixeira · será apagado em 60 dias', 4000, false, true);
+    await carregarCancelados();
+    abrirCancelados(); // re-renderiza modal
+  } catch (err) {
+    toast('❌ ' + err.message, 5000, true);
+  }
+}
+
+let _lixeiraCache = [];
+async function abrirLixeira() {
+  try {
+    const r = await chamarAPI('listar-lixeira');
+    _lixeiraCache = r.empresas || [];
+  } catch (err) { toast('❌ ' + err.message, 4000, true); return; }
+  const root = $('lixeira-lista');
+  if (!_lixeiraCache.length) {
+    root.innerHTML = '<div class="empty-state"><div class="icon">🗑</div>Lixeira vazia</div>';
+  } else {
+    root.innerHTML = _lixeiraCache.map(c => {
+      const nome = c.empresa || c.cnpj;
+      const diasRestantes = c.apagaEm ? Math.ceil((new Date(c.apagaEm) - new Date()) / (1000*60*60*24)) : 0;
+      const corDias = diasRestantes <= 7 ? '#f87171' : (diasRestantes <= 30 ? '#fbbf24' : '#94a3b8');
+      return `
+      <div class="compr-item" style="border-left:4px solid #f87171">
+        <div class="principal">
+          <div class="desc">${nome.replace(/</g,'&lt;')}</div>
+          <div class="meta">
+            ${c.cnpj ? c.cnpj + ' · ' : ''}${c.especialista ? '🎓 ' + c.especialista + ' · ' : ''}
+            <span style="color:${corDias};font-weight:700">⏳ ${diasRestantes > 0 ? diasRestantes + ' dia(s) restante(s)' : 'Apagando hoje'}</span>
+          </div>
+          ${c.motivo ? '<div class="meta" style="margin-top:4px;font-style:italic">📝 ' + c.motivo.replace(/</g,'&lt;') + '</div>' : ''}
+        </div>
+        <div></div>
+        <div></div>
+        <div class="compr-acoes-fase3">
+          <button class="btn btn-secondary" onclick="restaurarEmpresaLixeira('${(c.empresa||'').replace(/'/g,"\\'")}', '${c.cnpj||''}')" style="padding:6px 10px;font-size:12px;background:rgba(34,197,94,.12);color:#22c55e;border-color:rgba(34,197,94,.4)">↩ Restaurar</button>
+        </div>
+      </div>`;
+    }).join('');
+  }
+  $('modal-lixeira').classList.add('show');
+}
+
+async function restaurarEmpresaLixeira(empresa, cnpj) {
+  if (!confirm('Restaurar "' + empresa + '" da lixeira?\n\nA empresa volta pra aba Cancelados (não pra ativos diretamente).')) return;
+  try {
+    await chamarAPI('restaurar-lixeira', { empresa, cnpj });
+    toast('↩ Empresa restaurada para Cancelados', 3500, false, true);
+    await carregarCancelados();
+    abrirLixeira();
+  } catch (err) {
+    toast('❌ ' + err.message, 5000, true);
+  }
+}
+
+function fecharModalLixeira() { $('modal-lixeira').classList.remove('show'); }
 
 async function novaReuniaoEmpresaAtual() {
   if (!empresaAtual) return;
