@@ -628,6 +628,34 @@
         <button class="btn btn-primary" onclick="abrirModalEvento()">+ Nova reunião</button>
       </div>
 
+      <div class="crm-filtros">
+        <div class="filtro-mini"><label>Status</label>
+          <select id="ag-filtro-status" onchange="renderCalendario()">
+            <option value="">Todos</option>
+            <option value="Ativo">Ativo</option>
+            <option value="Pausado">Pausado</option>
+            <option value="Cancelado">Cancelado</option>
+            <option value="Encerrado">Encerrado</option>
+          </select>
+        </div>
+        <div class="filtro-mini"><label>Nível</label>
+          <select id="ag-filtro-nivel" onchange="renderCalendario()">
+            <option value="">Todos</option>
+            <option value="01">Nível 01</option>
+            <option value="02">Nível 02</option>
+            <option value="03">Nível 03</option>
+            <option value="04">Nível 04</option>
+            <option value="05">Nível 05</option>
+          </select>
+        </div>
+        <div class="filtro-mini"><label>Consultor</label>
+          <select id="ag-filtro-consultor" onchange="renderCalendario()">
+            <option value="">Todos</option>
+          </select>
+        </div>
+        <button type="button" class="toggle-minhas" id="ag-btn-minhas" onclick="toggleMinhasAgenda()">👤 Minhas reuniões</button>
+      </div>
+
       <div class="cal-toolbar">
         <button class="cal-nav" onclick="navegarMesAgenda(-1)" title="Mês anterior">←</button>
         <div class="cal-mes-atual" id="cal-mes-atual">—</div>
@@ -1492,18 +1520,24 @@ function renderEmpresas(lista) {
     const ehGrupo = ehLinkGrupoWhatsApp(telef);
     const telefLabel = telef ? (ehGrupo ? '👥 Grupo' : '📱 ' + telef) : '';
     const principal = crm.consultorPrincipal || '';
+    const semReuniao = !e.reunioes;
+    const subInfo = semReuniao
+      ? (e.statusDiagnostico === 'COMPLETO' ? '✅ Diagnóstico completo · sem reuniões ainda' : (e.statusDiagnostico === 'PENDENTE_FASE2' ? '⏳ Diagnóstico pendente (Fase 1 só)' : '🆕 Recém-cadastrado'))
+      : 'última reunião: ' + formatarDataComDia(e.ultimaData);
     return `
     <div class="empresa-card ${temRasc ? 'tem-rascunho' : ''}" onclick="abrirHistorico('${(e.empresa||'').replace(/'/g,"\'")}')">
       <div class="info">
         <h4>${e.empresa}</h4>
-        <p>${telefLabel ? telefLabel + ' · ' : ''}${principal ? '👤 ' + principal + ' · ' : ''}última reunião: ${formatarDataComDia(e.ultimaData)}</p>
+        <p>${telefLabel ? telefLabel + ' · ' : ''}${principal ? '👤 ' + principal + ' · ' : ''}${subInfo}</p>
         <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px">
           <span class="status-badge ${statusClass}">${status}</span>
           ${crm.nivel ? '<span class="status-badge ativo" style="background:rgba(77,201,255,.15);color:var(--accent)">' + crm.nivel + '</span>' : ''}
+          ${semReuniao && e.statusDiagnostico === 'COMPLETO' ? '<span class="status-badge" style="background:rgba(34,197,94,.15);color:#22c55e">✅ Diagnóstico OK</span>' : ''}
+          ${semReuniao && e.statusDiagnostico === 'PENDENTE_FASE2' ? '<span class="status-badge" style="background:rgba(251,191,36,.15);color:#fbbf24">⏳ Fase 1 só</span>' : ''}
           ${temRasc ? '<span class="badge-rascunho">📝 Rascunho</span>' : ''}
         </div>
       </div>
-      <div class="count">${e.reunioes} reunião${e.reunioes > 1 ? 'ões' : ''}</div>
+      <div class="count">${e.reunioes ? e.reunioes + ' reuniã' + (e.reunioes > 1 ? 'ões' : 'o') : '🆕 Sem reuniões'}</div>
     </div>`;
   }).join('');
 }
@@ -1619,6 +1653,66 @@ function navegarMesAgenda(delta) {
 }
 
 function recarregarAgenda() { carregarEventos(); }
+
+let _filtroMinhasAgenda = false;
+function toggleMinhasAgenda() {
+  _filtroMinhasAgenda = !_filtroMinhasAgenda;
+  $('ag-btn-minhas').classList.toggle('ativo', _filtroMinhasAgenda);
+  renderCalendario();
+}
+
+function popularFiltroConsultorAgenda() {
+  const sel = $('ag-filtro-consultor');
+  if (!sel) return;
+  const atual = sel.value;
+  sel.innerHTML = '<option value="">Todos</option>' + (_consultoresCache || []).map(c =>
+    `<option value="${c.nome.replace(/"/g,'&quot;')}">${c.nome}</option>`
+  ).join('');
+  sel.value = atual || '';
+}
+
+// Aplica os filtros da agenda em cima do array de eventos cru
+function eventosFiltradosAgenda() {
+  const fStatus = $('ag-filtro-status')?.value || '';
+  const fNivel = $('ag-filtro-nivel')?.value || '';
+  const fCons = $('ag-filtro-consultor')?.value || '';
+  const meuNome = consultorLogado?.nome || '';
+  const meuEmail = (consultorLogado?.email || '').toLowerCase();
+
+  if (!fStatus && !fNivel && !fCons && !_filtroMinhasAgenda) return _agendaEventos;
+
+  return _agendaEventos.filter(ev => {
+    const empresa = extrairEmpresaDoTitulo(ev.titulo);
+    const crm = empresa ? getCRMByEmpresa(empresa) : null;
+
+    if (fStatus) {
+      const s = (crm && crm.status) || 'Ativo';
+      if (s !== fStatus) return false;
+    }
+    if (fNivel) {
+      const nv = (crm && crm.nivel || '').match(/\d+/)?.[0]?.padStart(2,'0') || '';
+      if (nv !== fNivel) return false;
+    }
+    if (fCons) {
+      const principal = (crm && crm.consultorPrincipal) || '';
+      const apoio = Array.isArray(crm && crm.consultoresApoio) ? crm.consultoresApoio.join(',') : '';
+      const nosConvidados = (ev.convidados || []).some(c => {
+        const consMatch = (_consultoresCache || []).find(cc => cc.nome === fCons);
+        return consMatch && consMatch.email && (c.email || '').toLowerCase() === consMatch.email.toLowerCase();
+      });
+      const noTitulo = (ev.titulo || '').toLowerCase().includes(fCons.toLowerCase());
+      if (principal !== fCons && !apoio.includes(fCons) && !nosConvidados && !noTitulo) return false;
+    }
+    if (_filtroMinhasAgenda && meuNome) {
+      const principal = (crm && crm.consultorPrincipal) || '';
+      const apoio = Array.isArray(crm && crm.consultoresApoio) ? crm.consultoresApoio.join(',') : '';
+      const nosConvidados = meuEmail && (ev.convidados || []).some(c => (c.email || '').toLowerCase() === meuEmail);
+      const noTitulo = (ev.titulo || '').toLowerCase().includes(meuNome.toLowerCase());
+      if (principal !== meuNome && !apoio.includes(meuNome) && !nosConvidados && !noTitulo) return false;
+    }
+    return true;
+  });
+}
 
 // =========== TOOLTIP DOS EVENTOS (hover) ===========
 function extrairEmpresaDoTitulo(titulo) {
@@ -1879,9 +1973,10 @@ function renderCalendario() {
   const ultimoDia = new Date(ano, mes + 1, 0).getDate();
   const hoje = new Date(); hoje.setHours(0,0,0,0);
 
-  // Agrupa eventos: distribuindo multi-dia em todos os dias que cobre
+  // Aplica filtros e agrupa por dia
+  const eventosFiltrados = eventosFiltradosAgenda();
   const eventosPorDia = {};
-  _agendaEventos.forEach(ev => {
+  eventosFiltrados.forEach(ev => {
     distribuirEventoPorDias(ev).forEach(({ chave, posicao }) => {
       if (!eventosPorDia[chave]) eventosPorDia[chave] = [];
       eventosPorDia[chave].push({ evento: ev, posicao });
@@ -3398,6 +3493,8 @@ async function carregarConsultores() {
       ).join('');
       sel.value = atual || '';
     }
+    // Popula dropdown de consultor da agenda também
+    popularFiltroConsultorAgenda();
   } catch (e) { console.warn('Erro ao listar consultores:', e); }
 }
 
@@ -3678,7 +3775,7 @@ async function salvarEGerar() {
 }
 
 // =========== GOOGLE AGENDA ===========
-function abrirGoogleAgenda() {
+async function abrirGoogleAgenda() {
   const data = $('proxData').value, hora = $('proxHora').value;
   if (!data || !hora) { toast('⚠ Preencha data e horário', 3500, true); return; }
   const empresa = $('empresa').value.trim() || 'Cliente';
@@ -3687,23 +3784,49 @@ function abrirGoogleAgenda() {
   const formato = $('proxFormato').value || '';
   const mentor = $('proxMentor').value || '';
   const convidados = coletarConvidados();
-  const duracao = 60; // padrão
+  // Adiciona email do mentor se existir
+  if (mentor) {
+    const c = (_consultoresCache || []).find(c => c.nome === mentor);
+    if (c && c.email && !convidados.includes(c.email)) convidados.push(c.email);
+  }
+
   const [y,m,d] = data.split('-'), [h,mi] = hora.split(':');
   const start = new Date(parseInt(y), parseInt(m)-1, parseInt(d), parseInt(h), parseInt(mi));
-  const end = new Date(start.getTime() + duracao*60000);
-  const fmt = (dt) => `${dt.getFullYear()}${String(dt.getMonth()+1).padStart(2,'0')}${String(dt.getDate()).padStart(2,'0')}T${String(dt.getHours()).padStart(2,'0')}${String(dt.getMinutes()).padStart(2,'0')}00`;
-  const partes = [`Reunião ${proxReuniao} · ${empresa}`, `Mentor: ${mentor || '—'}`, `Formato: ${formato || '—'}`];
-  if (convidados.length) { partes.push(''); partes.push('CONVIDADOS: ' + convidados.join(', ')); }
-  const params = new URLSearchParams({
-    action: 'TEMPLATE',
-    text: `Reunião ${proxReuniao} · ${empresa} · Gestão PRO`,
-    dates: `${fmt(start)}/${fmt(end)}`,
-    details: partes.join('\n'),
-    location: formato || ''
-  });
-  if (convidados.length) params.append('add', convidados.join(','));
-  window.open(`https://calendar.google.com/calendar/render?${params.toString()}`, '_blank');
-  toast('✓ Abrindo Google Agenda · ' + (convidados.length ? convidados.length + ' convidado(s)' : 'sem convidados'), 3000);
+  const end = new Date(start.getTime() + 60*60*1000); // 1h
+  const titulo = `${empresa} · R${proxReuniao}`;
+
+  const partes = [];
+  if (mentor) partes.push(`Mentor: ${mentor}`);
+  if (formato) partes.push(`Formato: ${formato}`);
+  if (partes.length === 0) partes.push('Reunião agendada via Plano de Ação');
+
+  const btn = event && event.target;
+  if (btn) { btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> Criando...'; }
+  try {
+    const r = await chamarAPI('criar-evento', {
+      titulo,
+      descricao: partes.join('\n'),
+      local: formato.toLowerCase().includes('online') ? '' : formato,
+      gerarMeet: formato.toLowerCase().includes('online'),
+      inicio: start.toISOString(),
+      fim: end.toISOString(),
+      convidados,
+      empresa,
+      mentor
+    });
+    const msg = r.linkMeet
+      ? `✓ Reunião criada na agenda! 🎥 Meet gerado · convites enviados`
+      : `✓ Reunião criada na agenda! ${convidados.length ? convidados.length + ' convidado(s)' : ''}`;
+    toast(msg, 4500, false, true);
+    // Salva o link Meet no campo de Pauta pra ficar registrado, se gerado
+    if (r.linkMeet && !$('proxPauta')) {
+      // sem campo, guarda em algum lugar visível
+    }
+  } catch (err) {
+    toast('❌ ' + err.message, 5000, true);
+  } finally {
+    if (btn) { btn.disabled = false; btn.innerHTML = '📅 Adicionar ao Google Agenda'; }
+  }
 }
 
 // =========== PDF ===========
