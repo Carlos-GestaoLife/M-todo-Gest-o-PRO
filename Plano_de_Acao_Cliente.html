@@ -1780,7 +1780,11 @@ function renderEmpresas(lista) {
     const crm = getCRMByEmpresa(e.empresa) || {};
     const base = getBaseByEmpresa(e.empresa, e.cnpj || crm.cnpj);
     if (termo && !(e.empresa||'').toLowerCase().includes(termo) && !(e.cnpj||'').includes(termo) && !(crm.cnpj||'').includes(termo)) return false;
-    if (fStatus && (crm.status || 'Ativo') !== fStatus) return false;
+    const statusEmpresa = crm.status || (base && base.status) || 'Ativo';
+    // Esconde Canceladas/Encerradas da lista principal por padrão.
+    // Pra ver canceladas, o usuário usa o botão "🗑 Cancelados" ou seleciona "Cancelado" no filtro Status.
+    if (!fStatus && (statusEmpresa === 'Cancelado' || statusEmpresa === 'Encerrado')) return false;
+    if (fStatus && statusEmpresa !== fStatus) return false;
     if (fNivel) {
       const nv = (crm.nivel || '').match(/\d+/)?.[0]?.padStart(2,'0') || '';
       if (nv !== fNivel) return false;
