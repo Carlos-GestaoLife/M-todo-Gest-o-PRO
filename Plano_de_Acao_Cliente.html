@@ -108,6 +108,35 @@
   .ctx-card .ctx-row .lbl { min-width: 130px; color: var(--text-dim); font-weight: 600; }
   .ctx-card .ctx-row .val { flex: 1; color: var(--text); }
 
+  /* Navegação por abas (dashboard) */
+  .nav-abas { display: flex; gap: 6px; margin-bottom: 18px; border-bottom: 1px solid var(--border); }
+  .nav-aba { background: transparent; color: var(--text-dim); border: none; padding: 12px 18px; cursor: pointer; font-size: 14px; font-weight: 700; letter-spacing: .3px; border-bottom: 3px solid transparent; transition: all .15s; }
+  .nav-aba:hover { color: var(--text); }
+  .nav-aba.ativa { color: var(--accent); border-bottom-color: var(--accent); }
+
+  /* Calendário */
+  .cal-toolbar { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; flex-wrap: wrap; }
+  .cal-nav { background: rgba(77,201,255,.12); color: var(--accent); border: 1px solid rgba(77,201,255,.3); border-radius: 8px; width: 38px; height: 38px; cursor: pointer; font-size: 18px; font-weight: 700; }
+  .cal-nav:hover { background: rgba(77,201,255,.2); }
+  .cal-mes-atual { font-size: 18px; font-weight: 700; color: var(--text); min-width: 200px; }
+  .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+  .cal-dow { background: rgba(77,201,255,.08); color: var(--accent); font-size: 11px; font-weight: 700; letter-spacing: 1px; padding: 8px 6px; text-align: center; border-radius: 6px 6px 0 0; }
+  .cal-dia { background: rgba(255,255,255,.02); border: 1px solid var(--border); border-radius: 6px; min-height: 90px; padding: 6px 8px; cursor: pointer; transition: all .15s; display: flex; flex-direction: column; gap: 4px; overflow: hidden; }
+  .cal-dia:hover { border-color: var(--accent); background: rgba(77,201,255,.04); }
+  .cal-dia.fora-mes { opacity: .35; }
+  .cal-dia.hoje { border-color: var(--accent); background: rgba(77,201,255,.08); }
+  .cal-dia .num-dia { font-size: 13px; font-weight: 700; color: var(--text); }
+  .cal-dia.hoje .num-dia { color: var(--accent); }
+  .cal-evento { background: rgba(77,201,255,.18); color: var(--accent); border-left: 2px solid var(--accent); font-size: 10.5px; padding: 2px 5px; border-radius: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: pointer; }
+  .cal-evento:hover { background: rgba(77,201,255,.3); }
+  .cal-mais { color: var(--text-dim); font-size: 10px; padding: 1px 4px; }
+
+  @media (max-width: 700px) {
+    .cal-dia { min-height: 60px; padding: 4px; }
+    .cal-dia .num-dia { font-size: 11px; }
+    .cal-evento { font-size: 9px; padding: 1px 3px; }
+  }
+
   /* Filtros do CRM */
   .crm-filtros { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 16px; align-items: center; }
   .crm-filtros .filtro-mini { display: flex; flex-direction: column; gap: 2px; }
@@ -436,11 +465,18 @@
       <div><div class="brand">Método Gestão Life · Planos de Ação</div><div class="dash-user">Logado como <strong id="dash-nome"></strong></div></div>
       <button class="btn-logout" onclick="sair()">Sair</button>
     </div>
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; flex-wrap:wrap; gap: 10px">
-      <h1 style="text-transform:none;font-size:22px;margin:0">Empresas</h1>
-      <div style="display:flex;gap:8px;flex-wrap:wrap">
-        <button class="btn btn-secondary" onclick="gerarPDFBranco()" title="PDF em branco pra reunião presencial">📄 PDF em branco</button>
-        <button class="btn btn-primary" onclick="novaEmpresa()">+ Criar nova reunião</button>
+    <div class="nav-abas">
+      <button class="nav-aba ativa" onclick="trocarAba('empresas')">🏢 Empresas</button>
+      <button class="nav-aba" onclick="trocarAba('agenda')">📅 Agenda</button>
+    </div>
+
+    <div id="aba-empresas">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; flex-wrap:wrap; gap: 10px">
+        <h1 style="text-transform:none;font-size:22px;margin:0">Empresas</h1>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn btn-secondary" onclick="gerarPDFBranco()" title="PDF em branco pra reunião presencial">📄 PDF em branco</button>
+          <button class="btn btn-primary" onclick="novaEmpresa()">+ Criar nova reunião</button>
+        </div>
       </div>
     </div>
     <div class="search-bar"><input type="text" id="busca" placeholder="🔍 Buscar empresa..." oninput="filtrarEmpresas()"></div>
@@ -484,6 +520,33 @@
 
     <div id="rascunhos-novos-root"></div>
     <div id="empresas-root" class="empresa-grid"></div>
+    </div><!-- /aba-empresas -->
+
+    <div id="aba-agenda" style="display:none">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; flex-wrap:wrap; gap: 10px">
+        <h1 style="text-transform:none;font-size:22px;margin:0">Agenda · Mentorias</h1>
+        <button class="btn btn-primary" onclick="abrirModalEvento()">+ Nova reunião</button>
+      </div>
+
+      <div class="cal-toolbar">
+        <button class="cal-nav" onclick="navegarMesAgenda(-1)" title="Mês anterior">←</button>
+        <div class="cal-mes-atual" id="cal-mes-atual">—</div>
+        <button class="cal-nav" onclick="navegarMesAgenda(1)" title="Próximo mês">→</button>
+        <div style="flex:1"></div>
+        <button class="btn btn-secondary" onclick="recarregarAgenda()">↻ Atualizar</button>
+      </div>
+
+      <div class="cal-grid">
+        <div class="cal-dow">DOM</div>
+        <div class="cal-dow">SEG</div>
+        <div class="cal-dow">TER</div>
+        <div class="cal-dow">QUA</div>
+        <div class="cal-dow">QUI</div>
+        <div class="cal-dow">SEX</div>
+        <div class="cal-dow">SAB</div>
+      </div>
+      <div id="cal-grid-dias" class="cal-grid"></div>
+    </div>
   </div>
 
   <!-- HISTÓRICO -->
@@ -776,6 +839,29 @@
   <footer>Método Gestão Life · Gestão PRO<br><small>Ferramenta interna · Planos de Ação v2</small></footer>
 </div>
 
+<!-- Modal: criar/editar evento da agenda -->
+<div class="modal-bg" id="modal-evento">
+  <div class="modal modal-crm-content">
+    <h3 id="modal-evento-titulo">📅 Nova reunião</h3>
+    <p style="font-size:12px;color:var(--text-dim);margin:6px 0 14px">Cria um evento na agenda compartilhada · todos os convidados recebem convite por email</p>
+    <div class="field"><label>Título</label><input type="text" id="ev-titulo" placeholder="Ex.: Mentoria Burger do João · R3"></div>
+    <div class="field-group">
+      <div class="field"><label>Data</label><input type="date" id="ev-data"></div>
+      <div class="field"><label>Início</label><input type="time" id="ev-inicio"></div>
+      <div class="field"><label>Fim</label><input type="time" id="ev-fim"></div>
+    </div>
+    <div class="field"><label>Local / Link da reunião</label><input type="text" id="ev-local" placeholder="Online (Google Meet) ou endereço"></div>
+    <div class="field"><label>Descrição / Pauta</label><textarea id="ev-descricao" rows="3" placeholder="Pauta, objetivo da reunião, materiais..."></textarea></div>
+    <div class="field"><label>Convidados (emails separados por vírgula)</label><input type="text" id="ev-convidados" placeholder="email1@ex.com, email2@ex.com"></div>
+    <div class="actions" style="justify-content:space-between;gap:8px;margin-top:14px;flex-wrap:wrap">
+      <button class="btn btn-secondary" id="ev-btn-apagar" onclick="apagarEvento()" style="background:rgba(248,113,113,.15);color:#f87171;border-color:rgba(248,113,113,.4);display:none">🗑 Apagar</button>
+      <div style="flex:1"></div>
+      <button class="btn btn-secondary" onclick="fecharModalEvento()">Cancelar</button>
+      <button class="btn btn-primary" onclick="salvarEvento()">Salvar</button>
+    </div>
+  </div>
+</div>
+
 <!-- Modal: editar dados CRM da empresa -->
 <div class="modal-bg" id="modal-crm">
   <div class="modal modal-crm-content">
@@ -786,7 +872,7 @@
       <div class="field"><label>Empresa</label><input type="text" id="crm-empresa"></div>
     </div>
     <div class="field-group">
-      <div class="field"><label>Telefone (WhatsApp do dono)</label><input type="text" id="crm-telefone" inputmode="tel" placeholder="(00) 00000-0000" oninput="mascaraTelefone(this)"></div>
+      <div class="field"><label>WhatsApp (telefone ou link do grupo)</label><input type="text" id="crm-telefone" placeholder="(00) 00000-0000 ou https://chat.whatsapp.com/..." oninput="mascaraTelefone(this)"></div>
       <div class="field"><label>Status</label>
         <select id="crm-status">
           <option value="Ativo">Ativo</option>
@@ -913,8 +999,11 @@ function aplicarMascaraTelefone(v) {
   return v;
 }
 function mascaraTelefone(inp) {
-  const f = aplicarMascaraTelefone(inp.value);
-  if (inp.value !== f) {
+  const v = inp.value;
+  // Se já é link (começou com http ou tem ".com"), deixa como está
+  if (/^https?:\/\//i.test(v) || /chat\.whatsapp\.com/i.test(v)) return;
+  const f = aplicarMascaraTelefone(v);
+  if (v !== f) {
     inp.value = f;
     try { inp.setSelectionRange(f.length, f.length); } catch(_) {}
   }
@@ -1183,12 +1272,14 @@ function renderEmpresas(lista) {
     const status = crm.status || 'Ativo';
     const statusClass = status.toLowerCase();
     const telef = crm.telefone || '';
+    const ehGrupo = ehLinkGrupoWhatsApp(telef);
+    const telefLabel = telef ? (ehGrupo ? '👥 Grupo' : '📱 ' + telef) : '';
     const principal = crm.consultorPrincipal || '';
     return `
     <div class="empresa-card ${temRasc ? 'tem-rascunho' : ''}" onclick="abrirHistorico('${(e.empresa||'').replace(/'/g,"\'")}')">
       <div class="info">
         <h4>${e.empresa}</h4>
-        <p>${telef ? '📱 ' + telef + ' · ' : ''}${principal ? '👤 ' + principal + ' · ' : ''}última reunião: ${formatarDataComDia(e.ultimaData)}</p>
+        <p>${telefLabel ? telefLabel + ' · ' : ''}${principal ? '👤 ' + principal + ' · ' : ''}última reunião: ${formatarDataComDia(e.ultimaData)}</p>
         <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px">
           <span class="status-badge ${statusClass}">${status}</span>
           ${crm.nivel ? '<span class="status-badge ativo" style="background:rgba(77,201,255,.15);color:var(--accent)">' + crm.nivel + '</span>' : ''}
@@ -1210,6 +1301,9 @@ function renderCRMCard(empresa) {
   const status = crm.status || 'Ativo';
   const statusClass = status.toLowerCase();
   const wa = crm.telefone ? gerarLinkWhatsApp(crm.telefone) : '';
+  const ehGrupo = crm.telefone && ehLinkGrupoWhatsApp(crm.telefone);
+  const labelTel = ehGrupo ? 'Grupo WhatsApp' : 'Telefone (WhatsApp)';
+  const valTel = wa ? `<a href="${wa}" target="_blank">${ehGrupo ? '👥 Abrir grupo' : '📱 ' + crm.telefone}</a>` : '—';
   root.innerHTML = `
     <div class="crm-card">
       <div class="crm-card-head">
@@ -1218,7 +1312,7 @@ function renderCRMCard(empresa) {
       </div>
       <div class="crm-grid">
         <div class="crm-item"><span class="lbl">CNPJ</span><span class="val">${crm.cnpj || '—'}</span></div>
-        <div class="crm-item"><span class="lbl">Telefone (WhatsApp)</span><span class="val">${wa ? `<a href="${wa}" target="_blank">${crm.telefone}</a>` : '—'}</span></div>
+        <div class="crm-item"><span class="lbl">${labelTel}</span><span class="val">${valTel}</span></div>
         <div class="crm-item"><span class="lbl">Status</span><span class="val"><span class="status-badge ${statusClass}">${status}</span></span></div>
         <div class="crm-item"><span class="lbl">Nível atual</span><span class="val">${crm.nivel || '—'}</span></div>
         <div class="crm-item"><span class="lbl">Consultor Principal</span><span class="val">${crm.consultorPrincipal || '—'}</span></div>
@@ -1229,8 +1323,21 @@ function renderCRMCard(empresa) {
   `;
 }
 
+function ehLinkGrupoWhatsApp(v) {
+  if (!v) return false;
+  return /chat\.whatsapp\.com|whatsapp\.com\/group/i.test(String(v));
+}
+
 function gerarLinkWhatsApp(tel, msg) {
-  const numero = String(tel || '').replace(/\D/g, '');
+  const valor = String(tel || '').trim();
+  if (!valor) return '';
+  // Se for link de grupo, retorna o próprio
+  if (ehLinkGrupoWhatsApp(valor)) {
+    // Pra grupo, mensagem não é suportada via link — abre só o grupo
+    return valor.startsWith('http') ? valor : 'https://' + valor;
+  }
+  // Senão trata como número
+  const numero = valor.replace(/\D/g, '');
   if (!numero) return '';
   const num = numero.length === 11 || numero.length === 10 ? '55' + numero : numero;
   let url = `https://wa.me/${num}`;
@@ -1258,6 +1365,194 @@ function abrirModalCRM(empresa) {
 
 function fecharModalCRM() {
   $('modal-crm').classList.remove('show');
+}
+
+// =========== AGENDA — Calendário Mensal ===========
+const MESES_NOMES = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+let _agendaMes = null; // primeiro dia do mês visível
+let _agendaEventos = [];
+let _agendaCarregando = false;
+let _eventoEditando = null; // {id, ...} quando editando
+
+function trocarAba(aba) {
+  document.querySelectorAll('.nav-aba').forEach(b => b.classList.remove('ativa'));
+  document.querySelectorAll('.nav-aba').forEach(b => {
+    if ((aba === 'empresas' && b.textContent.includes('Empresas')) ||
+        (aba === 'agenda' && b.textContent.includes('Agenda'))) b.classList.add('ativa');
+  });
+  $('aba-empresas').style.display = aba === 'empresas' ? '' : 'none';
+  $('aba-agenda').style.display = aba === 'agenda' ? '' : 'none';
+  if (aba === 'agenda') {
+    if (!_agendaMes) _agendaMes = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
+    renderCalendario();
+    carregarEventos();
+  }
+}
+
+function navegarMesAgenda(delta) {
+  if (!_agendaMes) _agendaMes = new Date();
+  _agendaMes = new Date(_agendaMes.getFullYear(), _agendaMes.getMonth() + delta, 1);
+  renderCalendario();
+  carregarEventos();
+}
+
+function recarregarAgenda() { carregarEventos(); }
+
+async function carregarEventos() {
+  if (_agendaCarregando) return;
+  _agendaCarregando = true;
+  const inicio = new Date(_agendaMes.getFullYear(), _agendaMes.getMonth(), 1);
+  const fim = new Date(_agendaMes.getFullYear(), _agendaMes.getMonth() + 1, 1);
+  try {
+    const r = await chamarAPI('listar-eventos', { de: inicio.toISOString(), ate: fim.toISOString() });
+    _agendaEventos = r.eventos || [];
+    renderCalendario();
+  } catch (err) {
+    toast('❌ Agenda: ' + err.message, 5000, true);
+    _agendaEventos = [];
+    renderCalendario();
+  } finally {
+    _agendaCarregando = false;
+  }
+}
+
+function renderCalendario() {
+  if (!_agendaMes) _agendaMes = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
+  const ano = _agendaMes.getFullYear();
+  const mes = _agendaMes.getMonth();
+  $('cal-mes-atual').textContent = `${MESES_NOMES[mes]} de ${ano}`;
+
+  const primeiroDia = new Date(ano, mes, 1);
+  const dowInicio = primeiroDia.getDay(); // 0=Dom
+  const ultimoDia = new Date(ano, mes + 1, 0).getDate();
+  const hoje = new Date(); hoje.setHours(0,0,0,0);
+
+  // Agrupa eventos por dia (yyyy-mm-dd)
+  const eventosPorDia = {};
+  _agendaEventos.forEach(ev => {
+    const d = new Date(ev.inicio);
+    const key = d.toISOString().slice(0,10);
+    if (!eventosPorDia[key]) eventosPorDia[key] = [];
+    eventosPorDia[key].push(ev);
+  });
+
+  const grid = $('cal-grid-dias');
+  let html = '';
+
+  // Dias do mês anterior pra preencher início
+  for (let i = 0; i < dowInicio; i++) {
+    const d = new Date(ano, mes, -dowInicio + i + 1);
+    html += `<div class="cal-dia fora-mes"><div class="num-dia">${d.getDate()}</div></div>`;
+  }
+  // Dias do mês
+  for (let dia = 1; dia <= ultimoDia; dia++) {
+    const data = new Date(ano, mes, dia);
+    const ehHoje = data.getTime() === hoje.getTime();
+    const key = data.toISOString().slice(0,10);
+    const evs = eventosPorDia[key] || [];
+    const evsHtml = evs.slice(0, 3).map(ev => {
+      const hora = new Date(ev.inicio).toTimeString().slice(0,5);
+      const titulo = (ev.titulo || 'Sem título').replace(/</g,'&lt;');
+      return `<div class="cal-evento" onclick="event.stopPropagation();abrirModalEvento('${ev.id.replace(/'/g,"\\'")}')">${hora} ${titulo}</div>`;
+    }).join('');
+    const mais = evs.length > 3 ? `<div class="cal-mais">+${evs.length - 3} mais</div>` : '';
+    html += `<div class="cal-dia ${ehHoje ? 'hoje' : ''}" onclick="abrirModalEventoNoDia('${data.toISOString().slice(0,10)}')"><div class="num-dia">${dia}</div>${evsHtml}${mais}</div>`;
+  }
+  // Completa últimos dias
+  const totalCelulas = dowInicio + ultimoDia;
+  const restante = (7 - (totalCelulas % 7)) % 7;
+  for (let i = 1; i <= restante; i++) {
+    html += `<div class="cal-dia fora-mes"><div class="num-dia">${i}</div></div>`;
+  }
+  grid.innerHTML = html;
+}
+
+function abrirModalEvento(idEvento) {
+  _eventoEditando = null;
+  $('modal-evento-titulo').textContent = '📅 Nova reunião';
+  $('ev-btn-apagar').style.display = 'none';
+  $('ev-titulo').value = '';
+  $('ev-data').value = new Date().toISOString().slice(0,10);
+  $('ev-inicio').value = '14:00';
+  $('ev-fim').value = '15:00';
+  $('ev-local').value = '';
+  $('ev-descricao').value = '';
+  $('ev-convidados').value = '';
+
+  if (idEvento) {
+    const ev = _agendaEventos.find(e => e.id === idEvento);
+    if (ev) {
+      _eventoEditando = ev;
+      $('modal-evento-titulo').textContent = '📅 Editar reunião';
+      $('ev-btn-apagar').style.display = 'inline-flex';
+      $('ev-titulo').value = ev.titulo || '';
+      $('ev-data').value = new Date(ev.inicio).toISOString().slice(0,10);
+      $('ev-inicio').value = new Date(ev.inicio).toTimeString().slice(0,5);
+      $('ev-fim').value = new Date(ev.fim).toTimeString().slice(0,5);
+      $('ev-local').value = ev.local || '';
+      $('ev-descricao').value = ev.descricao || '';
+      $('ev-convidados').value = (ev.convidados || []).map(c => c.email).join(', ');
+    }
+  }
+  $('modal-evento').classList.add('show');
+}
+
+function abrirModalEventoNoDia(dataISO) {
+  abrirModalEvento();
+  $('ev-data').value = dataISO;
+}
+
+function fecharModalEvento() {
+  $('modal-evento').classList.remove('show');
+}
+
+async function salvarEvento() {
+  const titulo = $('ev-titulo').value.trim();
+  const data = $('ev-data').value;
+  const inicio = $('ev-inicio').value;
+  const fim = $('ev-fim').value;
+  if (!titulo) { toast('⚠ Preencha o título', 3000, true); return; }
+  if (!data || !inicio || !fim) { toast('⚠ Preencha data, início e fim', 3000, true); return; }
+  const dtInicio = new Date(data + 'T' + inicio + ':00');
+  const dtFim = new Date(data + 'T' + fim + ':00');
+  if (dtFim <= dtInicio) { toast('⚠ Hora final precisa ser depois do início', 3000, true); return; }
+
+  const convidados = $('ev-convidados').value.split(',').map(e => e.trim()).filter(e => e.includes('@'));
+  const payload = {
+    titulo,
+    descricao: $('ev-descricao').value.trim(),
+    local: $('ev-local').value.trim(),
+    inicio: dtInicio.toISOString(),
+    fim: dtFim.toISOString(),
+    convidados
+  };
+
+  try {
+    if (_eventoEditando) {
+      await chamarAPI('editar-evento', { id: _eventoEditando.id, ...payload });
+      toast('✓ Evento atualizado!', 2500, false, true);
+    } else {
+      await chamarAPI('criar-evento', payload);
+      toast('✓ Evento criado!', 2500, false, true);
+    }
+    fecharModalEvento();
+    carregarEventos();
+  } catch (err) {
+    toast('❌ ' + err.message, 4000, true);
+  }
+}
+
+async function apagarEvento() {
+  if (!_eventoEditando) return;
+  if (!confirm(`Apagar o evento "${_eventoEditando.titulo}"?\n\nOs convidados receberão notificação de cancelamento.`)) return;
+  try {
+    await chamarAPI('apagar-evento', { id: _eventoEditando.id });
+    toast('✓ Evento apagado', 2500);
+    fecharModalEvento();
+    carregarEventos();
+  } catch (err) {
+    toast('❌ ' + err.message, 4000, true);
+  }
 }
 
 async function salvarCRM() {
@@ -1295,7 +1590,70 @@ async function abrirHistorico(empresa) {
   try {
     const r = await chamarAPI('listar-planos', { empresa });
     renderTimeline(r.planos || []);
+    // Auto-puxa CNPJ/nível do diagnóstico se o CRM ainda estiver vazio
+    autoPreencherCRMDoDiagnostico(empresa, r.planos || []);
   } catch(err) { $('timeline-root').innerHTML = `<div class="empty-state"><div class="icon">⚠</div>${err.message}</div>`; }
+}
+
+// Se a empresa não tem CNPJ/nível no CRM, busca do diagnóstico e preenche automaticamente
+async function autoPreencherCRMDoDiagnostico(empresa, planos) {
+  const crm = getCRMByEmpresa(empresa) || {};
+  // Se já tem CNPJ E nível, não precisa buscar
+  if (crm.cnpj && crm.nivel) return;
+
+  // Pega CNPJ de algum plano salvo (caso já tenha) pra acelerar a busca
+  const cnpjDoPlano = (planos.find(p => p.id) && (await tentarPegarCnpjDoPlano(planos[0].id))) || '';
+
+  try {
+    const r = await chamarAPI('importar-diagnostico', {
+      cnpj: cnpjDoPlano,
+      nomeEmpresa: empresa
+    });
+    const ig = r.informacoesGerais || {};
+    const diag = r.diagnostico || null;
+    const novoCnpj = crm.cnpj || ig.CNPJ || ig['G02 CNPJ'] || cnpjDoPlano || '';
+
+    // Detecta nível pela maior % consolidada (>=50%)
+    let novoNivel = crm.nivel || '';
+    if (!novoNivel && diag && diag.niveis) {
+      let nivelMaisAlto = '';
+      for (let i = 0; i < diag.niveis.length; i++) {
+        const pct = parseFloat(diag.niveis[i].pct) || 0;
+        const pctNorm = pct > 1 ? pct : pct * 100;
+        if (pctNorm >= 50) nivelMaisAlto = diag.niveis[i].num;
+        else break;
+      }
+      if (!nivelMaisAlto && diag.niveis.length) nivelMaisAlto = diag.niveis[0].num;
+      if (nivelMaisAlto) novoNivel = 'Nível ' + nivelMaisAlto;
+    }
+
+    // Só salva se realmente conseguiu pegar algo novo
+    if ((novoCnpj && novoCnpj !== crm.cnpj) || (novoNivel && novoNivel !== crm.nivel)) {
+      const dados = {
+        ...crm,
+        empresa: empresa,
+        cnpj: novoCnpj,
+        nivel: novoNivel,
+        status: crm.status || 'Ativo'
+      };
+      await chamarAPI('salvar-empresa-crm', { empresa: dados });
+      await carregarCRM();
+      renderCRMCard(empresa);
+      toast('✓ Dados do diagnóstico puxados', 2500);
+    }
+  } catch (e) {
+    // Empresa não tá no diagnóstico, sem problema
+    console.warn('Auto-fetch CRM falhou:', e.message);
+  }
+}
+
+// Helper: pega CNPJ de um plano salvo
+async function tentarPegarCnpjDoPlano(idPlano) {
+  if (!idPlano) return '';
+  try {
+    const r = await chamarAPI('carregar-plano', { idPlano });
+    return r.plano?.cnpj || '';
+  } catch (e) { return ''; }
 }
 
 function renderTimeline(planos) {
