@@ -101,10 +101,60 @@
   .ctx-card .ctx-head { display:flex; justify-content:space-between; align-items:center; margin-bottom: 14px; flex-wrap:wrap; gap: 8px; }
   .ctx-card h3 { margin: 0; font-size: 14px; color: var(--accent); letter-spacing: 1px; text-transform: uppercase; font-weight: 800; }
   .ctx-card .toggle-ctx { background: transparent; border: 1px solid var(--border); color: var(--text-dim); padding: 4px 10px; border-radius: 6px; font-size: 11px; cursor: pointer; }
+  .btn-edit-planilha { background: rgba(77,201,255,.12); border: 1px solid rgba(77,201,255,.4); color: var(--accent); padding: 4px 10px; border-radius: 6px; font-size: 11px; cursor: pointer; font-weight: 600; }
+  .btn-edit-planilha:active { background: rgba(77,201,255,.25); }
   .ctx-card .ctx-body { display: grid; gap: 8px; font-size: 13px; }
   .ctx-card .ctx-row { display: flex; gap: 12px; }
   .ctx-card .ctx-row .lbl { min-width: 130px; color: var(--text-dim); font-weight: 600; }
   .ctx-card .ctx-row .val { flex: 1; color: var(--text); }
+
+  /* Quadro de Execução */
+  .qe-toolbar { display:flex; align-items:center; gap:10px; margin-bottom:14px; flex-wrap:wrap; }
+  .qe-nav { background: rgba(77,201,255,.12); color: var(--accent); border:1px solid rgba(77,201,255,.3); border-radius:8px; width:36px; height:36px; cursor:pointer; font-size:18px; font-weight:700; }
+  .qe-nav:hover { background: rgba(77,201,255,.2); }
+  .qe-nav:disabled { opacity:.3; cursor:not-allowed; }
+  .qe-mes-info { display:flex; flex-direction:column; align-items:center; min-width:170px; }
+  .qe-label { font-size:10px; color:var(--text-dim); letter-spacing:1.5px; text-transform:uppercase; }
+  .qe-mes { font-size:15px; font-weight:700; color:var(--accent); margin-top:2px; }
+  .qe-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:12px; }
+  .qe-card { position:relative; background:rgba(255,255,255,.02); border:1px solid var(--border); border-radius:10px; padding:12px 14px; }
+  .qe-card label { display:block; font-size:11px; color:var(--text-dim); text-transform:uppercase; letter-spacing:1px; margin-bottom:6px; font-weight:700; }
+  .qe-card input { width:100%; box-sizing:border-box; background:rgba(0,0,0,.25); border:1px solid var(--border); border-radius:6px; padding:8px 32px 8px 10px; color:var(--text); font-size:15px; font-weight:600; }
+  .qe-card input:focus { outline:none; border-color: var(--accent); }
+  .qe-card .qe-suffix { position:absolute; right:24px; bottom:20px; color:var(--text-dim); font-size:13px; pointer-events:none; }
+
+  /* Itens simples (texto livre com botão remover) */
+  .items-list-simples { display: flex; flex-direction: column; gap: 8px; }
+  .item-simples-row { display: flex; gap: 8px; align-items: center; background: rgba(255,255,255,.02); border: 1px solid var(--border); border-radius: 8px; padding: 8px; }
+  .item-simples-row .num-mini { background: var(--accent); color: #0b1230; min-width: 26px; height: 26px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 800; flex-shrink: 0; }
+  .item-simples-row textarea { flex: 1; background: transparent; border: none; color: var(--text); font-size: 14px; resize: vertical; min-height: 38px; padding: 6px 4px; font-family: inherit; }
+  .item-simples-row textarea:focus { outline: none; }
+  .item-simples-row .btn-remove-mini { background: rgba(248,113,113,.12); color: #f87171; border: 1px solid rgba(248,113,113,.3); border-radius: 6px; width: 30px; height: 30px; cursor: pointer; font-size: 14px; flex-shrink: 0; }
+
+  /* Box de referência (tópicos níveis posteriores) */
+  .ref-box { background: rgba(251,191,36,.06); border: 1px dashed rgba(251,191,36,.4); border-radius: 10px; padding: 14px 16px; }
+  .ref-box .ref-head { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; color: #fbbf24; font-size: 12px; letter-spacing: .8px; text-transform: uppercase; }
+  .ref-box .ref-icon { font-size: 16px; }
+  .ref-box .ref-content { display: flex; flex-direction: column; gap: 8px; font-size: 12.5px; color: var(--text-dim); line-height: 1.55; }
+  .ref-box .ref-nivel { display: flex; gap: 8px; }
+  .ref-box .ref-nivel-num { background: rgba(251,191,36,.18); color: #fbbf24; font-weight: 700; padding: 1px 8px; border-radius: 4px; flex-shrink: 0; height: fit-content; font-size: 11px; }
+  .ref-box .ref-nivel-itens { color: var(--text); }
+
+  /* Participantes (lista dinâmica) */
+  .participantes-list { display: flex; flex-direction: column; gap: 8px; }
+  .participante-row { display: flex; gap: 8px; align-items: center; }
+  .participante-row input { flex: 1; }
+  .participante-row .btn-remove-mini { background: rgba(248,113,113,.12); color: #f87171; border: 1px solid rgba(248,113,113,.3); border-radius: 8px; width: 36px; height: 36px; cursor: pointer; font-size: 16px; flex-shrink: 0; transition: all .15s; }
+  .participante-row .btn-remove-mini:active { background: rgba(248,113,113,.3); }
+
+  /* Objetivo da reunião — card destacado */
+  .objetivo-card { background: linear-gradient(135deg, rgba(77,201,255,.08), rgba(122,162,255,.04)); border: 1px solid rgba(77,201,255,.4); border-left: 4px solid var(--accent); border-radius: 12px; padding: 16px 18px; margin-top: 14px; }
+  .objetivo-card .objetivo-head { display: flex; gap: 12px; align-items: flex-start; margin-bottom: 10px; }
+  .objetivo-card .objetivo-icon { font-size: 22px; flex-shrink: 0; }
+  .objetivo-card h4 { margin: 0; font-size: 14px; color: var(--accent); letter-spacing: 1px; text-transform: uppercase; font-weight: 800; }
+  .objetivo-card p { margin: 4px 0 0; color: var(--text-dim); font-size: 12px; }
+  .objetivo-card textarea { width: 100%; box-sizing: border-box; background: rgba(0,0,0,.25); border: 1px solid rgba(77,201,255,.2); border-radius: 8px; padding: 10px 12px; color: var(--text); font-size: 14px; resize: vertical; min-height: 70px; font-family: inherit; }
+  .objetivo-card textarea:focus { outline: none; border-color: var(--accent); }
 
   /* Banner de aviso (diagnóstico pendente, etc.) */
   .alert-banner { background: linear-gradient(135deg, rgba(248,113,113,.12), rgba(251,191,36,.08)); border: 2px solid rgba(248,113,113,.5); border-left: 6px solid #f87171; border-radius: 12px; padding: 18px 22px; margin-bottom: 20px; }
@@ -323,21 +373,23 @@
       <p id="form-subtitle">Preencha com o cliente durante a reunião.</p>
     </header>
 
-    <!-- 1. DADOS -->
+    <!-- 1. DADOS DA EMPRESA -->
     <section class="section">
-      <div class="section-head"><div class="num">01</div><div><h2>Dados da reunião</h2><div class="sub">Identificação · Importação do diagnóstico</div></div></div>
+      <div class="section-head"><div class="num">01</div><div><h2>Dados da empresa</h2><div class="sub">Identificação · Participantes · Objetivo desta reunião</div></div></div>
       <div class="section-body">
-        <div class="import-banner">
-          <div class="txt">
-            <strong>Tem o diagnóstico do cliente?</strong> Preencha o CNPJ ou nome abaixo e clique em importar pra puxar dados do diagnóstico, planejamento estratégico e nível atual.
-          </div>
-          <button class="btn-import" onclick="importarDiagnostico()">📥 Importar do diagnóstico</button>
-        </div>
-
         <div class="field-group">
           <div class="field"><label>CNPJ</label><input type="text" id="cnpj" inputmode="numeric" maxlength="18" placeholder="00.000.000/0000-00" oninput="mascaraCNPJ(this)"></div>
-          <div class="field"><label>Empresa</label><input type="text" id="empresa" placeholder="Ex.: Burger do João"></div>
-          <div class="field"><label>Responsável</label><input type="text" id="responsavel"></div>
+          <div class="field"><label>Nome da empresa</label><input type="text" id="empresa" placeholder="Ex.: Burger do João"></div>
+        </div>
+
+        <!-- Participantes (lista dinâmica) -->
+        <div class="field" style="margin-top:12px">
+          <label>Participantes</label>
+          <div id="participantes-list" class="participantes-list"></div>
+          <button type="button" class="btn-add" onclick="addParticipante()" style="margin-top:8px">+ Adicionar participante</button>
+        </div>
+
+        <div class="field-group" style="margin-top:12px">
           <div class="field"><label>Data</label><input type="date" id="data"></div>
           <div class="field"><label>Número da reunião</label><input type="number" id="reuniao" min="1" max="99" value="1"></div>
           <div class="field"><label>Nível atual do diagnóstico</label>
@@ -351,7 +403,18 @@
             </select>
           </div>
         </div>
-        <div class="field"><label>Objetivo combinado</label><textarea id="objetivo12m" placeholder="Foco dos próximos meses..."></textarea></div>
+
+        <!-- Objetivo da reunião -->
+        <div class="objetivo-card">
+          <div class="objetivo-head">
+            <span class="objetivo-icon">🎯</span>
+            <div>
+              <h4>Objetivo da reunião</h4>
+              <p>O que o cliente mandou no áudio antes da reunião · dúvida principal · foco do encontro</p>
+            </div>
+          </div>
+          <textarea id="objetivoReuniao" rows="4" placeholder="Resumo do que o cliente trouxe pra essa reunião..."></textarea>
+        </div>
       </div>
     </section>
 
@@ -369,7 +432,10 @@
     <div id="ctx-card" class="ctx-card" style="display:none">
       <div class="ctx-head">
         <h3>📊 Contexto do diagnóstico</h3>
-        <button class="toggle-ctx" onclick="toggleCtx()">Ocultar</button>
+        <div style="display:flex;gap:8px">
+          <button class="btn-edit-planilha" onclick="abrirPlanilhaDiagnostico()" title="Abrir planilha pra corrigir dados do cliente">✏️ Editar planilha</button>
+          <button class="toggle-ctx" onclick="toggleCtx()">Ocultar</button>
+        </div>
       </div>
       <div class="ctx-body" id="ctx-body"></div>
     </div>
@@ -432,49 +498,94 @@
       </div>
     </section>
 
-    <!-- VITÓRIAS -->
+    <!-- 03. PRIORIDADES DE IMPACTO -->
     <section class="section">
-      <div class="section-head"><div class="num">03</div><div><h2>Vitórias rápidas</h2><div class="sub">Mínimo 2 ações de impacto · use as sugestões ou crie do zero</div></div></div>
+      <div class="section-head"><div class="num">03</div><div><h2>Prioridades de impacto</h2><div class="sub">Use abaixo apenas as prioridades para ação imediata, considerando o nível de gestão</div></div></div>
       <div class="section-body">
-        <div id="sug-vitorias" style="display:none">
-          <p style="font-size:12px;color:var(--text-dim);margin:0 0 10px"><strong style="color:var(--accent)">SUGESTÕES PRO NÍVEL SELECIONADO:</strong> clique pra adicionar como vitória editável</p>
-          <div id="sug-vitorias-list"></div>
-        </div>
-        <div class="items-list" id="vitorias-list"></div>
-        <button class="btn-add" onclick="addVitoria()">+ Adicionar vitória do zero</button>
+        <div class="items-list-simples" id="prioridades-list"></div>
+        <button class="btn-add" onclick="addPrioridade()">+ Adicionar prioridade</button>
       </div>
     </section>
 
-    <!-- COMPROMISSOS -->
+    <!-- 04. VITÓRIAS RÁPIDAS -->
     <section class="section">
-      <div class="section-head"><div class="num">04</div><div><h2>Compromissos</h2><div class="sub">Ações com responsável, prazo e status</div></div></div>
+      <div class="section-head"><div class="num">04</div><div><h2>Vitórias rápidas</h2><div class="sub">Dores de níveis posteriores que o cliente quer resolver agora pra ter resultado rápido</div></div></div>
       <div class="section-body">
-        <div class="compr-table" id="compr-list"></div>
+        <div id="vitorias-ref-box" class="ref-box" style="display:none">
+          <div class="ref-head"><span class="ref-icon">💡</span><strong>Tópicos disponíveis em níveis posteriores</strong> (referência)</div>
+          <div id="vitorias-ref-content" class="ref-content"></div>
+        </div>
+        <div class="items-list-simples" id="vitorias-list" style="margin-top:12px"></div>
+        <button class="btn-add" onclick="addVitoria()">+ Adicionar vitória rápida</button>
+      </div>
+    </section>
+
+    <!-- 05. COMPROMISSOS -->
+    <section class="section">
+      <div class="section-head"><div class="num">05</div><div><h2>Compromissos</h2><div class="sub">Toda prioridade e vitória vira ação · reescreva como ação executável</div></div></div>
+      <div class="section-body">
+        <div id="sug-compromissos" style="display:none">
+          <p style="font-size:12px;color:var(--text-dim);margin:0 0 10px"><strong style="color:var(--accent)">PRIORIDADES + VITÓRIAS:</strong> clique pra adicionar como compromisso editável</p>
+          <div id="sug-compromissos-list"></div>
+        </div>
+        <div class="compr-table" id="compr-list" style="margin-top:12px"></div>
         <button class="btn-add" onclick="addCompromisso()">+ Adicionar compromisso</button>
       </div>
     </section>
 
-    <!-- INDICADORES -->
+    <!-- 06. QUADRO DE EXECUÇÃO -->
     <section class="section">
-      <div class="section-head"><div class="num">05</div><div><h2>Indicadores</h2><div class="sub">O que vamos medir</div></div></div>
+      <div class="section-head"><div class="num">06</div><div><h2>Quadro de execução</h2><div class="sub">Indicadores atuais da operação · puxado da última atualização do cliente</div></div></div>
       <div class="section-body">
-        <div class="field"><label>KPIs (um por linha)</label><textarea id="kpis" rows="4"></textarea></div>
-        <div class="field"><label>Frequência de revisão</label><input type="text" id="frequencia"></div>
+        <div class="qe-toolbar">
+          <button type="button" class="qe-nav" id="qe-prev" onclick="navegarMesQE(-1)" title="Mês anterior">←</button>
+          <div class="qe-mes-info">
+            <div class="qe-label">Referência</div>
+            <div class="qe-mes" id="qe-mes-atual">—</div>
+          </div>
+          <button type="button" class="qe-nav" id="qe-next" onclick="navegarMesQE(1)" title="Mês seguinte">→</button>
+          <div style="flex:1"></div>
+          <button type="button" class="btn-edit-planilha" onclick="abrirPlanilhaQuadroExecucao()">✏️ Editar planilha</button>
+        </div>
+        <div class="qe-grid">
+          <div class="qe-card"><label>Faturamento</label><input type="text" id="qe-faturamento" inputmode="decimal" placeholder="R$ 0,00"></div>
+          <div class="qe-card"><label>Ticket Médio · Loja</label><input type="text" id="qe-ticketLoja" inputmode="decimal" placeholder="R$ 0,00"></div>
+          <div class="qe-card"><label>Ticket Médio · Delivery</label><input type="text" id="qe-ticketDelivery" inputmode="decimal" placeholder="R$ 0,00"></div>
+          <div class="qe-card"><label>% de Satisfação</label><input type="number" id="qe-satisfacao" inputmode="decimal" placeholder="0" min="0" max="100" step="0.1"><span class="qe-suffix">%</span></div>
+          <div class="qe-card"><label>% CMV</label><input type="number" id="qe-cmv" inputmode="decimal" placeholder="0" min="0" max="100" step="0.1"><span class="qe-suffix">%</span></div>
+          <div class="qe-card"><label>% CMO</label><input type="number" id="qe-cmo" inputmode="decimal" placeholder="0" min="0" max="100" step="0.1"><span class="qe-suffix">%</span></div>
+          <div class="qe-card"><label>Tempo de Entrega</label><input type="number" id="qe-tempoEntrega" inputmode="decimal" placeholder="0" min="0"><span class="qe-suffix">min</span></div>
+          <div class="qe-card"><label>Nota Marketplace</label><input type="number" id="qe-notaMarketplace" inputmode="decimal" placeholder="0,0" min="0" max="5" step="0.1"></div>
+          <div class="qe-card"><label>% Lucro</label><input type="number" id="qe-lucro" inputmode="decimal" placeholder="0" min="-100" max="100" step="0.1"><span class="qe-suffix">%</span></div>
+        </div>
       </div>
     </section>
 
-    <!-- PRÓXIMA REUNIÃO -->
+    <!-- 07. PRÓXIMA REUNIÃO -->
     <section class="section">
-      <div class="section-head"><div class="num">06</div><div><h2>Próxima reunião</h2><div class="sub">Agenda fechada com o cliente</div></div></div>
+      <div class="section-head"><div class="num">07</div><div><h2>Próxima reunião</h2><div class="sub">Agenda fechada com o cliente · convidados recebem convite por email</div></div></div>
       <div class="section-body">
         <div class="field-group">
           <div class="field"><label>Data</label><input type="date" id="proxData"></div>
           <div class="field"><label>Horário</label><input type="time" id="proxHora"></div>
-          <div class="field"><label>Duração (minutos)</label><input type="number" id="proxDuracao" value="60" min="15" max="480" step="15"></div>
-          <div class="field"><label>Formato</label><input type="text" id="proxFormato" placeholder="Presencial / Online"></div>
-          <div class="field"><label>Mentor</label><input type="text" id="proxMentor"></div>
+          <div class="field"><label>Formato</label>
+            <select id="proxFormato">
+              <option value="">-- Selecione --</option>
+              <option value="Online">Online</option>
+              <option value="Presencial">Presencial</option>
+            </select>
+          </div>
+          <div class="field"><label>Mentor / Especialista</label>
+            <select id="proxMentor" onchange="onMentorChange()">
+              <option value="">-- Selecione --</option>
+            </select>
+          </div>
         </div>
-        <div class="field"><label>Pauta / material a trazer</label><textarea id="proxPauta"></textarea></div>
+        <div class="field" style="margin-top:12px">
+          <label>Convidados (emails)</label>
+          <div id="convidados-list" class="participantes-list"></div>
+          <button type="button" class="btn-add" onclick="addConvidado()" style="margin-top:8px">+ Adicionar email</button>
+        </div>
         <div class="actions" style="margin-top:14px;justify-content:flex-start">
           <button type="button" class="btn btn-secondary" onclick="abrirGoogleAgenda()">📅 Adicionar ao Google Agenda</button>
         </div>
@@ -496,6 +607,22 @@
   </div>
 
   <footer>Método Gestão Life · Gestão PRO<br><small>Ferramenta interna · Planos de Ação v2</small></footer>
+</div>
+
+<!-- Modal: busca de empresa antes de criar reunião -->
+<div class="modal-bg" id="modal-buscar-empresa">
+  <div class="modal" style="max-width:520px">
+    <h3>🔍 Qual empresa?</h3>
+    <p>Digite o CNPJ ou nome da empresa pra puxar do diagnóstico.</p>
+    <div class="field" style="margin:14px 0 8px">
+      <input type="text" id="buscar-input" placeholder="CNPJ ou nome da empresa" autocomplete="off">
+      <small id="buscar-msg" style="display:block;margin-top:8px;color:var(--text-dim);font-size:12px"></small>
+    </div>
+    <div class="actions" style="justify-content:space-between;margin-top:14px;gap:10px;flex-wrap:wrap">
+      <button class="btn btn-secondary" onclick="pularBuscaEmpresa()">Pular (preencher manual)</button>
+      <button class="btn btn-primary" id="btn-buscar-confirmar" onclick="confirmarBuscaEmpresa()">Buscar e continuar →</button>
+    </div>
+  </div>
 </div>
 
 <!-- Modal de upload manual quando importação falha -->
@@ -564,6 +691,37 @@ function mascaraCNPJ(inp) {
   }
 }
 
+// =========== PARTICIPANTES (lista dinâmica) ===========
+function addParticipante(nome) {
+  const root = $('participantes-list');
+  if (!root) return;
+  const row = document.createElement('div');
+  row.className = 'participante-row';
+  const safeName = (nome || '').replace(/"/g, '&quot;');
+  row.innerHTML = `
+    <input type="text" class="p-nome" placeholder="Nome do participante" value="${safeName}">
+    <button type="button" class="btn-remove-mini" title="Remover" onclick="this.closest('.participante-row').remove()">×</button>
+  `;
+  root.appendChild(row);
+}
+function coletarParticipantes() {
+  const root = $('participantes-list');
+  if (!root) return [];
+  return Array.from(root.querySelectorAll('.p-nome'))
+    .map(i => i.value.trim())
+    .filter(v => v);
+}
+function preencherParticipantes(lista) {
+  const root = $('participantes-list');
+  if (!root) return;
+  root.innerHTML = '';
+  if (lista && lista.length) {
+    lista.forEach(n => addParticipante(n));
+  } else {
+    addParticipante(''); // pelo menos um campo vazio
+  }
+}
+
 async function chamarAPI(action, dados = {}) {
   if (WEBHOOK_URL.startsWith('COLE_AQUI')) { toast('⚠ URL não configurada', 5000, true); throw new Error('WEBHOOK_URL não configurada'); }
   const payload = { token: TOKEN, action, ...dados };
@@ -581,9 +739,10 @@ async function fazerLogin() {
   if (!usuario || !senha) { toast('⚠ Preencha usuário e senha', 3500, true); return; }
   try {
     const r = await chamarAPI('login', { usuario, senha });
-    consultorLogado = { usuario: r.usuario, nome: r.nome };
+    consultorLogado = { usuario: r.usuario, nome: r.nome, email: r.email || '' };
     localStorage.setItem('planoLogin', JSON.stringify(consultorLogado));
     irDashboard();
+    carregarConsultores();
   } catch(err) { toast('❌ ' + err.message, 4000, true); }
 }
 
@@ -659,6 +818,11 @@ function voltarDashboard(){ empresaAtual = null; idPlanoAtual = null; reuniaoAnt
 
 // =========== CRIAR/EDITAR ===========
 function novaEmpresa() {
+  // Em vez de abrir o form direto, abre o modal de busca primeiro
+  abrirModalBuscaEmpresa();
+}
+
+function _abrirFormVazio() {
   empresaAtual = null; idPlanoAtual = null; reuniaoAnteriorData = null; contextoImportado = null;
   limparFormulario();
   $('reuniao').value = '1';
@@ -670,6 +834,87 @@ function novaEmpresa() {
   mostrarView('view-form');
 }
 
+// =========== MODAL DE BUSCA DE EMPRESA (antes de criar reunião) ===========
+let _buscaTentativas = 0;
+
+function abrirModalBuscaEmpresa() {
+  _buscaTentativas = 0;
+  $('buscar-input').value = '';
+  $('buscar-msg').textContent = '';
+  $('buscar-msg').style.color = 'var(--text-dim)';
+  $('btn-buscar-confirmar').disabled = false;
+  $('btn-buscar-confirmar').innerHTML = 'Buscar e continuar →';
+  $('modal-buscar-empresa').classList.add('open');
+  setTimeout(() => $('buscar-input').focus(), 60);
+}
+
+function fecharModalBuscaEmpresa() {
+  $('modal-buscar-empresa').classList.remove('open');
+}
+
+function pularBuscaEmpresa() {
+  fecharModalBuscaEmpresa();
+  _abrirFormVazio();
+}
+
+async function confirmarBuscaEmpresa() {
+  const valor = $('buscar-input').value.trim();
+  if (!valor) {
+    $('buscar-msg').textContent = '⚠ Preenche CNPJ ou nome.';
+    $('buscar-msg').style.color = '#fbbf24';
+    return;
+  }
+
+  // Detecta se é CNPJ (tem dígitos) ou nome
+  const digitos = valor.replace(/\D/g, '');
+  const isCNPJ = digitos.length >= 8;
+
+  $('btn-buscar-confirmar').disabled = true;
+  $('btn-buscar-confirmar').innerHTML = '<span class="spinner"></span> Buscando...';
+  $('buscar-msg').textContent = '⏳ Procurando no diagnóstico...';
+  $('buscar-msg').style.color = 'var(--text-dim)';
+
+  try {
+    const r = await chamarAPI('importar-diagnostico', {
+      cnpj: isCNPJ ? valor : '',
+      nomeEmpresa: isCNPJ ? '' : valor
+    });
+    // Achou — abre form preenchido
+    _abrirFormVazio();
+    contextoImportado = {
+      ig: r.informacoesGerais,
+      diag: r.diagnostico,
+      idRegistro: r.idRegistro || '',
+      modoBusca: r.modoBusca || '',
+      statusDiagnostico: r.statusDiagnostico || '',
+      statusFase1: r.statusFase1 || '',
+      dataFase1: r.dataFase1 || ''
+    };
+    aplicarContextoImportado();
+    fecharModalBuscaEmpresa();
+    if (r.avisoConsultor) {
+      mostrarBannerAviso(r.statusDiagnostico, r.avisoConsultor, r);
+    } else {
+      const via = r.modoBusca === 'cnpj' ? ' (via CNPJ)' : (r.modoBusca === 'nome' ? ' (via nome)' : '');
+      toast('✓ Diagnóstico importado' + via + '!', 3000, false, true);
+    }
+  } catch(err) {
+    _buscaTentativas++;
+    $('btn-buscar-confirmar').disabled = false;
+    if (_buscaTentativas === 1) {
+      // 1ª falha: pede pra tentar de novo
+      $('btn-buscar-confirmar').innerHTML = 'Tentar de novo →';
+      $('buscar-msg').innerHTML = '⚠ ' + err.message + '<br>Confere o CNPJ/nome e tenta de novo.';
+      $('buscar-msg').style.color = '#fbbf24';
+    } else {
+      // 2ª falha: deixa continuar com form em branco
+      $('buscar-msg').innerHTML = '⚠ Não achei mesmo. Pode preencher manualmente clicando em "Pular".';
+      $('buscar-msg').style.color = '#f87171';
+      $('btn-buscar-confirmar').innerHTML = 'Tentar mais uma vez';
+    }
+  }
+}
+
 async function novaReuniaoEmpresaAtual() {
   if (!empresaAtual) return;
   const planos = window._planosEmpresa || [];
@@ -678,7 +923,19 @@ async function novaReuniaoEmpresaAtual() {
   contextoImportado = null;
   limparFormulario();
   $('empresa').value = empresaAtual;
-  if (planos.length) $('responsavel').value = planos[planos.length - 1]?.responsavel || '';
+  // Pega participantes da última reunião pra reaproveitar
+  if (planos.length) {
+    const ult = planos[planos.length - 1];
+    if (Array.isArray(ult?.participantes) && ult.participantes.length) {
+      preencherParticipantes(ult.participantes);
+    } else if (ult?.responsavel) {
+      preencherParticipantes(String(ult.responsavel).split(',').map(s => s.trim()).filter(s => s));
+    } else {
+      preencherParticipantes([]);
+    }
+  } else {
+    preencherParticipantes([]);
+  }
   $('reuniao').value = ultimaReuniao + 1;
   $('form-titulo-num').textContent = ultimaReuniao + 1;
   $('form-nome').textContent = consultorLogado.nome;
@@ -707,12 +964,19 @@ async function editarPlano(idPlano) {
     limparFormulario();
     $('cnpj').value = p.cnpj ? aplicarMascaraCNPJ(p.cnpj) : '';
     $('empresa').value = p.empresa || '';
-    $('responsavel').value = p.responsavel || '';
+    // Participantes: usa o array novo, ou faz fallback do responsável antigo
+    if (Array.isArray(p.participantes) && p.participantes.length) {
+      preencherParticipantes(p.participantes);
+    } else if (p.responsavel) {
+      preencherParticipantes(p.responsavel.split(',').map(s => s.trim()).filter(s => s));
+    } else {
+      preencherParticipantes([]);
+    }
     $('data').value = p.data || new Date().toISOString().slice(0,10);
     $('reuniao').value = p.reuniao || 1;
     $('form-titulo-num').textContent = p.reuniao || 1;
     $('nivel').value = p.nivelNum || '';
-    $('objetivo12m').value = p.objetivo12m || '';
+    $('objetivoReuniao').value = p.objetivoReuniao || p.objetivo12m || '';
     $('ata').value = p.ata || '';
     if (p.swot) {
       $('swot-forcas').value = p.swot.forcas || '';
@@ -720,16 +984,23 @@ async function editarPlano(idPlano) {
       $('swot-oportunidades').value = p.swot.oportunidades || '';
       $('swot-ameacas').value = p.swot.ameacas || '';
     }
-    (p.vitorias || []).forEach(v => addVitoria(v.titulo, v.resp, v.prazo, v.ind, v.solucao));
+    // Prioridades de impacto (texto)
+    (p.prioridades || []).forEach(pri => addPrioridade(pri));
+    // Vitórias rápidas — suporta tanto array de strings (novo) quanto objetos antigos
+    (p.vitorias || []).forEach(v => {
+      if (typeof v === 'string') addVitoria(v);
+      else if (v && v.titulo) addVitoria(v.titulo);
+    });
     (p.compromissos || []).forEach(c => addCompromisso(c));
-    $('kpis').value = p.kpis || '';
-    $('frequencia').value = p.frequencia || '';
+    // Indicadores: carrega histórico do CNPJ pra navegação, mas preenche com os do plano salvo
+    if (p.cnpj) await carregarQuadroExecucao(p.cnpj);
+    if (p.indicadores) preencherIndicadores(p.indicadores, p.indicadoresReferencia || '');
+    atualizarSugestoesCompromissos();
     $('proxData').value = p.proxData || '';
     $('proxHora').value = p.proxHora || '';
-    $('proxDuracao').value = p.proxDuracao || 60;
-    $('proxFormato').value = p.proxFormato || '';
-    $('proxMentor').value = p.proxMentor || '';
-    $('proxPauta').value = p.proxPauta || '';
+    setSelectIfExists('proxFormato', p.proxFormato || '');
+    setSelectIfExists('proxMentor', p.proxMentor || '');
+    preencherConvidados(p.proxConvidados || []);
     aplicarSugestoes();
 
     if (contextoImportado) renderContexto(contextoImportado);
@@ -841,7 +1112,14 @@ function aplicarContextoImportado() {
     if (cnpjImp) $('cnpj').value = aplicarMascaraCNPJ(cnpjImp);
   }
   if (!$('empresa').value) $('empresa').value = ig['Empresa'] || buscar([/nome.*empresa/i]) || '';
-  if (!$('responsavel').value) $('responsavel').value = ig['Responsável'] || '';
+  // Pré-preenche participantes com o responsável do diagnóstico (se a lista estiver vazia)
+  if (ig['Responsável'] && coletarParticipantes().length === 0) {
+    preencherParticipantes([ig['Responsável']]);
+  }
+
+  // Carrega quadro de execução pelo CNPJ
+  const cnpjAtual = $('cnpj').value;
+  if (cnpjAtual) carregarQuadroExecucao(cnpjAtual);
 
   // Detecta o nível baseado no maior % consolidado (ou o primeiro com pct >= 50)
   if (diag && diag.niveis) {
@@ -869,33 +1147,60 @@ function renderContexto(ctx) {
   $('ctx-card').style.display = 'block';
   const linhas = [];
 
-  // Identificação
-  const cidade = ig['Cidade/Estado'] || '';
-  const segmento = Object.entries(ig).find(([k,v]) => /segmento/i.test(k))?.[1] || '';
-  if (cidade || segmento) linhas.push(`<div class="ctx-row"><div class="lbl">Localização / Segmento</div><div class="val">${[cidade, segmento].filter(Boolean).join(' · ') || '—'}</div></div>`);
+  // Helper: pega primeiro valor por regex no nome da chave
+  const buscar = (...regexes) => {
+    for (const k of Object.keys(ig)) {
+      for (const r of regexes) {
+        if (r.test(k)) {
+          const v = String(ig[k] || '').trim();
+          if (v) return v;
+        }
+      }
+    }
+    return '';
+  };
+  const addLinha = (lbl, val) => {
+    if (val) linhas.push(`<div class="ctx-row"><div class="lbl">${lbl}</div><div class="val">${val}</div></div>`);
+  };
 
-  // Faturamento
-  const fat3m = Object.entries(ig).find(([k,v]) => /faturamento.*total|faturamento.*3.*mes/i.test(k))?.[1] || '';
-  const lucro = Object.entries(ig).find(([k,v]) => /lucro/i.test(k))?.[1] || '';
-  const meta = Object.entries(ig).find(([k,v]) => /meta/i.test(k))?.[1] || '';
-  if (fat3m || lucro || meta) {
-    let s = '';
-    if (fat3m) s += `Faturamento médio 3m: <strong>${fat3m}</strong> · `;
-    if (lucro) s += `Lucro líquido: <strong>${lucro}</strong> · `;
-    if (meta) s += `Meta 12m: <strong>${meta}</strong>`;
-    linhas.push(`<div class="ctx-row"><div class="lbl">Resultado</div><div class="val">${s}</div></div>`);
+  // 1) Cidade/Estado
+  addLinha('Cidade/Estado', buscar(/cidade.*estado/i, /^Cidade\/Estado$/i));
+
+  // 2) Segmento
+  addLinha('Segmento', buscar(/segmento.*atua/i));
+
+  // 3) Modalidade de atendimento
+  addLinha('Modalidade de atendimento', buscar(/modalidade.*atendimento/i));
+
+  // 4) Plataforma de delivery (G17 marketplace + G18 própria)
+  const g17 = buscar(/plataforma.*delivery.*terceirizada|delivery.*marketplace/i);
+  const g18 = buscar(/plataforma.*delivery.*pr[óo]pria/i);
+  if (g17 || g18) {
+    const partes = [];
+    if (g17) partes.push(`<strong>Marketplace:</strong> ${g17}`);
+    if (g18) partes.push(`<strong>Própria:</strong> ${g18}`);
+    linhas.push(`<div class="ctx-row"><div class="lbl">Plataforma de delivery</div><div class="val">${partes.join(' · ')}</div></div>`);
   }
 
-  // Equipe
-  const colab = Object.entries(ig).find(([k,v]) => /colaborador/i.test(k))?.[1] || '';
-  const lider = Object.entries(ig).find(([k,v]) => /l[ií]der/i.test(k))?.[1] || '';
-  if (colab || lider) linhas.push(`<div class="ctx-row"><div class="lbl">Equipe</div><div class="val">${colab ? colab + ' colaboradores' : ''}${colab && lider ? ' · ' : ''}${lider ? lider + ' líderes' : ''}</div></div>`);
+  // 5) Faturamento total médio
+  addLinha('Faturamento total médio', buscar(/faturamento.*total/i));
 
-  // Headline + Próximo passo
-  if (diag && diag.headline) linhas.push(`<div class="ctx-row"><div class="lbl">Resultado diagnóstico</div><div class="val"><strong>${diag.headline}</strong></div></div>`);
-  if (diag && diag.proximoPasso) linhas.push(`<div class="ctx-row"><div class="lbl">Próximo passo</div><div class="val">${diag.proximoPasso}</div></div>`);
+  // 6) % de lucro médio
+  addLinha('% de lucro médio', buscar(/lucro.*l[ií]quido/i, /lucro.*m[ée]dio/i));
 
-  // Níveis (badges)
+  // 7) Meta de faturamento (12 meses)
+  addLinha('Meta de faturamento (12 meses)', buscar(/meta.*faturamento|faturamento.*pr[óo]ximos.*12/i));
+
+  // 8) Como se diferencia dos concorrentes
+  addLinha('Como se diferencia dos concorrentes', buscar(/diferenci.*concorrent/i));
+
+  // 9) Objetivos com a mentoria
+  addLinha('Objetivos com a mentoria', buscar(/objetiv.*metodologia|objetiv.*gest[ãa]o.*life|principais.*objetivos/i));
+
+  // 10) Principais dificuldades
+  addLinha('Principais dificuldades', buscar(/principais.*dificuldades|dificuldades.*enfrent/i));
+
+  // 11) Níveis (badges) — mantém igual
   if (diag && diag.niveis && diag.niveis.length) {
     const NIVEIS_NOMES = {'01':'Saindo do Caos','02':'Colocando Ordem','03':'Virando Empresa','04':'Jogando o Jogo dos Números','05':'Pronto para Escalar'};
     const badges = diag.niveis.map(n => {
@@ -907,13 +1212,17 @@ function renderContexto(ctx) {
     linhas.push(`<div class="ctx-row"><div class="lbl">Níveis</div><div class="val"><div class="niveis-badges">${badges}</div></div></div>`);
   }
 
-  // Objetivos / dificuldades
-  const obj = Object.entries(ig).find(([k,v]) => /objetiv/i.test(k) && /metodologia|gest[ãa]o.*life/i.test(k))?.[1] || Object.entries(ig).find(([k,v]) => /objetiv/i.test(k))?.[1] || '';
-  const dif = Object.entries(ig).find(([k,v]) => /dificuldad/i.test(k))?.[1] || '';
-  if (obj) linhas.push(`<div class="ctx-row"><div class="lbl">Objetivos com a metodologia</div><div class="val">${obj}</div></div>`);
-  if (dif) linhas.push(`<div class="ctx-row"><div class="lbl">Principais dificuldades</div><div class="val">${dif}</div></div>`);
-
   $('ctx-body').innerHTML = linhas.join('') || '<p style="color:var(--text-dim);font-size:13px">Sem dados encontrados.</p>';
+}
+
+function abrirPlanilhaDiagnostico() {
+  const SPREADSHEET_DIAG_ID = '1ead6l48YPajOYtRlR_oAGgR0-yfrZJEH0FTP-7QQ17M';
+  // Tenta abrir na linha da empresa se temos ID Registro
+  const idReg = (contextoImportado && contextoImportado.idRegistro) || '';
+  const url = idReg
+    ? `https://docs.google.com/spreadsheets/d/${SPREADSHEET_DIAG_ID}/edit#gid=0&range=A:F`
+    : `https://docs.google.com/spreadsheets/d/${SPREADSHEET_DIAG_ID}/edit`;
+  window.open(url, '_blank');
 }
 
 function toggleCtx() {
@@ -979,37 +1288,77 @@ function coletarCheckin() {
   return out;
 }
 
-// =========== VITÓRIAS ===========
-function addVitoria(titulo='', resp='', prazo='', ind='', solucao=''){
-  const card = document.createElement('div');
-  card.className = 'item-card';
-  const idx = $('vitorias-list').children.length + 1;
-  card.innerHTML = `
-    <div class="item-head"><div class="item-num">Vitória #${idx}</div><button class="btn-remove" onclick="this.closest('.item-card').remove(); renumerar('vitorias-list','Vitória')">×</button></div>
-    <div class="field" style="margin-bottom:6px"><label>Ação</label><input type="text" class="v-titulo" placeholder="Ex.: Separar conta PF/PJ" value="${titulo.replace(/"/g,'&quot;')}"></div>
-    <div class="field" style="margin-bottom:6px"><label>Sugestão de solução</label><textarea class="v-solucao" rows="2" placeholder="Como executar / passos">${solucao}</textarea></div>
-    <div class="row-small">
-      <div><label style="font-size:10px;color:var(--text-dim);text-transform:uppercase;letter-spacing:1px">Responsável</label><input type="text" class="v-resp" value="${resp.replace(/"/g,'&quot;')}"></div>
-      <div><label style="font-size:10px;color:var(--text-dim);text-transform:uppercase;letter-spacing:1px">Prazo</label><input type="text" class="v-prazo" value="${prazo.replace(/"/g,'&quot;')}"></div>
-      <div><label style="font-size:10px;color:var(--text-dim);text-transform:uppercase;letter-spacing:1px">Indicador</label><input type="text" class="v-ind" value="${ind.replace(/"/g,'&quot;')}"></div>
-    </div>`;
-  $('vitorias-list').appendChild(card);
-}
-function renumerar(listId, label){ document.querySelectorAll(`#${listId} .item-num`).forEach((el,i) => el.textContent = `${label} #${i+1}`); }
+// =========== TÓPICOS DOS NÍVEIS (referência) ===========
+const TOPICOS_NIVEIS = {
+  '01': { nome: 'Saindo do Caos', topicos: ['Mentalidade do dono', 'Objetivo / Propósito da empresa', 'Organograma e RCF', 'Capacitação básica de liderança', 'Despesas PF × PJ', 'Sistema de Gestão', 'Confiar nos números', 'Fechamento e análise da DRE', 'Capital de giro e retirada sócios'] },
+  '02': { nome: 'Colocando Ordem', topicos: ['Ficha técnica e precificação', 'Engenharia de cardápio', 'Ritmo de reuniões', 'Pesquisa de satisfação', 'Foco no Atendimento', 'Foco na Agilidade', 'Foco no Produto', 'Foco no Ambiente'] },
+  '03': { nome: 'Virando Empresa', topicos: ['Missão, Visão, Valores e Rituais', 'Mapeamento de processos', 'Checklists por cargo', 'Treinamentos técnicos', 'Pesquisa de engajamento', 'Feedbacks mensais', 'Gestão de estoque', 'Cotação e compras'] },
+  '04': { nome: 'Jogando o Jogo dos Números', topicos: ['Capacitação avançada de liderança', 'Indicadores de gestão', 'Aumento de faturamento', 'Redução de custos', 'Auditoria mensal'] },
+  '05': { nome: 'Pronto para Escalar', topicos: ['Recrutamento e Seleção (R&S) com base no RCF', 'Conformidades trabalhistas', 'Processo de integração', 'Treinamentos culturais', 'Avaliação de desempenho', 'Plano de Desenvolvimento Individual (PDI)', 'Feedbacks mensais baseado no PDI'] }
+};
 
+// =========== PRIORIDADES DE IMPACTO (texto livre) ===========
+function addPrioridade(texto='') {
+  const root = $('prioridades-list'); if (!root) return;
+  const idx = root.children.length + 1;
+  const row = document.createElement('div');
+  row.className = 'item-simples-row';
+  row.innerHTML = `
+    <div class="num-mini">${String(idx).padStart(2,'0')}</div>
+    <textarea class="p-texto" placeholder="Descreva a prioridade..." oninput="atualizarSugestoesCompromissos()">${(texto||'').replace(/</g,'&lt;')}</textarea>
+    <button class="btn-remove-mini" title="Remover" onclick="this.closest('.item-simples-row').remove(); renumerarSimples('prioridades-list'); atualizarSugestoesCompromissos()">×</button>
+  `;
+  root.appendChild(row);
+}
+function coletarPrioridades() {
+  const root = $('prioridades-list'); if (!root) return [];
+  return Array.from(root.querySelectorAll('.p-texto')).map(t => t.value.trim()).filter(v => v);
+}
+
+// =========== VITÓRIAS RÁPIDAS (texto livre) ===========
+function addVitoria(texto='') {
+  const root = $('vitorias-list'); if (!root) return;
+  const idx = root.children.length + 1;
+  const row = document.createElement('div');
+  row.className = 'item-simples-row';
+  row.innerHTML = `
+    <div class="num-mini">${String(idx).padStart(2,'0')}</div>
+    <textarea class="v-texto" placeholder="Descreva a vitória rápida..." oninput="atualizarSugestoesCompromissos()">${(texto||'').replace(/</g,'&lt;')}</textarea>
+    <button class="btn-remove-mini" title="Remover" onclick="this.closest('.item-simples-row').remove(); renumerarSimples('vitorias-list'); atualizarSugestoesCompromissos()">×</button>
+  `;
+  root.appendChild(row);
+}
+function coletarVitorias() {
+  const root = $('vitorias-list'); if (!root) return [];
+  return Array.from(root.querySelectorAll('.v-texto')).map(t => t.value.trim()).filter(v => v);
+}
+
+function renumerarSimples(listId) {
+  document.querySelectorAll(`#${listId} .num-mini`).forEach((el, i) => {
+    el.textContent = String(i + 1).padStart(2, '0');
+  });
+}
+
+// Atualiza box de referência (níveis posteriores) na seção Vitórias rápidas
 function aplicarSugestoes() {
   const nivel = $('nivel').value;
-  const sug = $('sug-vitorias');
-  if (!nivel) { sug.style.display = 'none'; return; }
-  const d = NIVEIS.find(n => n.num === nivel);
-  if (!d || !d.topicos) return;
-  $('sug-vitorias-list').innerHTML = d.topicos.map(t => `
-    <div class="sug-vitoria-card" onclick="addVitoria('${t.vitoria.replace(/'/g,"\\'")}', '', '', '', '${t.solucao.replace(/'/g,"\\'")}')">
-      <div class="topico"><span class="add-icon">+</span> ${t.nome}</div>
-      <div class="vitoria">${t.vitoria}</div>
-      <div class="solucao">💡 ${t.solucao}</div>
-    </div>`).join('');
-  sug.style.display = 'block';
+  const refBox = $('vitorias-ref-box');
+  const refContent = $('vitorias-ref-content');
+  if (!refBox || !refContent) return;
+  if (!nivel) { refBox.style.display = 'none'; return; }
+  const niveis = ['01','02','03','04','05'];
+  const idxAtual = niveis.indexOf(nivel);
+  const posteriores = niveis.slice(idxAtual + 1);
+  if (!posteriores.length) {
+    refBox.style.display = 'none';
+    return;
+  }
+  refContent.innerHTML = posteriores.map(n => {
+    const info = TOPICOS_NIVEIS[n];
+    if (!info) return '';
+    return `<div class="ref-nivel"><span class="ref-nivel-num">N${n}</span><div><strong>${info.nome}:</strong> <span class="ref-nivel-itens">${info.topicos.join(' · ')}</span></div></div>`;
+  }).join('');
+  refBox.style.display = 'block';
 }
 
 // =========== COMPROMISSOS ===========
@@ -1017,26 +1366,191 @@ function addCompromisso(c={}) {
   const card = document.createElement('div');
   card.className = 'compr-row';
   const hoje = new Date().toISOString().slice(0,10);
+  const status = c.status || 'Aberto';
+  const desc = c.descricao || '';
+  const resp = c.responsavel || c.colaborador || '';
+  const obs = c.obs || c.nota || '';
+  const prazo = c.prazo || '';
   card.innerHTML = `
     <div class="row-grid">
       <div class="field-mini"><label>Data criação</label><input type="date" class="c-criacao" value="${c.dataCriacao || hoje}"></div>
-      <div class="field-mini"><label>Conclusão</label><input type="date" class="c-conclusao" value="${c.dataConclusao || ''}"></div>
-      <div class="field-mini"><label>Descrição</label><input type="text" class="c-desc" value="${(c.descricao||'').replace(/"/g,'&quot;')}"></div>
-      <div class="field-mini"><label>Colaborador</label><input type="text" class="c-colab" value="${(c.colaborador||'').replace(/"/g,'&quot;')}"></div>
-      <div class="field-mini"><label>Prazo</label><input type="text" class="c-prazo" value="${(c.prazo||'').replace(/"/g,'&quot;')}"></div>
+      <div class="field-mini" style="flex:2"><label>Descrição (ação)</label><input type="text" class="c-desc" placeholder="Reescreva como ação executável" value="${desc.replace(/"/g,'&quot;')}"></div>
+      <div class="field-mini"><label>Responsável</label><input type="text" class="c-resp" value="${resp.replace(/"/g,'&quot;')}"></div>
+      <div class="field-mini"><label>Prazo</label><input type="date" class="c-prazo" value="${prazo}"></div>
       <div class="field-mini"><label>Status</label>
         <select class="c-status">
-          <option value="Aberto" ${c.status==='Aberto'?'selected':''}>Aberto</option>
-          <option value="Em andamento" ${c.status==='Em andamento'?'selected':''}>Em andamento</option>
-          <option value="Concluído" ${c.status==='Concluído'?'selected':''}>Concluído</option>
-          <option value="Atrasado" ${c.status==='Atrasado'?'selected':''}>Atrasado</option>
-          <option value="Não feita" ${c.status==='Não feita'?'selected':''}>Não feita</option>
+          <option value="Aberto" ${status==='Aberto'?'selected':''}>Aberto</option>
+          <option value="Em andamento" ${status==='Em andamento'?'selected':''}>Em andamento</option>
+          <option value="Concluído" ${status==='Concluído'?'selected':''}>Concluído</option>
+          <option value="Atrasado" ${status==='Atrasado'?'selected':''}>Atrasado</option>
+          <option value="Não feita" ${status==='Não feita'?'selected':''}>Não feita</option>
         </select>
       </div>
     </div>
-    <div class="nota-row"><textarea class="c-nota" placeholder="Nota / observação">${c.nota||''}</textarea></div>
+    <div class="nota-row"><textarea class="c-obs" placeholder="Obs">${obs}</textarea></div>
     <div class="row-action"><button class="btn-remove" onclick="this.closest('.compr-row').remove()">× Remover</button></div>`;
   $('compr-list').appendChild(card);
+}
+
+// Atualiza sugestões de compromissos com base nas prioridades + vitórias
+function atualizarSugestoesCompromissos() {
+  const sug = $('sug-compromissos');
+  const list = $('sug-compromissos-list');
+  if (!sug || !list) return;
+  const todos = [
+    ...coletarPrioridades().map(t => ({ tipo: 'Prioridade', txt: t })),
+    ...coletarVitorias().map(t => ({ tipo: 'Vitória', txt: t }))
+  ];
+  if (!todos.length) { sug.style.display = 'none'; return; }
+  list.innerHTML = todos.map((it, i) => {
+    const safe = it.txt.replace(/'/g, "\\'").replace(/</g, '&lt;');
+    return `<div class="sug-vitoria-card" onclick="addCompromisso({descricao: '${safe}'})">
+      <div class="topico"><span class="add-icon">+</span> ${it.tipo}</div>
+      <div class="vitoria">${it.txt.replace(/</g,'&lt;')}</div>
+    </div>`;
+  }).join('');
+  sug.style.display = 'block';
+}
+
+// =========== QUADRO DE EXECUÇÃO ===========
+let _quadroExecucaoMeses = []; // array de registros {referencia, faturamento, ...}
+let _quadroExecucaoIdx = 0;
+let _indicadoresRefAtual = '';
+
+const QE_FIELDS = ['faturamento','ticketLoja','ticketDelivery','satisfacao','cmv','cmo','tempoEntrega','notaMarketplace','lucro'];
+
+function coletarIndicadores() {
+  const out = {};
+  QE_FIELDS.forEach(f => {
+    const el = $('qe-'+f);
+    out[f] = el ? el.value.trim() : '';
+  });
+  return out;
+}
+
+function preencherIndicadores(ind, referencia) {
+  QE_FIELDS.forEach(f => {
+    const el = $('qe-'+f);
+    if (el) el.value = ind && ind[f] != null ? ind[f] : '';
+  });
+  _indicadoresRefAtual = referencia || '';
+  $('qe-mes-atual').textContent = referencia || '—';
+}
+
+async function carregarQuadroExecucao(cnpj) {
+  if (!cnpj) return;
+  try {
+    const r = await chamarAPI('buscar-quadro-execucao', { cnpj });
+    _quadroExecucaoMeses = r.registros || [];
+    _quadroExecucaoIdx = 0;
+    if (_quadroExecucaoMeses.length) {
+      mostrarMesQE(_quadroExecucaoIdx);
+    } else {
+      $('qe-mes-atual').textContent = 'Sem registros do cliente';
+    }
+    atualizarBotoesQE();
+  } catch (e) {
+    console.warn('Erro ao buscar quadro de execução:', e);
+  }
+}
+
+function mostrarMesQE(idx) {
+  if (!_quadroExecucaoMeses[idx]) return;
+  const m = _quadroExecucaoMeses[idx];
+  preencherIndicadores({
+    faturamento: m.faturamento, ticketLoja: m.ticketLoja, ticketDelivery: m.ticketDelivery,
+    satisfacao: m.satisfacao, cmv: m.cmv, cmo: m.cmo,
+    tempoEntrega: m.tempoEntrega, notaMarketplace: m.notaMarketplace, lucro: m.lucro
+  }, m.referencia || '');
+}
+
+function navegarMesQE(delta) {
+  if (!_quadroExecucaoMeses.length) return;
+  const novoIdx = _quadroExecucaoIdx + delta;
+  if (novoIdx < 0 || novoIdx >= _quadroExecucaoMeses.length) return;
+  _quadroExecucaoIdx = novoIdx;
+  mostrarMesQE(novoIdx);
+  atualizarBotoesQE();
+}
+
+function atualizarBotoesQE() {
+  const prev = $('qe-prev'), next = $('qe-next');
+  if (!prev || !next) return;
+  prev.disabled = _quadroExecucaoIdx <= 0;
+  next.disabled = _quadroExecucaoIdx >= _quadroExecucaoMeses.length - 1;
+}
+
+function abrirPlanilhaQuadroExecucao() {
+  const SPREADSHEET_DIAG_ID = '1ead6l48YPajOYtRlR_oAGgR0-yfrZJEH0FTP-7QQ17M';
+  const QE_GID = 706591576;
+  const url = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_DIAG_ID}/edit?gid=${QE_GID}#gid=${QE_GID}`;
+  window.open(url, '_blank');
+}
+
+// =========== CONVIDADOS (PRÓXIMA REUNIÃO) ===========
+function addConvidado(email='') {
+  const root = $('convidados-list'); if (!root) return;
+  const row = document.createElement('div');
+  row.className = 'participante-row';
+  const safe = (email || '').replace(/"/g, '&quot;');
+  row.innerHTML = `
+    <input type="email" class="conv-email" placeholder="email@exemplo.com" value="${safe}">
+    <button type="button" class="btn-remove-mini" title="Remover" onclick="this.closest('.participante-row').remove()">×</button>
+  `;
+  root.appendChild(row);
+}
+function coletarConvidados() {
+  const root = $('convidados-list'); if (!root) return [];
+  return Array.from(root.querySelectorAll('.conv-email')).map(i => i.value.trim()).filter(v => v);
+}
+function preencherConvidados(lista) {
+  const root = $('convidados-list'); if (!root) return;
+  root.innerHTML = '';
+  (lista || []).forEach(e => addConvidado(e));
+}
+
+// =========== MENTOR / CONSULTORES ===========
+let _consultoresCache = [];
+
+async function carregarConsultores() {
+  try {
+    const r = await chamarAPI('listar-consultores');
+    _consultoresCache = r.consultores || [];
+    const sel = $('proxMentor');
+    if (sel) {
+      const atual = sel.value;
+      sel.innerHTML = '<option value="">-- Selecione --</option>' + _consultoresCache.map(c =>
+        `<option value="${c.nome.replace(/"/g,'&quot;')}">${c.nome}</option>`
+      ).join('');
+      sel.value = atual || '';
+    }
+  } catch (e) { console.warn('Erro ao listar consultores:', e); }
+}
+
+function onMentorChange() {
+  const sel = $('proxMentor');
+  if (!sel) return;
+  const nome = sel.value;
+  const c = _consultoresCache.find(c => c.nome === nome);
+  if (c && c.email) {
+    // Adiciona o email do mentor se ainda não estiver na lista
+    const emails = coletarConvidados();
+    if (!emails.includes(c.email)) addConvidado(c.email);
+  }
+}
+
+function setSelectIfExists(id, val) {
+  const el = $(id);
+  if (!el) return;
+  // Se for select e o valor não tiver nas options, adiciona
+  if (el.tagName === 'SELECT') {
+    if (val && !Array.from(el.options).some(o => o.value === val)) {
+      const opt = document.createElement('option');
+      opt.value = val; opt.textContent = val;
+      el.appendChild(opt);
+    }
+  }
+  el.value = val || '';
 }
 
 // =========== DICAS SWOT ===========
@@ -1047,14 +1561,22 @@ function toggleDicas(id) {
 
 // =========== LIMPAR ===========
 function limparFormulario(){
-  ['cnpj','empresa','responsavel','objetivo12m','ata','swot-forcas','swot-fraquezas','swot-oportunidades','swot-ameacas','kpis','frequencia','proxFormato','proxMentor','proxPauta'].forEach(id => $(id).value = '');
-  ['proxData','proxHora'].forEach(id => $(id).value = '');
-  $('proxDuracao').value = 60;
+  ['cnpj','empresa','objetivoReuniao','ata','swot-forcas','swot-fraquezas','swot-oportunidades','swot-ameacas'].forEach(id => { const el = $(id); if (el) el.value = ''; });
+  ['proxData','proxHora','proxFormato','proxMentor'].forEach(id => { const el = $(id); if (el) el.value = ''; });
   $('nivel').value = '';
   $('data').value = new Date().toISOString().slice(0,10);
-  $('vitorias-list').innerHTML = '';
-  $('compr-list').innerHTML = '';
-  $('sug-vitorias').style.display = 'none';
+  // Listas dinâmicas
+  preencherParticipantes([]);
+  const lp = $('prioridades-list'); if (lp) lp.innerHTML = '';
+  const lv = $('vitorias-list'); if (lv) lv.innerHTML = '';
+  const lc = $('compr-list'); if (lc) lc.innerHTML = '';
+  const lconv = $('convidados-list'); if (lconv) lconv.innerHTML = '';
+  const sv = $('sug-vitorias'); if (sv) sv.style.display = 'none';
+  const sc = $('sug-compromissos'); if (sc) sc.style.display = 'none';
+  // Limpa indicadores
+  QE_FIELDS.forEach(f => { const el = $('qe-'+f); if (el) el.value = ''; });
+  $('qe-mes-atual').textContent = '—';
+  _quadroExecucaoMeses = []; _quadroExecucaoIdx = 0; _indicadoresRefAtual = '';
   $('secao-checkin').style.display = 'none';
   $('checkin-root').innerHTML = '';
   $('ctx-card').style.display = 'none';
@@ -1063,34 +1585,30 @@ function limparFormulario(){
 
 // =========== COLETA + SALVAR ===========
 function coletar() {
-  const vitorias = [...document.querySelectorAll('#vitorias-list .item-card')].map(c => ({
-    titulo: c.querySelector('.v-titulo').value.trim(),
-    solucao: c.querySelector('.v-solucao').value.trim(),
-    resp: c.querySelector('.v-resp').value.trim(),
-    prazo: c.querySelector('.v-prazo').value.trim(),
-    ind: c.querySelector('.v-ind').value.trim()
-  })).filter(v => v.titulo);
+  const prioridades = coletarPrioridades();
+  const vitorias = coletarVitorias();
   const compromissos = [...document.querySelectorAll('#compr-list .compr-row')].map(c => ({
-    dataCriacao: c.querySelector('.c-criacao').value,
-    dataConclusao: c.querySelector('.c-conclusao').value,
-    descricao: c.querySelector('.c-desc').value.trim(),
-    colaborador: c.querySelector('.c-colab').value.trim(),
-    prazo: c.querySelector('.c-prazo').value.trim(),
-    status: c.querySelector('.c-status').value,
-    nota: c.querySelector('.c-nota').value.trim()
+    dataCriacao: c.querySelector('.c-criacao')?.value || '',
+    descricao: c.querySelector('.c-desc')?.value.trim() || '',
+    responsavel: c.querySelector('.c-resp')?.value.trim() || c.querySelector('.c-colab')?.value.trim() || '',
+    prazo: c.querySelector('.c-prazo')?.value || '',
+    status: c.querySelector('.c-status')?.value || 'Aberto',
+    obs: c.querySelector('.c-obs')?.value.trim() || c.querySelector('.c-nota')?.value.trim() || ''
   })).filter(c => c.descricao);
 
+  const participantes = coletarParticipantes();
   return {
     idPlano: idPlanoAtual || undefined,
     cnpj: $('cnpj').value.trim(),
     empresa: $('empresa').value.trim(),
-    responsavel: $('responsavel').value.trim(),
+    participantes: participantes,
+    responsavel: participantes.join(', '), // mantém compatibilidade
     data: $('data').value || new Date().toISOString().slice(0,10),
     reuniao: parseInt($('reuniao').value) || 1,
     consultor: consultorLogado ? consultorLogado.nome : '',
     nivelNum: $('nivel').value || '',
     headline: $('nivel').value ? `Reunião ${$('reuniao').value} · Nível ${$('nivel').value}` : `Reunião ${$('reuniao').value}`,
-    objetivo12m: $('objetivo12m').value.trim(),
+    objetivoReuniao: $('objetivoReuniao').value.trim(),
     ata: $('ata').value.trim(),
     swot: {
       forcas: $('swot-forcas').value.trim(),
@@ -1098,15 +1616,14 @@ function coletar() {
       oportunidades: $('swot-oportunidades').value.trim(),
       ameacas: $('swot-ameacas').value.trim()
     },
-    vitorias, compromissos,
-    kpis: $('kpis').value.trim(),
-    frequencia: $('frequencia').value.trim(),
+    prioridades, vitorias, compromissos,
+    indicadores: coletarIndicadores(),
+    indicadoresReferencia: _indicadoresRefAtual || '',
     proxData: $('proxData').value || '',
     proxHora: $('proxHora').value || '',
-    proxDuracao: parseInt($('proxDuracao').value) || 60,
-    proxFormato: $('proxFormato').value.trim(),
-    proxMentor: $('proxMentor').value.trim(),
-    proxPauta: $('proxPauta').value.trim(),
+    proxFormato: $('proxFormato')?.value || '',
+    proxMentor: $('proxMentor')?.value || '',
+    proxConvidados: coletarConvidados(),
     contextoImportado: contextoImportado,
     checkin: coletarCheckin()
   };
@@ -1116,10 +1633,9 @@ async function salvarEGerar() {
   const btn = $('btn-salvar');
   const d = coletar();
   if (!d.empresa) { toast('⚠ Preencha a Empresa', 3500, true); return; }
-  if (!d.responsavel) { toast('⚠ Preencha o Responsável', 3500, true); return; }
+  if (!d.participantes || !d.participantes.length) { toast('⚠ Adicione pelo menos um Participante', 3500, true); return; }
   if (!d.data) { toast('⚠ Preencha a Data da reunião', 3500, true); return; }
   if (!d.reuniao || d.reuniao < 1) { toast('⚠ Número da reunião inválido', 3500, true); return; }
-  if (d.vitorias.length < 2) { toast('⚠ Mínimo de 2 vitórias rápidas', 4000, true); return; }
   btn.disabled = true; btn.innerHTML = '<span class="spinner"></span>Salvando...';
   try {
     const r = await chamarAPI('salvar-plano', { plano: d });
@@ -1150,19 +1666,26 @@ function abrirGoogleAgenda() {
   const empresa = $('empresa').value.trim() || 'Cliente';
   const reuniao = parseInt($('reuniao').value) || 1;
   const proxReuniao = reuniao + 1;
-  const formato = $('proxFormato').value.trim();
-  const mentor = $('proxMentor').value.trim();
-  const pauta = $('proxPauta').value.trim();
-  const duracao = parseInt($('proxDuracao').value) || 60;
+  const formato = $('proxFormato').value || '';
+  const mentor = $('proxMentor').value || '';
+  const convidados = coletarConvidados();
+  const duracao = 60; // padrão
   const [y,m,d] = data.split('-'), [h,mi] = hora.split(':');
   const start = new Date(parseInt(y), parseInt(m)-1, parseInt(d), parseInt(h), parseInt(mi));
   const end = new Date(start.getTime() + duracao*60000);
   const fmt = (dt) => `${dt.getFullYear()}${String(dt.getMonth()+1).padStart(2,'0')}${String(dt.getDate()).padStart(2,'0')}T${String(dt.getHours()).padStart(2,'0')}${String(dt.getMinutes()).padStart(2,'0')}00`;
   const partes = [`Reunião ${proxReuniao} · ${empresa}`, `Mentor: ${mentor || '—'}`, `Formato: ${formato || '—'}`];
-  if (pauta) { partes.push(''); partes.push('PAUTA / MATERIAL:'); partes.push(pauta); }
-  const params = new URLSearchParams({ action:'TEMPLATE', text:`Reunião ${proxReuniao} · ${empresa} · Gestão PRO`, dates:`${fmt(start)}/${fmt(end)}`, details:partes.join('\n'), location: formato||'' });
+  if (convidados.length) { partes.push(''); partes.push('CONVIDADOS: ' + convidados.join(', ')); }
+  const params = new URLSearchParams({
+    action: 'TEMPLATE',
+    text: `Reunião ${proxReuniao} · ${empresa} · Gestão PRO`,
+    dates: `${fmt(start)}/${fmt(end)}`,
+    details: partes.join('\n'),
+    location: formato || ''
+  });
+  if (convidados.length) params.append('add', convidados.join(','));
   window.open(`https://calendar.google.com/calendar/render?${params.toString()}`, '_blank');
-  toast('✓ Abrindo Google Agenda', 2500);
+  toast('✓ Abrindo Google Agenda · ' + (convidados.length ? convidados.length + ' convidado(s)' : 'sem convidados'), 3000);
 }
 
 // =========== PDF ===========
@@ -1250,15 +1773,25 @@ async function gerarPDF(d) {
   const heading = (txt) => { ensureSpace(40); doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(...CL.accent); doc.text(txt, margin, y, { charSpace:2 }); y += 18; };
   const para = (txt, max = pageW-margin*2) => { doc.setFont('helvetica','normal'); doc.setFontSize(11); doc.setTextColor(60,70,100); const l = doc.splitTextToSize(txt, max); ensureSpace(l.length*14+8); doc.text(l, margin, y); y += l.length*14 + 8; };
 
-  // Objetivo
-  if (d.objetivo12m) { heading('OBJETIVO COMBINADO'); para(d.objetivo12m); y += 6; }
+  // Participantes
+  if (d.participantes && d.participantes.length) {
+    heading('PARTICIPANTES');
+    para(d.participantes.join(', '));
+    y += 4;
+  }
+
+  // Objetivo da reunião
+  if (d.objetivoReuniao) { heading('OBJETIVO DA REUNIÃO'); para(d.objetivoReuniao); y += 6; }
 
   // Check-in
   const ckKeys = Object.keys(d.checkin || {});
   if (ckKeys.length && reuniaoAnteriorData) {
     heading('CHECK-IN DA REUNIÃO ANTERIOR');
     const todos = [];
-    (reuniaoAnteriorData.vitorias || []).forEach((v,i) => todos.push({ key: 'v'+i, tipo: 'Vitória', titulo: v.titulo }));
+    (reuniaoAnteriorData.vitorias || []).forEach((v,i) => {
+      const titulo = typeof v === 'string' ? v : v.titulo;
+      todos.push({ key: 'v'+i, tipo: 'Vitória', titulo });
+    });
     (reuniaoAnteriorData.compromissos || []).forEach((c,i) => todos.push({ key: 'c'+i, tipo: 'Compromisso', titulo: c.descricao }));
     todos.forEach(item => {
       const ck = d.checkin[item.key]; if (!ck) return;
@@ -1312,38 +1845,31 @@ async function gerarPDF(d) {
     y += 4;
   }
 
-  // Vitórias
-  if (d.vitorias.length) {
-    heading('VITÓRIAS RÁPIDAS');
-    d.vitorias.forEach((v,i) => {
-      doc.setFont('helvetica','bold'); doc.setFontSize(11);
-      const tL = doc.splitTextToSize(v.titulo, pageW-margin*2-56);
-      const metas = [];
-      if (v.solucao) metas.push(`Solução: ${v.solucao}`);
-      if (v.resp) metas.push(`Responsável: ${v.resp}`);
-      if (v.prazo) metas.push(`Prazo: ${v.prazo}`);
-      if (v.ind) metas.push(`Indicador: ${v.ind}`);
-      doc.setFont('helvetica','normal'); doc.setFontSize(9);
-      const metaLines = [];
-      metas.forEach(m => { metaLines.push(...doc.splitTextToSize(m, pageW-margin*2-56)); });
-      const topPad=14, bottomPad=12, gap = metaLines.length ? 8 : 0;
-      const cardH = topPad + tL.length*16 + gap + metaLines.length*12 + bottomPad;
+  // Prioridades de impacto
+  const renderListaSimples = (titulo, lista, corBg, corBarra, corNum) => {
+    if (!lista || !lista.length) return;
+    heading(titulo);
+    lista.forEach((txt, i) => {
+      const t = typeof txt === 'string' ? txt : (txt.titulo || '');
+      if (!t.trim()) return;
+      doc.setFont('helvetica','normal'); doc.setFontSize(11);
+      const tL = doc.splitTextToSize(t, pageW-margin*2-56);
+      const topPad=12, bottomPad=10;
+      const cardH = topPad + tL.length*15 + bottomPad;
       ensureSpace(cardH+6);
-      doc.setFillColor(255,251,235); doc.roundedRect(margin, y, pageW-margin*2, cardH, 8, 8, 'F');
-      doc.setFillColor(...CL.yellow); doc.roundedRect(margin, y, 4, cardH, 2, 2, 'F');
-      doc.setFont('helvetica','bold'); doc.setFontSize(15); doc.setTextColor(161,98,7);
+      doc.setFillColor(...corBg); doc.roundedRect(margin, y, pageW-margin*2, cardH, 8, 8, 'F');
+      doc.setFillColor(...corBarra); doc.roundedRect(margin, y, 4, cardH, 2, 2, 'F');
+      doc.setFont('helvetica','bold'); doc.setFontSize(13); doc.setTextColor(...corNum);
       doc.text(String(i+1).padStart(2,'0'), margin+14, y+topPad+10);
-      doc.setFont('helvetica','bold'); doc.setFontSize(11); doc.setTextColor(...CL.textDark);
+      doc.setFont('helvetica','normal'); doc.setFontSize(11); doc.setTextColor(...CL.textDark);
       doc.text(tL, margin+44, y+topPad+10);
-      if (metaLines.length) {
-        doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(140,120,60);
-        const startY = y + topPad + tL.length*16 + gap + 8;
-        metaLines.forEach((m,mi) => doc.text(m, margin+44, startY+mi*12));
-      }
       y += cardH + 6;
     });
     y += 4;
-  }
+  };
+
+  renderListaSimples('PRIORIDADES DE IMPACTO', d.prioridades, [240,247,255], CL.accent, [25,79,160]);
+  renderListaSimples('VITÓRIAS RÁPIDAS', d.vitorias, [255,251,235], CL.yellow, [161,98,7]);
 
   // Compromissos
   if (d.compromissos.length) {
@@ -1352,10 +1878,11 @@ async function gerarPDF(d) {
       doc.setFont('helvetica','bold'); doc.setFontSize(11);
       const descL = doc.splitTextToSize(c.descricao, pageW-margin*2-100);
       const metas = [];
-      if (c.colaborador) metas.push(`Colaborador: ${c.colaborador}`);
-      if (c.dataConclusao) metas.push(`Conclusão: ${formatarData(c.dataConclusao)}`);
-      if (c.prazo) metas.push(`Prazo: ${c.prazo}`);
-      if (c.nota) metas.push(`Nota: ${c.nota}`);
+      const resp = c.responsavel || c.colaborador;
+      if (resp) metas.push(`Responsável: ${resp}`);
+      if (c.prazo) metas.push(`Prazo: ${formatarData(c.prazo)}`);
+      const obs = c.obs || c.nota;
+      if (obs) metas.push(`Obs: ${obs}`);
       doc.setFont('helvetica','normal'); doc.setFontSize(9);
       const metaLines = [];
       metas.forEach(m => { metaLines.push(...doc.splitTextToSize(m, pageW-margin*2-50)); });
@@ -1384,25 +1911,40 @@ async function gerarPDF(d) {
     y += 4;
   }
 
-  // Indicadores
-  if (d.kpis || d.frequencia) {
-    heading('INDICADORES');
-    if (d.kpis) {
-      d.kpis.split('\n').filter(k=>k.trim()).forEach(kpi => {
-        doc.setFont('helvetica','normal'); doc.setFontSize(10);
-        const l = doc.splitTextToSize(kpi.trim(), pageW-margin*2-20);
-        ensureSpace(l.length*14+4);
-        doc.setFillColor(...CL.accent); doc.circle(margin+6, y-2, 2.5, 'F');
-        doc.setTextColor(...CL.textDark); doc.text(l, margin+14, y);
-        y += l.length*14;
-      });
-      y += 6;
-    }
-    if (d.frequencia) {
-      doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(...CL.accent);
-      doc.text('FREQUÊNCIA DE REVISÃO', margin, y, { charSpace:1 }); y += 12;
-      para(d.frequencia);
-    }
+  // Quadro de Execução (9 indicadores)
+  if (d.indicadores && Object.values(d.indicadores).some(v => v !== '' && v != null)) {
+    heading('QUADRO DE EXECUÇÃO' + (d.indicadoresReferencia ? ' · ' + d.indicadoresReferencia : ''));
+    const ind = d.indicadores;
+    const fmtR = (v) => v === '' || v == null ? '—' : 'R$ ' + Number(v).toLocaleString('pt-BR', { minimumFractionDigits:2, maximumFractionDigits:2 });
+    const fmtP = (v) => v === '' || v == null ? '—' : v + '%';
+    const itens = [
+      ['Faturamento', fmtR(ind.faturamento)],
+      ['Ticket Médio · Loja', fmtR(ind.ticketLoja)],
+      ['Ticket Médio · Delivery', fmtR(ind.ticketDelivery)],
+      ['% de Satisfação', fmtP(ind.satisfacao)],
+      ['% CMV', fmtP(ind.cmv)],
+      ['% CMO', fmtP(ind.cmo)],
+      ['Tempo de Entrega', ind.tempoEntrega ? ind.tempoEntrega + ' min' : '—'],
+      ['Nota Marketplace', ind.notaMarketplace || '—'],
+      ['% Lucro', fmtP(ind.lucro)]
+    ];
+    const cardW = (pageW - margin*2 - 12) / 3;
+    const cardHInd = 50;
+    let col = 0, rowY = y;
+    itens.forEach((it, i) => {
+      if (col === 0) ensureSpace(cardHInd + 8);
+      const x = margin + col * (cardW + 6);
+      doc.setFillColor(245,250,255); doc.roundedRect(x, rowY, cardW, cardHInd, 6, 6, 'F');
+      doc.setFillColor(...CL.accent); doc.roundedRect(x, rowY, 3, cardHInd, 1.5, 1.5, 'F');
+      doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor(...CL.accent);
+      doc.text(it[0].toUpperCase(), x+10, rowY+14, { charSpace:1 });
+      doc.setFont('helvetica','bold'); doc.setFontSize(14); doc.setTextColor(...CL.textDark);
+      doc.text(String(it[1]), x+10, rowY+34);
+      col++;
+      if (col === 3) { col = 0; rowY += cardHInd + 6; }
+    });
+    if (col !== 0) rowY += cardHInd + 6;
+    y = rowY + 4;
   }
 
   // Próxima reunião
@@ -1411,8 +1953,9 @@ async function gerarPDF(d) {
   if (d.proxData) prxLines.push(`Data: ${formatarData(d.proxData)}${d.proxHora ? ' às '+d.proxHora : ''}`);
   if (d.proxFormato) prxLines.push(`Formato: ${d.proxFormato}`);
   if (d.proxMentor) prxLines.push(`Mentor: ${d.proxMentor}`);
-  const prxPauta = d.proxPauta ? doc.splitTextToSize(d.proxPauta, pageW-margin*2-32) : [];
-  const prxH = 30 + prxLines.length*14 + (prxPauta.length ? prxPauta.length*13+16 : 0) + 14;
+  const convidadosTxt = d.proxConvidados && d.proxConvidados.length ? d.proxConvidados.join(', ') : '';
+  const convidadosL = convidadosTxt ? doc.splitTextToSize('Convidados: ' + convidadosTxt, pageW-margin*2-32) : [];
+  const prxH = 30 + prxLines.length*14 + (convidadosL.length ? convidadosL.length*13+8 : 0) + 14;
   ensureSpace(prxH+8);
   doc.setFillColor(...CL.bgDark); doc.roundedRect(margin, y, pageW-margin*2, prxH, 8, 8, 'F');
   doc.setFillColor(...CL.accent); doc.roundedRect(margin, y, 4, prxH, 2, 2, 'F');
@@ -1421,12 +1964,10 @@ async function gerarPDF(d) {
   let subY = y+40;
   doc.setFont('helvetica','normal'); doc.setFontSize(11); doc.setTextColor(...CL.text);
   prxLines.forEach(ln => { doc.text(ln, margin+16, subY); subY += 14; });
-  if (prxPauta.length) {
-    subY += 6;
-    doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(...CL.accent);
-    doc.text('PAUTA / MATERIAL', margin+16, subY); subY += 12;
+  if (convidadosL.length) {
+    subY += 4;
     doc.setFont('helvetica','normal'); doc.setFontSize(10); doc.setTextColor(...CL.textDim);
-    doc.text(prxPauta, margin+16, subY);
+    doc.text(convidadosL, margin+16, subY);
   }
   y += prxH + 16;
 
@@ -1439,9 +1980,20 @@ async function gerarPDF(d) {
 
 // =========== INIT ===========
 (function init(){
+  // Enter no modal de busca dispara buscar
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && document.activeElement?.id === 'buscar-input') {
+      e.preventDefault();
+      confirmarBuscaEmpresa();
+    }
+    if (e.key === 'Escape' && $('modal-buscar-empresa')?.classList.contains('open')) {
+      fecharModalBuscaEmpresa();
+    }
+  });
+
   const salvo = localStorage.getItem('planoLogin');
   if (salvo) {
-    try { consultorLogado = JSON.parse(salvo); irDashboard(); return; } catch(e) {}
+    try { consultorLogado = JSON.parse(salvo); irDashboard(); carregarConsultores(); return; } catch(e) {}
   }
   $('data').value = new Date().toISOString().slice(0,10);
   mostrarView('view-login');
