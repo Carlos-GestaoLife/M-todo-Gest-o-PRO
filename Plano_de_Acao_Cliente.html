@@ -108,6 +108,35 @@
   .ctx-card .ctx-row .lbl { min-width: 130px; color: var(--text-dim); font-weight: 600; }
   .ctx-card .ctx-row .val { flex: 1; color: var(--text); }
 
+  /* Banner de anexo */
+  .anexo-banner { background: linear-gradient(135deg, rgba(251,191,36,.06), rgba(122,162,255,.04)); border: 1px dashed rgba(251,191,36,.4); border-radius: 12px; padding: 14px 18px; margin-top: 16px; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+  .anexo-banner strong { color: #fbbf24; font-size: 13px; letter-spacing: .5px; text-transform: uppercase; }
+
+  /* Compromissos — tabela compacta */
+  .compr-tabela { background: rgba(255,255,255,.02); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+  .compr-header { display: grid; grid-template-columns: 110px 1fr 130px 110px 130px 90px; gap: 8px; padding: 10px 12px; background: rgba(77,201,255,.08); font-size: 10px; color: var(--accent); letter-spacing: 1px; text-transform: uppercase; font-weight: 800; border-bottom: 1px solid var(--border); }
+  .compr-body { display: flex; flex-direction: column; }
+  .compr-linha { display: grid; grid-template-columns: 110px 1fr 130px 110px 130px 90px; gap: 8px; padding: 8px 12px; border-bottom: 1px solid rgba(255,255,255,.04); align-items: center; }
+  .compr-linha:last-child { border-bottom: none; }
+  .compr-linha input, .compr-linha select { width: 100%; box-sizing: border-box; background: rgba(0,0,0,.25); border: 1px solid var(--border); border-radius: 6px; padding: 7px 9px; color: var(--text); font-size: 13px; font-family: inherit; }
+  .compr-linha input:focus, .compr-linha select:focus { outline: none; border-color: var(--accent); }
+  .compr-acoes { display: flex; gap: 4px; justify-content: flex-end; }
+  .compr-icon-btn { background: rgba(77,201,255,.1); color: var(--accent); border: 1px solid rgba(77,201,255,.3); border-radius: 6px; width: 32px; height: 32px; cursor: pointer; font-size: 14px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all .15s; }
+  .compr-icon-btn:hover { background: rgba(77,201,255,.2); }
+  .compr-icon-btn.has-obs { background: rgba(251,191,36,.15); color: #fbbf24; border-color: rgba(251,191,36,.4); }
+  .compr-icon-btn.btn-del { background: rgba(248,113,113,.1); color: #f87171; border-color: rgba(248,113,113,.3); }
+  .compr-icon-btn.btn-del:hover { background: rgba(248,113,113,.25); }
+  .compr-obs-popup { position: absolute; right: 0; top: calc(100% + 6px); background: var(--bg-darker); border: 1px solid var(--accent); border-radius: 8px; padding: 12px; width: 320px; z-index: 50; box-shadow: 0 8px 28px rgba(0,0,0,.5); }
+  .compr-obs-popup textarea { width: 100%; box-sizing: border-box; background: rgba(0,0,0,.3); border: 1px solid var(--border); color: var(--text); border-radius: 6px; padding: 8px 10px; font-size: 13px; min-height: 70px; resize: vertical; font-family: inherit; }
+  .compr-obs-wrapper { position: relative; }
+
+  @media (max-width: 900px) {
+    .compr-header { display: none; }
+    .compr-linha { grid-template-columns: 1fr; gap: 6px; padding: 12px; border: 1px solid var(--border); border-radius: 8px; margin-bottom: 8px; }
+    .compr-linha > div, .compr-linha > input, .compr-linha > select { width: 100%; }
+    .compr-linha input::before, .compr-linha select::before { content: attr(data-lbl); display: block; font-size: 10px; color: var(--text-dim); margin-bottom: 2px; }
+  }
+
   /* Quadro de Execução */
   .qe-toolbar { display:flex; align-items:center; gap:10px; margin-bottom:14px; flex-wrap:wrap; }
   .qe-nav { background: rgba(77,201,255,.12); color: var(--accent); border:1px solid rgba(77,201,255,.3); border-radius:8px; width:36px; height:36px; cursor:pointer; font-size:18px; font-weight:700; }
@@ -116,12 +145,26 @@
   .qe-mes-info { display:flex; flex-direction:column; align-items:center; min-width:170px; }
   .qe-label { font-size:10px; color:var(--text-dim); letter-spacing:1.5px; text-transform:uppercase; }
   .qe-mes { font-size:15px; font-weight:700; color:var(--accent); margin-top:2px; }
-  .qe-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:12px; }
-  .qe-card { position:relative; background:rgba(255,255,255,.02); border:1px solid var(--border); border-radius:10px; padding:12px 14px; }
-  .qe-card label { display:block; font-size:11px; color:var(--text-dim); text-transform:uppercase; letter-spacing:1px; margin-bottom:6px; font-weight:700; }
-  .qe-card input { width:100%; box-sizing:border-box; background:rgba(0,0,0,.25); border:1px solid var(--border); border-radius:6px; padding:8px 32px 8px 10px; color:var(--text); font-size:15px; font-weight:600; }
+  .qe-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(240px, 1fr)); gap:12px; }
+  .qe-card { position:relative; background:rgba(255,255,255,.02); border:1px solid var(--border); border-radius:10px; padding:12px 14px 14px; }
+  .qe-card .qe-titulo { font-size:11px; color:var(--text-dim); text-transform:uppercase; letter-spacing:1px; margin-bottom:8px; font-weight:700; }
+  .qe-meta-box { display:flex; gap:6px; align-items:center; font-size:10.5px; color:var(--text-dim); margin-bottom:6px; }
+  .qe-meta-box .meta-tag { background:rgba(122,162,255,.12); color:#a5b4fc; padding:2px 7px; border-radius:4px; font-weight:700; letter-spacing:.5px; }
+  .qe-input-wrap { position:relative; }
+  .qe-card input { width:100%; box-sizing:border-box; background:rgba(0,0,0,.25); border:1px solid var(--border); border-radius:6px; padding:9px 36px 9px 10px; color:var(--text); font-size:17px; font-weight:700; }
   .qe-card input:focus { outline:none; border-color: var(--accent); }
-  .qe-card .qe-suffix { position:absolute; right:24px; bottom:20px; color:var(--text-dim); font-size:13px; pointer-events:none; }
+  .qe-card .qe-suffix { position:absolute; right:10px; top:50%; transform:translateY(-50%); color:var(--text-dim); font-size:13px; pointer-events:none; font-weight:600; }
+  .qe-progress { height:6px; background: rgba(255,255,255,.06); border-radius:3px; margin-top:10px; overflow:hidden; position:relative; }
+  .qe-progress-fill { height:100%; border-radius:3px; transition: width .3s, background .3s; }
+  .qe-progress-fill.ok { background: #22c55e; }
+  .qe-progress-fill.warn { background: #fbbf24; }
+  .qe-progress-fill.bad { background: #f87171; }
+  .qe-progress-fill.neutro { background: var(--accent); }
+  .qe-pct { display:flex; justify-content:space-between; align-items:center; margin-top:6px; font-size:11px; color:var(--text-dim); }
+  .qe-pct .pct-val { font-weight:700; }
+  .qe-pct .pct-val.ok { color:#22c55e; }
+  .qe-pct .pct-val.warn { color:#fbbf24; }
+  .qe-pct .pct-val.bad { color:#f87171; }
 
   /* Itens simples (texto livre com botão remover) */
   .items-list-simples { display: flex; flex-direction: column; gap: 8px; }
@@ -337,7 +380,10 @@
     </div>
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; flex-wrap:wrap; gap: 10px">
       <h1 style="text-transform:none;font-size:22px;margin:0">Empresas</h1>
-      <button class="btn btn-primary" onclick="novaEmpresa()">+ Criar nova reunião</button>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn btn-secondary" onclick="gerarPDFBranco()" title="PDF em branco pra reunião presencial">📄 PDF em branco</button>
+        <button class="btn btn-primary" onclick="novaEmpresa()">+ Criar nova reunião</button>
+      </div>
     </div>
     <div class="search-bar"><input type="text" id="busca" placeholder="🔍 Buscar empresa..." oninput="filtrarEmpresas()"></div>
     <div id="empresas-root" class="empresa-grid"></div>
@@ -525,17 +571,27 @@
       <div class="section-head"><div class="num">05</div><div><h2>Compromissos</h2><div class="sub">Toda prioridade e vitória vira ação · reescreva como ação executável</div></div></div>
       <div class="section-body">
         <div id="sug-compromissos" style="display:none">
-          <p style="font-size:12px;color:var(--text-dim);margin:0 0 10px"><strong style="color:var(--accent)">PRIORIDADES + VITÓRIAS:</strong> clique pra adicionar como compromisso editável</p>
+          <p style="font-size:12px;color:var(--text-dim);margin:0 0 10px"><strong style="color:var(--accent)">PRIORIDADES + VITÓRIAS:</strong> clique pra adicionar como compromisso (descrição vem em branco pra você escrever a ação)</p>
           <div id="sug-compromissos-list"></div>
         </div>
-        <div class="compr-table" id="compr-list" style="margin-top:12px"></div>
-        <button class="btn-add" onclick="addCompromisso()">+ Adicionar compromisso</button>
+        <div class="compr-tabela" id="compr-list" style="margin-top:12px">
+          <div class="compr-header">
+            <div class="cl-criacao">Data criação</div>
+            <div class="cl-desc">Descrição (ação)</div>
+            <div class="cl-resp">Responsável</div>
+            <div class="cl-prazo">Prazo</div>
+            <div class="cl-status">Status</div>
+            <div class="cl-acoes"></div>
+          </div>
+          <div class="compr-body" id="compr-body"></div>
+        </div>
+        <button class="btn-add" onclick="addCompromisso()" style="margin-top:10px">+ Adicionar compromisso</button>
       </div>
     </section>
 
     <!-- 06. QUADRO DE EXECUÇÃO -->
     <section class="section">
-      <div class="section-head"><div class="num">06</div><div><h2>Quadro de execução</h2><div class="sub">Indicadores atuais da operação · puxado da última atualização do cliente</div></div></div>
+      <div class="section-head"><div class="num">06</div><div><h2>QUADRO DE EXECUÇÃO (INDICADORES)</h2><div class="sub">Indicadores atuais da operação · puxado da última atualização do cliente</div></div></div>
       <div class="section-body">
         <div class="qe-toolbar">
           <button type="button" class="qe-nav" id="qe-prev" onclick="navegarMesQE(-1)" title="Mês anterior">←</button>
@@ -547,17 +603,7 @@
           <div style="flex:1"></div>
           <button type="button" class="btn-edit-planilha" onclick="abrirPlanilhaQuadroExecucao()">✏️ Editar planilha</button>
         </div>
-        <div class="qe-grid">
-          <div class="qe-card"><label>Faturamento</label><input type="text" id="qe-faturamento" inputmode="decimal" placeholder="R$ 0,00"></div>
-          <div class="qe-card"><label>Ticket Médio · Loja</label><input type="text" id="qe-ticketLoja" inputmode="decimal" placeholder="R$ 0,00"></div>
-          <div class="qe-card"><label>Ticket Médio · Delivery</label><input type="text" id="qe-ticketDelivery" inputmode="decimal" placeholder="R$ 0,00"></div>
-          <div class="qe-card"><label>% de Satisfação</label><input type="number" id="qe-satisfacao" inputmode="decimal" placeholder="0" min="0" max="100" step="0.1"><span class="qe-suffix">%</span></div>
-          <div class="qe-card"><label>% CMV</label><input type="number" id="qe-cmv" inputmode="decimal" placeholder="0" min="0" max="100" step="0.1"><span class="qe-suffix">%</span></div>
-          <div class="qe-card"><label>% CMO</label><input type="number" id="qe-cmo" inputmode="decimal" placeholder="0" min="0" max="100" step="0.1"><span class="qe-suffix">%</span></div>
-          <div class="qe-card"><label>Tempo de Entrega</label><input type="number" id="qe-tempoEntrega" inputmode="decimal" placeholder="0" min="0"><span class="qe-suffix">min</span></div>
-          <div class="qe-card"><label>Nota Marketplace</label><input type="number" id="qe-notaMarketplace" inputmode="decimal" placeholder="0,0" min="0" max="5" step="0.1"></div>
-          <div class="qe-card"><label>% Lucro</label><input type="number" id="qe-lucro" inputmode="decimal" placeholder="0" min="-100" max="100" step="0.1"><span class="qe-suffix">%</span></div>
-        </div>
+        <div class="qe-grid" id="qe-grid"></div>
       </div>
     </section>
 
@@ -594,11 +640,22 @@
 
     <!-- ATA (último, depois de tudo decidido) -->
     <section class="section">
-      <div class="section-head"><div class="num">07</div><div><h2>Ata da reunião</h2><div class="sub">Registro do que foi conversado, decisões e contextos importantes · preencha por último, com tudo fresco na cabeça</div></div></div>
+      <div class="section-head"><div class="num">08</div><div><h2>Ata da reunião</h2><div class="sub">Registro do que foi conversado, decisões e contextos importantes · preencha por último, com tudo fresco na cabeça</div></div></div>
       <div class="section-body">
         <div class="field"><label>Ata</label><textarea id="ata" rows="6" placeholder="Anotações da conversa, decisões tomadas, frases marcantes do cliente, contextos importantes..."></textarea></div>
       </div>
     </section>
+
+    <!-- Anexo opcional: PDF preenchido na reunião presencial -->
+    <div class="anexo-banner">
+      <div style="flex:1">
+        <strong>📎 Reunião presencial?</strong>
+        <p style="margin:4px 0 0;font-size:12px;color:var(--text-dim)">Anexe o PDF/foto preenchido à mão pra ficar salvo junto com o plano. (PDF, JPG ou PNG)</p>
+        <div id="anexo-info" style="display:none;margin-top:8px;font-size:12px;color:var(--accent)"></div>
+      </div>
+      <input type="file" id="anexo-file" accept="application/pdf,image/png,image/jpeg" style="display:none" onchange="onAnexoSelected(this)">
+      <button type="button" class="btn btn-secondary" onclick="$('anexo-file').click()">📎 Anexar arquivo</button>
+    </div>
 
     <div class="actions">
       <button class="btn btn-primary btn-big" id="btn-salvar" onclick="salvarEGerar()">💾 Salvar plano (PDF + Google Doc)</button>
@@ -824,6 +881,7 @@ function novaEmpresa() {
 
 function _abrirFormVazio() {
   empresaAtual = null; idPlanoAtual = null; reuniaoAnteriorData = null; contextoImportado = null;
+  renderQuadroCards();
   limparFormulario();
   $('reuniao').value = '1';
   $('form-titulo-num').textContent = '1';
@@ -921,6 +979,7 @@ async function novaReuniaoEmpresaAtual() {
   const ultimaReuniao = planos.reduce((max, p) => Math.max(max, p.reuniao || 0), 0);
   idPlanoAtual = null;
   contextoImportado = null;
+  renderQuadroCards();
   limparFormulario();
   $('empresa').value = empresaAtual;
   // Pega participantes da última reunião pra reaproveitar
@@ -961,6 +1020,7 @@ async function editarPlano(idPlano) {
     const p = r.plano;
     idPlanoAtual = idPlano;
     contextoImportado = p.contextoImportado || null;
+    renderQuadroCards();
     limparFormulario();
     $('cnpj').value = p.cnpj ? aplicarMascaraCNPJ(p.cnpj) : '';
     $('empresa').value = p.empresa || '';
@@ -1209,7 +1269,7 @@ function renderContexto(ctx) {
       const cls = pctN >= 80 ? 'done' : (pctN >= 50 ? 'progress' : 'low');
       return `<span class="nv-badge ${cls}">N${n.num} ${NIVEIS_NOMES[n.num]||''} · ${Math.round(pctN)}%</span>`;
     }).join('');
-    linhas.push(`<div class="ctx-row"><div class="lbl">Níveis</div><div class="val"><div class="niveis-badges">${badges}</div></div></div>`);
+    linhas.push(`<div class="ctx-row"><div class="lbl">Panorama do nível</div><div class="val"><div class="niveis-badges">${badges}</div></div></div>`);
   }
 
   $('ctx-body').innerHTML = linhas.join('') || '<p style="color:var(--text-dim);font-size:13px">Sem dados encontrados.</p>';
@@ -1356,41 +1416,88 @@ function aplicarSugestoes() {
   refContent.innerHTML = posteriores.map(n => {
     const info = TOPICOS_NIVEIS[n];
     if (!info) return '';
-    return `<div class="ref-nivel"><span class="ref-nivel-num">N${n}</span><div><strong>${info.nome}:</strong> <span class="ref-nivel-itens">${info.topicos.join(' · ')}</span></div></div>`;
+    return `<div class="ref-nivel"><span class="ref-nivel-num">N${n}</span><div><strong>${info.nome.toUpperCase()}:</strong> <span class="ref-nivel-itens">${info.topicos.join(' · ')}</span></div></div>`;
   }).join('');
   refBox.style.display = 'block';
 }
 
 // =========== COMPROMISSOS ===========
 function addCompromisso(c={}) {
-  const card = document.createElement('div');
-  card.className = 'compr-row';
+  const linha = document.createElement('div');
+  linha.className = 'compr-linha';
   const hoje = new Date().toISOString().slice(0,10);
   const status = c.status || 'Aberto';
   const desc = c.descricao || '';
   const resp = c.responsavel || c.colaborador || '';
   const obs = c.obs || c.nota || '';
   const prazo = c.prazo || '';
-  card.innerHTML = `
-    <div class="row-grid">
-      <div class="field-mini"><label>Data criação</label><input type="date" class="c-criacao" value="${c.dataCriacao || hoje}"></div>
-      <div class="field-mini" style="flex:2"><label>Descrição (ação)</label><input type="text" class="c-desc" placeholder="Reescreva como ação executável" value="${desc.replace(/"/g,'&quot;')}"></div>
-      <div class="field-mini"><label>Responsável</label><input type="text" class="c-resp" value="${resp.replace(/"/g,'&quot;')}"></div>
-      <div class="field-mini"><label>Prazo</label><input type="date" class="c-prazo" value="${prazo}"></div>
-      <div class="field-mini"><label>Status</label>
-        <select class="c-status">
-          <option value="Aberto" ${status==='Aberto'?'selected':''}>Aberto</option>
-          <option value="Em andamento" ${status==='Em andamento'?'selected':''}>Em andamento</option>
-          <option value="Concluído" ${status==='Concluído'?'selected':''}>Concluído</option>
-          <option value="Atrasado" ${status==='Atrasado'?'selected':''}>Atrasado</option>
-          <option value="Não feita" ${status==='Não feita'?'selected':''}>Não feita</option>
-        </select>
+  const obsClass = obs ? 'compr-icon-btn has-obs' : 'compr-icon-btn';
+  linha.innerHTML = `
+    <div><input type="date" class="c-criacao" value="${c.dataCriacao || hoje}"></div>
+    <div><input type="text" class="c-desc" placeholder="Reescreva como ação executável" value="${desc.replace(/"/g,'&quot;')}"></div>
+    <div><input type="text" class="c-resp" placeholder="Responsável" value="${resp.replace(/"/g,'&quot;')}"></div>
+    <div><input type="date" class="c-prazo" value="${prazo}"></div>
+    <div><select class="c-status">
+      <option value="Aberto" ${status==='Aberto'?'selected':''}>Aberto</option>
+      <option value="Em andamento" ${status==='Em andamento'?'selected':''}>Em andamento</option>
+      <option value="Concluído" ${status==='Concluído'?'selected':''}>Concluído</option>
+      <option value="Atrasado" ${status==='Atrasado'?'selected':''}>Atrasado</option>
+      <option value="Não feita" ${status==='Não feita'?'selected':''}>Não feita</option>
+    </select></div>
+    <div class="compr-acoes">
+      <div class="compr-obs-wrapper">
+        <button type="button" class="${obsClass}" title="Obs" onclick="toggleObsPopup(this)">💡</button>
       </div>
+      <button type="button" class="compr-icon-btn btn-del" title="Remover" onclick="confirmarRemoverCompromisso(this)">×</button>
     </div>
-    <div class="nota-row"><textarea class="c-obs" placeholder="Obs">${obs}</textarea></div>
-    <div class="row-action"><button class="btn-remove" onclick="this.closest('.compr-row').remove()">× Remover</button></div>`;
-  $('compr-list').appendChild(card);
+    <input type="hidden" class="c-obs" value="${obs.replace(/"/g,'&quot;')}">
+  `;
+  $('compr-body').appendChild(linha);
 }
+
+function toggleObsPopup(btn) {
+  const wrapper = btn.closest('.compr-obs-wrapper');
+  // Fecha outros popups abertos
+  document.querySelectorAll('.compr-obs-popup').forEach(p => { if (!wrapper.contains(p)) p.remove(); });
+  // Toggle
+  const existente = wrapper.querySelector('.compr-obs-popup');
+  if (existente) { salvarObsPopup(existente); existente.remove(); return; }
+  const linha = btn.closest('.compr-linha');
+  const obsHidden = linha.querySelector('.c-obs');
+  const valor = obsHidden ? obsHidden.value : '';
+  const popup = document.createElement('div');
+  popup.className = 'compr-obs-popup';
+  popup.innerHTML = `
+    <div style="font-size:10px;color:var(--accent);letter-spacing:1px;text-transform:uppercase;margin-bottom:6px;font-weight:700">Observação</div>
+    <textarea class="c-obs-popup-text" placeholder="Anotação livre, contexto, ressalvas...">${valor.replace(/</g,'&lt;')}</textarea>
+    <div style="display:flex;gap:6px;justify-content:flex-end;margin-top:8px">
+      <button type="button" class="btn btn-secondary" style="padding:6px 12px;font-size:12px" onclick="(function(p){salvarObsPopup(p); p.remove();})(this.closest('.compr-obs-popup'))">Salvar</button>
+    </div>
+  `;
+  wrapper.appendChild(popup);
+  setTimeout(() => popup.querySelector('textarea').focus(), 30);
+}
+function salvarObsPopup(popup) {
+  const textarea = popup.querySelector('.c-obs-popup-text');
+  const linha = popup.closest('.compr-linha');
+  const obsHidden = linha.querySelector('.c-obs');
+  const btn = linha.querySelector('.compr-icon-btn[title="Obs"]');
+  if (textarea && obsHidden) {
+    obsHidden.value = textarea.value;
+    if (btn) {
+      btn.classList.toggle('has-obs', !!textarea.value.trim());
+    }
+  }
+}
+function confirmarRemoverCompromisso(btn) {
+  const linha = btn.closest('.compr-linha');
+  const desc = linha.querySelector('.c-desc')?.value.trim() || '';
+  const msg = desc ? `Remover o compromisso "${desc}"?` : 'Remover este compromisso?';
+  if (confirm(msg)) linha.remove();
+}
+
+// Atualiza sugestões de compromissos com base nas prioridades + vitórias
+// Note: não preenche descrição (consultor escreve a ação)
 
 // Atualiza sugestões de compromissos com base nas prioridades + vitórias
 function atualizarSugestoesCompromissos() {
@@ -1413,11 +1520,93 @@ function atualizarSugestoesCompromissos() {
 }
 
 // =========== QUADRO DE EXECUÇÃO ===========
-let _quadroExecucaoMeses = []; // array de registros {referencia, faturamento, ...}
+let _quadroExecucaoMeses = []; // array de registros {referencia, faturamento, ..., meta...}
 let _quadroExecucaoIdx = 0;
 let _indicadoresRefAtual = '';
+let _qeMetas = {}; // metas fixas por CNPJ
 
-const QE_FIELDS = ['faturamento','ticketLoja','ticketDelivery','satisfacao','cmv','cmo','tempoEntrega','notaMarketplace','lucro'];
+const QE_DEF = [
+  { id: 'faturamento',     label: 'Faturamento',           tipo: 'rs',   maiorMelhor: true,  metaKey: 'metaFaturamento' },
+  { id: 'ticketLoja',      label: 'Ticket Médio · Loja',   tipo: 'rs',   maiorMelhor: true,  metaKey: 'metaTicketLoja' },
+  { id: 'ticketDelivery',  label: 'Ticket Médio · Delivery', tipo: 'rs', maiorMelhor: true,  metaKey: 'metaTicketDelivery' },
+  { id: 'satisfacao',      label: '% de Satisfação',       tipo: 'pct',  maiorMelhor: true,  metaKey: 'metaSatisfacao' },
+  { id: 'cmv',             label: '% CMV',                 tipo: 'pct',  maiorMelhor: false, metaKey: 'metaCmv' },
+  { id: 'cmo',             label: '% CMO',                 tipo: 'pct',  maiorMelhor: false, metaKey: 'metaCmo' },
+  { id: 'tempoEntrega',    label: 'Tempo de Entrega',      tipo: 'min',  maiorMelhor: false, metaKey: 'metaTempoEntrega' },
+  { id: 'notaMarketplace', label: 'Nota Marketplace',      tipo: 'nota', maiorMelhor: true,  metaKey: 'metaNotaMarketplace' },
+  { id: 'lucro',           label: '% Lucro',               tipo: 'pct',  maiorMelhor: true,  metaKey: 'metaLucro' }
+];
+const QE_FIELDS = QE_DEF.map(d => d.id);
+
+function fmtRS(v) {
+  if (v === '' || v == null || isNaN(Number(v))) return '—';
+  return 'R$ ' + Number(v).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+function fmtMetaCard(tipo, val) {
+  if (val === '' || val == null) return '—';
+  if (tipo === 'rs') return fmtRS(val);
+  if (tipo === 'pct') return val + '%';
+  if (tipo === 'min') return val + ' min';
+  if (tipo === 'nota') return Number(val).toFixed(1);
+  return String(val);
+}
+
+function calcularProgresso(atual, meta, maiorMelhor) {
+  const a = Number(atual), m = Number(meta);
+  if (!isFinite(a) || !isFinite(m) || m === 0) return { pct: null, classe: 'neutro' };
+  let pct;
+  if (maiorMelhor) {
+    pct = (a / m) * 100;
+  } else {
+    // Quanto MENOR melhor: meta = 100% (target). Atual maior = pior
+    pct = m === 0 ? 0 : (m / Math.max(a, 0.001)) * 100;
+  }
+  let classe = 'bad';
+  if (pct >= 100) classe = 'ok';
+  else if (pct >= 70) classe = 'warn';
+  return { pct: Math.round(pct), classe };
+}
+
+function renderQuadroCards() {
+  const grid = $('qe-grid');
+  if (!grid) return;
+  grid.innerHTML = QE_DEF.map(d => {
+    const sufixo = d.tipo === 'pct' ? '%' : (d.tipo === 'min' ? 'min' : (d.tipo === 'rs' ? '' : ''));
+    const placeholder = d.tipo === 'rs' ? '0' : '0';
+    const inputType = d.tipo === 'rs' ? 'text' : 'number';
+    return `
+      <div class="qe-card" data-field="${d.id}">
+        <div class="qe-titulo">${d.label}</div>
+        <div class="qe-meta-box"><span class="meta-tag">META</span><span id="qe-meta-${d.id}">—</span></div>
+        <div class="qe-input-wrap">
+          ${d.tipo === 'rs' ? '<span class="qe-suffix" style="left:10px;right:auto;color:var(--accent)">R$</span>' : ''}
+          <input type="${inputType}" id="qe-${d.id}" inputmode="decimal" placeholder="${placeholder}" oninput="atualizarProgressoQE('${d.id}')" style="${d.tipo === 'rs' ? 'padding-left:34px' : ''}">
+          ${sufixo ? `<span class="qe-suffix">${sufixo}</span>` : ''}
+        </div>
+        <div class="qe-progress"><div class="qe-progress-fill neutro" id="qe-bar-${d.id}" style="width:0%"></div></div>
+        <div class="qe-pct"><span>Progresso</span><span class="pct-val" id="qe-pct-${d.id}">—</span></div>
+      </div>
+    `;
+  }).join('');
+}
+
+function atualizarProgressoQE(fieldId) {
+  const def = QE_DEF.find(d => d.id === fieldId); if (!def) return;
+  const atual = $('qe-'+fieldId)?.value || '';
+  const meta = _qeMetas[def.metaKey];
+  const { pct, classe } = calcularProgresso(atual, meta, def.maiorMelhor);
+  const bar = $('qe-bar-'+fieldId);
+  const pctEl = $('qe-pct-'+fieldId);
+  if (bar) {
+    bar.className = 'qe-progress-fill ' + classe;
+    bar.style.width = (pct == null ? 0 : Math.min(100, Math.max(0, pct))) + '%';
+  }
+  if (pctEl) {
+    pctEl.className = 'pct-val ' + classe;
+    pctEl.textContent = pct == null ? '—' : pct + '%';
+  }
+}
 
 function coletarIndicadores() {
   const out = {};
@@ -1432,9 +1621,19 @@ function preencherIndicadores(ind, referencia) {
   QE_FIELDS.forEach(f => {
     const el = $('qe-'+f);
     if (el) el.value = ind && ind[f] != null ? ind[f] : '';
+    atualizarProgressoQE(f);
   });
   _indicadoresRefAtual = referencia || '';
   $('qe-mes-atual').textContent = referencia || '—';
+}
+
+function preencherMetasQE(metas) {
+  _qeMetas = metas || {};
+  QE_DEF.forEach(d => {
+    const el = $('qe-meta-'+d.id);
+    if (el) el.textContent = fmtMetaCard(d.tipo, metas?.[d.metaKey]);
+    atualizarProgressoQE(d.id);
+  });
 }
 
 async function carregarQuadroExecucao(cnpj) {
@@ -1443,6 +1642,7 @@ async function carregarQuadroExecucao(cnpj) {
     const r = await chamarAPI('buscar-quadro-execucao', { cnpj });
     _quadroExecucaoMeses = r.registros || [];
     _quadroExecucaoIdx = 0;
+    preencherMetasQE(r.metas || {});
     if (_quadroExecucaoMeses.length) {
       mostrarMesQE(_quadroExecucaoIdx);
     } else {
@@ -1569,7 +1769,7 @@ function limparFormulario(){
   preencherParticipantes([]);
   const lp = $('prioridades-list'); if (lp) lp.innerHTML = '';
   const lv = $('vitorias-list'); if (lv) lv.innerHTML = '';
-  const lc = $('compr-list'); if (lc) lc.innerHTML = '';
+  const lc = $('compr-body'); if (lc) lc.innerHTML = '';
   const lconv = $('convidados-list'); if (lconv) lconv.innerHTML = '';
   const sv = $('sug-vitorias'); if (sv) sv.style.display = 'none';
   const sc = $('sug-compromissos'); if (sc) sc.style.display = 'none';
@@ -1581,13 +1781,17 @@ function limparFormulario(){
   $('checkin-root').innerHTML = '';
   $('ctx-card').style.display = 'none';
   const ai = $('alert-import'); if (ai) ai.style.display = 'none';
+  // Limpa anexo
+  _anexoBase64 = null; _anexoNome = ''; _anexoMime = '';
+  const af = $('anexo-file'); if (af) af.value = '';
+  const ainfo = $('anexo-info'); if (ainfo) ainfo.style.display = 'none';
 }
 
 // =========== COLETA + SALVAR ===========
 function coletar() {
   const prioridades = coletarPrioridades();
   const vitorias = coletarVitorias();
-  const compromissos = [...document.querySelectorAll('#compr-list .compr-row')].map(c => ({
+  const compromissos = [...document.querySelectorAll('#compr-body .compr-linha')].map(c => ({
     dataCriacao: c.querySelector('.c-criacao')?.value || '',
     descricao: c.querySelector('.c-desc')?.value.trim() || '',
     responsavel: c.querySelector('.c-resp')?.value.trim() || c.querySelector('.c-colab')?.value.trim() || '',
@@ -1642,6 +1846,22 @@ async function salvarEGerar() {
     idPlanoAtual = r.idPlano;
     d.idPlano = r.idPlano;
     toast('✓ Plano salvo na planilha', 2500);
+
+    // Se tem anexo, sobe pro Drive
+    if (_anexoBase64) {
+      btn.innerHTML = '<span class="spinner"></span>Anexando arquivo...';
+      try {
+        await chamarAPI('upload-anexo', {
+          idPlano: r.idPlano,
+          empresa: d.empresa,
+          reuniao: d.reuniao,
+          nomeArquivo: _anexoNome,
+          mime: _anexoMime,
+          base64: _anexoBase64
+        });
+      } catch (e) { console.warn('Falha no upload do anexo:', e); }
+    }
+
     btn.innerHTML = '<span class="spinner"></span>Gerando Google Doc...';
     const docResp = await chamarAPI('gerar-doc', { plano: d });
     btn.innerHTML = '<span class="spinner"></span>Gerando PDF...';
@@ -1705,6 +1925,219 @@ function svgToPngDataUrl(svgStr, widthPx = 500) {
     img.onerror = (e) => { URL.revokeObjectURL(url); reject(e); };
     img.src = url;
   });
+}
+
+// =========== ANEXO (PDF/IMG da reunião presencial) ===========
+let _anexoBase64 = null, _anexoNome = '', _anexoMime = '';
+
+function onAnexoSelected(inp) {
+  const file = inp.files && inp.files[0];
+  if (!file) return;
+  if (file.size > 5 * 1024 * 1024) {
+    toast('⚠ Arquivo muito grande (máx 5MB)', 4000, true);
+    inp.value = '';
+    return;
+  }
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    const result = e.target.result;
+    const base64 = result.split(',')[1];
+    _anexoBase64 = base64;
+    _anexoNome = file.name;
+    _anexoMime = file.type || 'application/octet-stream';
+    const sizeKB = Math.round(file.size / 1024);
+    $('anexo-info').style.display = 'block';
+    $('anexo-info').innerHTML = `✓ <strong>${file.name}</strong> (${sizeKB} KB) · <button type="button" style="background:transparent;color:#f87171;border:none;cursor:pointer;text-decoration:underline" onclick="removerAnexo()">remover</button>`;
+  };
+  reader.readAsDataURL(file);
+}
+function removerAnexo() {
+  _anexoBase64 = null; _anexoNome = ''; _anexoMime = '';
+  $('anexo-file').value = '';
+  $('anexo-info').style.display = 'none';
+}
+
+// =========== PDF EM BRANCO (pra reunião presencial) ===========
+async function gerarPDFBranco() {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ unit: 'pt', format: 'a4' });
+  const pageW = doc.internal.pageSize.getWidth();
+  const pageH = doc.internal.pageSize.getHeight();
+  const margin = 40;
+
+  const CL = { dark:[11,18,48], accent:[77,201,255], textDark:[20,30,60], text:[60,70,100], textDim:[140,150,170] };
+
+  let y = 70;
+  const renderHeader = () => {
+    doc.setFillColor(...CL.dark); doc.rect(0,0,pageW,52,'F');
+    doc.setFillColor(...CL.accent); doc.rect(0,52,pageW,3,'F');
+    doc.setFont('helvetica','bold'); doc.setFontSize(11); doc.setTextColor(...CL.accent);
+    doc.text('PLANO DE AÇÃO · REUNIÃO PRESENCIAL', margin, 32, { charSpace:2 });
+    doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(180,190,210);
+    doc.text('Método Gestão Life · Gestão PRO', pageW-margin, 32, { align:'right' });
+  };
+  const renderFooter = (n) => {
+    doc.setFont('helvetica','normal'); doc.setFontSize(8); doc.setTextColor(...CL.textDim);
+    doc.text('Preencha durante a reunião · transcrever no sistema depois', margin, pageH-22);
+    doc.text(`Página ${n}`, pageW-margin, pageH-22, { align:'right' });
+  };
+
+  let pageNum = 1;
+  renderHeader();
+  const ensureSpace = (need) => {
+    if (y + need > pageH - 40) {
+      renderFooter(pageNum);
+      doc.addPage(); pageNum++;
+      renderHeader(); y = 70;
+    }
+  };
+
+  const titulo = (txt) => {
+    ensureSpace(30);
+    doc.setFont('helvetica','bold'); doc.setFontSize(11); doc.setTextColor(...CL.accent);
+    doc.text(txt, margin, y, { charSpace:2 });
+    y += 6;
+    doc.setDrawColor(...CL.accent); doc.setLineWidth(0.6);
+    doc.line(margin, y, pageW-margin, y);
+    y += 16;
+  };
+
+  const linha = () => {
+    ensureSpace(18);
+    doc.setDrawColor(200,205,220); doc.setLineWidth(0.4);
+    doc.line(margin, y+10, pageW-margin, y+10);
+    y += 18;
+  };
+
+  const linhasN = (n) => { for (let i=0; i<n; i++) linha(); };
+
+  const campo = (lbl, w = 200) => {
+    doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor(...CL.textDim);
+    doc.text(lbl.toUpperCase(), margin, y, { charSpace:1 });
+    doc.setDrawColor(180,190,210); doc.setLineWidth(0.4);
+    doc.line(margin, y+8, margin + w, y+8);
+    y += 18;
+  };
+
+  const camposLado = (campos) => {
+    ensureSpace(28);
+    const startY = y;
+    const colW = (pageW - margin*2 - (campos.length-1)*10) / campos.length;
+    campos.forEach((lbl, i) => {
+      const x = margin + i * (colW + 10);
+      doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor(...CL.textDim);
+      doc.text(lbl.toUpperCase(), x, startY, { charSpace:1 });
+      doc.setDrawColor(180,190,210); doc.setLineWidth(0.4);
+      doc.line(x, startY+8, x + colW, startY+8);
+    });
+    y = startY + 22;
+  };
+
+  // === 01. DADOS DA EMPRESA ===
+  titulo('01 · DADOS DA EMPRESA');
+  camposLado(['CNPJ', 'Nome da empresa']);
+  camposLado(['Data', 'Nº reunião', 'Nível atual']);
+  doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor(...CL.textDim);
+  doc.text('PARTICIPANTES', margin, y, { charSpace:1 }); y += 12;
+  linhasN(2);
+  doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor(...CL.textDim);
+  doc.text('OBJETIVO DA REUNIÃO', margin, y, { charSpace:1 }); y += 12;
+  linhasN(3);
+  y += 6;
+
+  // === 02. SWOT ===
+  titulo('02 · ANÁLISE SWOT');
+  const swotW = (pageW - margin*2 - 16) / 2;
+  const drawSwotBox = (x, yi, lbl, lines) => {
+    doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(...CL.accent);
+    doc.text(lbl, x, yi, { charSpace:1 });
+    let ly = yi + 6;
+    for (let i=0; i<lines; i++) {
+      doc.setDrawColor(200,205,220); doc.setLineWidth(0.4);
+      doc.line(x, ly+10, x + swotW, ly+10);
+      ly += 16;
+    }
+    return ly;
+  };
+  ensureSpace(160);
+  let yEnd1 = drawSwotBox(margin, y, 'FORÇAS (interno · positivo)', 5);
+  let yEnd2 = drawSwotBox(margin + swotW + 16, y, 'FRAQUEZAS (interno · negativo)', 5);
+  y = Math.max(yEnd1, yEnd2) + 8;
+  ensureSpace(100);
+  yEnd1 = drawSwotBox(margin, y, 'OPORTUNIDADES (externo · positivo)', 5);
+  yEnd2 = drawSwotBox(margin + swotW + 16, y, 'AMEAÇAS (externo · negativo)', 5);
+  y = Math.max(yEnd1, yEnd2) + 12;
+
+  // === 03. PRIORIDADES DE IMPACTO ===
+  titulo('03 · PRIORIDADES DE IMPACTO');
+  doc.setFont('helvetica','italic'); doc.setFontSize(8); doc.setTextColor(...CL.textDim);
+  doc.text('Listar prioridades para ação imediata, considerando o nível de gestão', margin, y);
+  y += 14;
+  linhasN(8);
+  y += 6;
+
+  // === 04. VITÓRIAS RÁPIDAS ===
+  titulo('04 · VITÓRIAS RÁPIDAS');
+  doc.setFont('helvetica','italic'); doc.setFontSize(8); doc.setTextColor(...CL.textDim);
+  doc.text('Dores de níveis posteriores que o cliente quer resolver agora', margin, y);
+  y += 14;
+  linhasN(6);
+  y += 6;
+
+  // === 05. COMPROMISSOS ===
+  titulo('05 · COMPROMISSOS');
+  doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor(...CL.textDim);
+  doc.text('DESCRIÇÃO (AÇÃO)                                   RESPONSÁVEL              PRAZO              STATUS', margin, y, { charSpace:.5 });
+  y += 10;
+  linhasN(8);
+  y += 6;
+
+  // === 06. QUADRO DE EXECUÇÃO ===
+  titulo('06 · QUADRO DE EXECUÇÃO (INDICADORES)');
+  const indicadores = [
+    'Faturamento', 'Ticket Médio · Loja', 'Ticket Médio · Delivery',
+    '% de Satisfação', '% CMV', '% CMO',
+    'Tempo de Entrega', 'Nota Marketplace', '% Lucro'
+  ];
+  ensureSpace(160);
+  const colW = (pageW - margin*2 - 20) / 3;
+  let col = 0, rowY = y;
+  indicadores.forEach((nome, i) => {
+    if (col === 0) ensureSpace(50);
+    const x = margin + col * (colW + 10);
+    doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor(...CL.textDim);
+    doc.text(nome.toUpperCase(), x, rowY, { charSpace:.5 });
+    doc.setFont('helvetica','normal'); doc.setFontSize(7); doc.setTextColor(160,170,190);
+    doc.text('Meta:', x, rowY+12);
+    doc.setDrawColor(180,190,210); doc.setLineWidth(0.4);
+    doc.line(x+24, rowY+13, x + colW, rowY+13);
+    doc.text('Atual:', x, rowY+28);
+    doc.line(x+24, rowY+29, x + colW, rowY+29);
+    col++;
+    if (col === 3) { col = 0; rowY += 44; }
+  });
+  if (col !== 0) rowY += 44;
+  y = rowY + 6;
+
+  // === 07. PRÓXIMA REUNIÃO ===
+  titulo('07 · PRÓXIMA REUNIÃO');
+  camposLado(['Data', 'Horário', 'Formato']);
+  campo('Mentor / Especialista', 280);
+  doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor(...CL.textDim);
+  doc.text('CONVIDADOS (E-MAILS)', margin, y, { charSpace:1 }); y += 12;
+  linhasN(3);
+  y += 6;
+
+  // === 08. ATA DA REUNIÃO ===
+  titulo('08 · ATA DA REUNIÃO');
+  doc.setFont('helvetica','italic'); doc.setFontSize(8); doc.setTextColor(...CL.textDim);
+  doc.text('Anotações livres · contexto · decisões · frases marcantes do cliente', margin, y);
+  y += 14;
+  linhasN(10);
+
+  renderFooter(pageNum);
+  const dataAgora = new Date().toISOString().slice(0,10).replace(/-/g,'');
+  doc.save(`Plano_de_Acao_BRANCO_${dataAgora}.pdf`);
 }
 
 async function gerarPDF(d) {
