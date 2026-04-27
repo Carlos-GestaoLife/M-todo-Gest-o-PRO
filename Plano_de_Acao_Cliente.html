@@ -108,6 +108,38 @@
   .ctx-card .ctx-row .lbl { min-width: 130px; color: var(--text-dim); font-weight: 600; }
   .ctx-card .ctx-row .val { flex: 1; color: var(--text); }
 
+  /* Filtros do CRM */
+  .crm-filtros { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 16px; align-items: center; }
+  .crm-filtros .filtro-mini { display: flex; flex-direction: column; gap: 2px; }
+  .crm-filtros label { font-size: 10px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; font-weight: 700; }
+  .crm-filtros select, .crm-filtros input { background: var(--card); border: 1px solid var(--border); color: var(--text); padding: 7px 12px; border-radius: 8px; font-size: 13px; min-width: 140px; }
+  .crm-filtros .toggle-minhas { background: rgba(77,201,255,.1); border: 1px solid rgba(77,201,255,.4); color: var(--accent); padding: 8px 14px; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer; align-self: flex-end; }
+  .crm-filtros .toggle-minhas.ativo { background: var(--accent); color: #0b1230; }
+
+  /* Status badges */
+  .status-badge { display: inline-block; padding: 3px 10px; border-radius: 12px; font-size: 10.5px; font-weight: 700; letter-spacing: .5px; text-transform: uppercase; margin-top: 4px; }
+  .status-badge.ativo { background: rgba(34,197,94,.15); color: #22c55e; }
+  .status-badge.pausado { background: rgba(251,191,36,.15); color: #fbbf24; }
+  .status-badge.cancelado { background: rgba(248,113,113,.15); color: #f87171; }
+  .status-badge.encerrado { background: rgba(160,170,200,.15); color: #a5b4cb; }
+
+  /* Card CRM (dados da empresa antes do histórico) */
+  .crm-card { background: linear-gradient(135deg, rgba(77,201,255,.08), rgba(122,162,255,.04)); border: 1px solid rgba(77,201,255,.3); border-radius: 14px; padding: 20px 22px; margin-bottom: 18px; }
+  .crm-card-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 14px; }
+  .crm-card-head h3 { margin: 0; font-size: 14px; color: var(--accent); letter-spacing: 1px; text-transform: uppercase; font-weight: 800; }
+  .crm-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; }
+  .crm-item { display: flex; flex-direction: column; gap: 2px; }
+  .crm-item .lbl { font-size: 10.5px; color: var(--text-dim); letter-spacing: 1px; text-transform: uppercase; font-weight: 700; }
+  .crm-item .val { font-size: 14px; color: var(--text); font-weight: 600; }
+  .crm-item .val a { color: var(--accent); text-decoration: none; }
+  .crm-edit-btn { background: rgba(77,201,255,.15); color: var(--accent); border: 1px solid rgba(77,201,255,.4); padding: 6px 14px; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer; }
+
+  /* Modal CRM edição */
+  .modal-crm-content { max-width: 560px; }
+  .modal-crm-content .field-group { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+  .modal-crm-content .field-group .field { margin: 0; }
+  .modal-crm-content .field { margin-bottom: 12px; }
+
   /* Empresa com rascunho pendente */
   .empresa-card.tem-rascunho { border-color: rgba(251,191,36,.6); background: linear-gradient(135deg, rgba(251,191,36,.06), rgba(255,255,255,.02)); position: relative; }
   .empresa-card.tem-rascunho::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: #fbbf24; border-radius: 12px 0 0 12px; }
@@ -412,6 +444,44 @@
       </div>
     </div>
     <div class="search-bar"><input type="text" id="busca" placeholder="🔍 Buscar empresa..." oninput="filtrarEmpresas()"></div>
+
+    <div class="crm-filtros">
+      <div class="filtro-mini"><label>Status</label>
+        <select id="filtro-status" onchange="filtrarEmpresas()">
+          <option value="">Todos</option>
+          <option value="Ativo">Ativo</option>
+          <option value="Pausado">Pausado</option>
+          <option value="Cancelado">Cancelado</option>
+          <option value="Encerrado">Encerrado</option>
+        </select>
+      </div>
+      <div class="filtro-mini"><label>Nível</label>
+        <select id="filtro-nivel" onchange="filtrarEmpresas()">
+          <option value="">Todos</option>
+          <option value="01">Nível 01</option>
+          <option value="02">Nível 02</option>
+          <option value="03">Nível 03</option>
+          <option value="04">Nível 04</option>
+          <option value="05">Nível 05</option>
+        </select>
+      </div>
+      <div class="filtro-mini"><label>Consultor</label>
+        <select id="filtro-consultor" onchange="filtrarEmpresas()">
+          <option value="">Todos</option>
+        </select>
+      </div>
+      <div class="filtro-mini"><label>Última reunião</label>
+        <select id="filtro-data" onchange="filtrarEmpresas()">
+          <option value="">Qualquer</option>
+          <option value="7">Últimos 7 dias</option>
+          <option value="30">Últimos 30 dias</option>
+          <option value="+30">Há +30 dias</option>
+          <option value="+60">Há +60 dias</option>
+        </select>
+      </div>
+      <button type="button" class="toggle-minhas" id="btn-minhas" onclick="toggleMinhasEmpresas()">👤 Minhas empresas</button>
+    </div>
+
     <div id="rascunhos-novos-root"></div>
     <div id="empresas-root" class="empresa-grid"></div>
   </div>
@@ -427,6 +497,7 @@
       <h1 style="text-transform:none;font-size:26px">Histórico de <span class="hl">reuniões</span></h1>
       <p id="hist-empresa-info">—</p>
     </header>
+    <div id="crm-card-empresa"></div>
     <div id="timeline-root" class="timeline"></div>
     <div class="actions">
       <button class="btn btn-primary btn-big" onclick="novaReuniaoEmpresaAtual()">+ Nova reunião desta empresa</button>
@@ -705,6 +776,50 @@
   <footer>Método Gestão Life · Gestão PRO<br><small>Ferramenta interna · Planos de Ação v2</small></footer>
 </div>
 
+<!-- Modal: editar dados CRM da empresa -->
+<div class="modal-bg" id="modal-crm">
+  <div class="modal modal-crm-content">
+    <h3>📇 Dados da empresa</h3>
+    <p style="font-size:12px;color:var(--text-dim);margin:6px 0 14px">Atualizar informações de cadastro · status · vínculo de consultores</p>
+    <div class="field-group">
+      <div class="field"><label>CNPJ</label><input type="text" id="crm-cnpj" inputmode="numeric" maxlength="18" placeholder="00.000.000/0000-00" oninput="mascaraCNPJ(this)"></div>
+      <div class="field"><label>Empresa</label><input type="text" id="crm-empresa"></div>
+    </div>
+    <div class="field-group">
+      <div class="field"><label>Telefone (WhatsApp do dono)</label><input type="text" id="crm-telefone" inputmode="tel" placeholder="(00) 00000-0000" oninput="mascaraTelefone(this)"></div>
+      <div class="field"><label>Status</label>
+        <select id="crm-status">
+          <option value="Ativo">Ativo</option>
+          <option value="Pausado">Pausado</option>
+          <option value="Cancelado">Cancelado</option>
+          <option value="Encerrado">Encerrado</option>
+        </select>
+      </div>
+    </div>
+    <div class="field-group">
+      <div class="field"><label>Nível atual</label>
+        <select id="crm-nivel">
+          <option value="">—</option>
+          <option value="Nível 01">Nível 01</option>
+          <option value="Nível 02">Nível 02</option>
+          <option value="Nível 03">Nível 03</option>
+          <option value="Nível 04">Nível 04</option>
+          <option value="Nível 05">Nível 05</option>
+        </select>
+      </div>
+      <div class="field"><label>Consultor Principal</label>
+        <select id="crm-principal"><option value="">--</option></select>
+      </div>
+    </div>
+    <div class="field"><label>Consultores apoio</label><input type="text" id="crm-apoio" placeholder="Ex.: Matheus, Thiago"></div>
+    <div class="field"><label>Observações</label><textarea id="crm-obs" rows="3" placeholder="Notas gerais sobre a empresa..."></textarea></div>
+    <div class="actions" style="justify-content:flex-end;gap:8px;margin-top:14px">
+      <button class="btn btn-secondary" onclick="fecharModalCRM()">Cancelar</button>
+      <button class="btn btn-primary" onclick="salvarCRM()">Salvar</button>
+    </div>
+  </div>
+</div>
+
 <!-- Modal: busca de empresa antes de criar reunião -->
 <div class="modal-bg" id="modal-buscar-empresa">
   <div class="modal" style="max-width:520px">
@@ -788,6 +903,23 @@ function mascaraCNPJ(inp) {
   }
 }
 
+// =========== MÁSCARA TELEFONE ===========
+function aplicarMascaraTelefone(v) {
+  v = String(v || '').replace(/\D/g, '').slice(0, 11);
+  if (v.length > 10) return v.replace(/(\d{2})(\d{5})(\d{1,4})/, '($1) $2-$3');
+  if (v.length > 6)  return v.replace(/(\d{2})(\d{4})(\d{1,4})/, '($1) $2-$3');
+  if (v.length > 2)  return v.replace(/(\d{2})(\d{1,5})/, '($1) $2');
+  if (v.length > 0)  return v.replace(/(\d{1,2})/, '($1');
+  return v;
+}
+function mascaraTelefone(inp) {
+  const f = aplicarMascaraTelefone(inp.value);
+  if (inp.value !== f) {
+    inp.value = f;
+    try { inp.setSelectionRange(f.length, f.length); } catch(_) {}
+  }
+}
+
 // =========== PARTICIPANTES (lista dinâmica) ===========
 function addParticipante(nome) {
   const root = $('participantes-list');
@@ -840,6 +972,7 @@ async function fazerLogin() {
     localStorage.setItem('planoLogin', JSON.stringify(consultorLogado));
     irDashboard();
     carregarConsultores();
+    carregarCRM().then(() => { if (_empresasCache.length) renderEmpresas(_empresasCache); });
   } catch(err) { toast('❌ ' + err.message, 4000, true); }
 }
 
@@ -855,12 +988,49 @@ async function irDashboard() {
   mostrarView('view-dashboard');
   $('empresas-root').innerHTML = '<div class="loading"><span class="spinner"></span>Carregando empresas...</div>';
   try {
-    const r = await chamarAPI('listar-empresas');
-    renderEmpresas(r.empresas || []);
+    const [rEmp] = await Promise.all([
+      chamarAPI('listar-empresas'),
+      carregarCRM()
+    ]);
+    renderEmpresas(rEmp.empresas || []);
   } catch(err) { $('empresas-root').innerHTML = `<div class="empty-state"><div class="icon">⚠</div>${err.message}</div>`; }
 }
 
 let _empresasCache = [];
+let _crmCache = []; // empresas do CRM (telefone, status, etc)
+let _filtroMinhasAtivo = false;
+
+// Carrega CRM em paralelo com lista de empresas
+async function carregarCRM() {
+  try {
+    const r = await chamarAPI('listar-empresas-crm');
+    _crmCache = r.empresas || [];
+  } catch (e) { console.warn('Erro CRM:', e); _crmCache = []; }
+}
+
+function getCRMByEmpresa(empresa) {
+  if (!empresa) return null;
+  const k = String(empresa).trim().toLowerCase();
+  return _crmCache.find(c => (c.empresa || '').trim().toLowerCase() === k) || null;
+}
+
+function popularFiltroConsultor() {
+  const sel = $('filtro-consultor');
+  if (!sel) return;
+  const atual = sel.value;
+  const opcoes = ['<option value="">Todos</option>'];
+  _consultoresCache.forEach(c => {
+    opcoes.push(`<option value="${c.nome.replace(/"/g,'&quot;')}">${c.nome}</option>`);
+  });
+  sel.innerHTML = opcoes.join('');
+  sel.value = atual || '';
+}
+
+function toggleMinhasEmpresas() {
+  _filtroMinhasAtivo = !_filtroMinhasAtivo;
+  $('btn-minhas').classList.toggle('ativo', _filtroMinhasAtivo);
+  filtrarEmpresas();
+}
 
 // Lista todos os rascunhos do localStorage
 function listarRascunhosLocais() {
@@ -959,6 +1129,7 @@ function descartarRascunhoKey(key) {
 
 function renderEmpresas(lista) {
   _empresasCache = lista;
+  popularFiltroConsultor();
   // Atualiza card de rascunhos novos no topo
   renderRascunhosNovos();
   if (!lista.length) {
@@ -966,15 +1137,63 @@ function renderEmpresas(lista) {
     return;
   }
   const termo = $('busca').value.trim().toLowerCase();
-  const filtradas = termo ? lista.filter(e => (e.empresa||'').toLowerCase().includes(termo) || (e.cnpj||'').includes(termo)) : lista;
+  const fStatus = $('filtro-status')?.value || '';
+  const fNivel = $('filtro-nivel')?.value || '';
+  const fConsultor = $('filtro-consultor')?.value || '';
+  const fData = $('filtro-data')?.value || '';
+  const meuNome = consultorLogado?.nome || '';
+
+  let filtradas = lista.filter(e => {
+    const crm = getCRMByEmpresa(e.empresa) || {};
+    if (termo && !(e.empresa||'').toLowerCase().includes(termo) && !(e.cnpj||'').includes(termo) && !(crm.cnpj||'').includes(termo)) return false;
+    if (fStatus && (crm.status || 'Ativo') !== fStatus) return false;
+    if (fNivel) {
+      const nv = (crm.nivel || '').match(/\d+/)?.[0]?.padStart(2,'0') || '';
+      if (nv !== fNivel) return false;
+    }
+    if (fConsultor) {
+      const principal = (crm.consultorPrincipal || '').trim();
+      const apoio = Array.isArray(crm.consultoresApoio) ? crm.consultoresApoio.join(',') : (crm.consultoresApoio || '');
+      if (principal !== fConsultor && !apoio.includes(fConsultor)) return false;
+    }
+    if (_filtroMinhasAtivo && meuNome) {
+      const principal = (crm.consultorPrincipal || '').trim();
+      const apoio = Array.isArray(crm.consultoresApoio) ? crm.consultoresApoio.join(',') : (crm.consultoresApoio || '');
+      if (principal !== meuNome && !apoio.includes(meuNome)) return false;
+    }
+    if (fData && e.ultimaData) {
+      const dt = new Date(e.ultimaData);
+      const dias = (Date.now() - dt.getTime()) / (1000*60*60*24);
+      if (fData === '7' && dias > 7) return false;
+      if (fData === '30' && dias > 30) return false;
+      if (fData === '+30' && dias <= 30) return false;
+      if (fData === '+60' && dias <= 60) return false;
+    }
+    return true;
+  });
+
+  if (!filtradas.length) {
+    $('empresas-root').innerHTML = `<div class="empty-state"><div class="icon">🔍</div><p>Nenhuma empresa com esses filtros.</p></div>`;
+    return;
+  }
+
   $('empresas-root').innerHTML = filtradas.map(e => {
+    const crm = getCRMByEmpresa(e.empresa) || {};
     const temRasc = temRascunhoEmpresa(e.empresa);
+    const status = crm.status || 'Ativo';
+    const statusClass = status.toLowerCase();
+    const telef = crm.telefone || '';
+    const principal = crm.consultorPrincipal || '';
     return `
     <div class="empresa-card ${temRasc ? 'tem-rascunho' : ''}" onclick="abrirHistorico('${(e.empresa||'').replace(/'/g,"\'")}')">
       <div class="info">
         <h4>${e.empresa}</h4>
-        <p>${e.responsavel || '—'} · última reunião: ${formatarDataComDia(e.ultimaData)}${e.ultimoConsultor ? ' · ' + e.ultimoConsultor : ''}</p>
-        ${temRasc ? '<span class="badge-rascunho">📝 Rascunho não salvo</span>' : ''}
+        <p>${telef ? '📱 ' + telef + ' · ' : ''}${principal ? '👤 ' + principal + ' · ' : ''}última reunião: ${formatarDataComDia(e.ultimaData)}</p>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px">
+          <span class="status-badge ${statusClass}">${status}</span>
+          ${crm.nivel ? '<span class="status-badge ativo" style="background:rgba(77,201,255,.15);color:var(--accent)">' + crm.nivel + '</span>' : ''}
+          ${temRasc ? '<span class="badge-rascunho">📝 Rascunho</span>' : ''}
+        </div>
       </div>
       <div class="count">${e.reunioes} reunião${e.reunioes > 1 ? 'ões' : ''}</div>
     </div>`;
@@ -983,6 +1202,87 @@ function renderEmpresas(lista) {
 
 function filtrarEmpresas() { renderEmpresas(_empresasCache); }
 
+// =========== CRM — Card no histórico + modal de edição ===========
+function renderCRMCard(empresa) {
+  const root = $('crm-card-empresa');
+  if (!root) return;
+  const crm = getCRMByEmpresa(empresa) || { empresa };
+  const status = crm.status || 'Ativo';
+  const statusClass = status.toLowerCase();
+  const wa = crm.telefone ? gerarLinkWhatsApp(crm.telefone) : '';
+  root.innerHTML = `
+    <div class="crm-card">
+      <div class="crm-card-head">
+        <h3>📇 Dados da empresa</h3>
+        <button class="crm-edit-btn" onclick="abrirModalCRM('${(empresa||'').replace(/'/g,"\\'")}')">✏️ Editar</button>
+      </div>
+      <div class="crm-grid">
+        <div class="crm-item"><span class="lbl">CNPJ</span><span class="val">${crm.cnpj || '—'}</span></div>
+        <div class="crm-item"><span class="lbl">Telefone (WhatsApp)</span><span class="val">${wa ? `<a href="${wa}" target="_blank">${crm.telefone}</a>` : '—'}</span></div>
+        <div class="crm-item"><span class="lbl">Status</span><span class="val"><span class="status-badge ${statusClass}">${status}</span></span></div>
+        <div class="crm-item"><span class="lbl">Nível atual</span><span class="val">${crm.nivel || '—'}</span></div>
+        <div class="crm-item"><span class="lbl">Consultor Principal</span><span class="val">${crm.consultorPrincipal || '—'}</span></div>
+        <div class="crm-item"><span class="lbl">Consultores Apoio</span><span class="val">${(crm.consultoresApoio && crm.consultoresApoio.length) ? crm.consultoresApoio.join(', ') : '—'}</span></div>
+        ${crm.observacoes ? `<div class="crm-item" style="grid-column:1/-1"><span class="lbl">Observações</span><span class="val">${crm.observacoes}</span></div>` : ''}
+      </div>
+    </div>
+  `;
+}
+
+function gerarLinkWhatsApp(tel, msg) {
+  const numero = String(tel || '').replace(/\D/g, '');
+  if (!numero) return '';
+  const num = numero.length === 11 || numero.length === 10 ? '55' + numero : numero;
+  let url = `https://wa.me/${num}`;
+  if (msg) url += '?text=' + encodeURIComponent(msg);
+  return url;
+}
+
+function abrirModalCRM(empresa) {
+  const crm = getCRMByEmpresa(empresa) || { empresa, status: 'Ativo' };
+  $('crm-cnpj').value = crm.cnpj ? aplicarMascaraCNPJ(crm.cnpj) : '';
+  $('crm-empresa').value = crm.empresa || empresa || '';
+  $('crm-telefone').value = crm.telefone ? aplicarMascaraTelefone(crm.telefone) : '';
+  $('crm-status').value = crm.status || 'Ativo';
+  $('crm-nivel').value = crm.nivel || '';
+  $('crm-obs').value = crm.observacoes || '';
+  $('crm-apoio').value = Array.isArray(crm.consultoresApoio) ? crm.consultoresApoio.join(', ') : (crm.consultoresApoio || '');
+  // Popula select de consultor principal
+  const sel = $('crm-principal');
+  sel.innerHTML = '<option value="">--</option>' + _consultoresCache.map(c =>
+    `<option value="${c.nome.replace(/"/g,'&quot;')}">${c.nome}</option>`
+  ).join('');
+  sel.value = crm.consultorPrincipal || '';
+  $('modal-crm').classList.add('show');
+}
+
+function fecharModalCRM() {
+  $('modal-crm').classList.remove('show');
+}
+
+async function salvarCRM() {
+  const dados = {
+    cnpj: $('crm-cnpj').value.trim(),
+    empresa: $('crm-empresa').value.trim(),
+    telefone: $('crm-telefone').value.trim(),
+    status: $('crm-status').value,
+    nivel: $('crm-nivel').value,
+    consultorPrincipal: $('crm-principal').value,
+    consultoresApoio: $('crm-apoio').value.split(',').map(s => s.trim()).filter(s => s),
+    observacoes: $('crm-obs').value.trim()
+  };
+  if (!dados.empresa) { toast('⚠ Preencha o nome da empresa', 3000, true); return; }
+  try {
+    await chamarAPI('salvar-empresa-crm', { empresa: dados });
+    await carregarCRM();
+    fecharModalCRM();
+    toast('✓ Empresa atualizada!', 3000, false, true);
+    // Re-renderiza tela atual
+    if (empresaAtual) renderCRMCard(empresaAtual);
+    if ($('view-dashboard').classList.contains('active')) renderEmpresas(_empresasCache);
+  } catch (err) { toast('❌ ' + err.message, 4000, true); }
+}
+
 // =========== HISTÓRICO ===========
 async function abrirHistorico(empresa) {
   empresaAtual = empresa;
@@ -990,6 +1290,7 @@ async function abrirHistorico(empresa) {
   $('hist-empresa-nome').textContent = empresa;
   $('hist-empresa-info').textContent = 'Carregando...';
   mostrarView('view-historico');
+  renderCRMCard(empresa);
   $('timeline-root').innerHTML = '<div class="loading"><span class="spinner"></span>Carregando reuniões...</div>';
   try {
     const r = await chamarAPI('listar-planos', { empresa });
@@ -2725,7 +3026,7 @@ async function gerarPDF(d) {
 
   const salvo = localStorage.getItem('planoLogin');
   if (salvo) {
-    try { consultorLogado = JSON.parse(salvo); irDashboard(); carregarConsultores(); return; } catch(e) {}
+    try { consultorLogado = JSON.parse(salvo); irDashboard(); carregarConsultores(); carregarCRM().then(() => { if (_empresasCache.length) renderEmpresas(_empresasCache); }); return; } catch(e) {}
   }
   $('data').value = new Date().toISOString().slice(0,10);
   mostrarView('view-login');
