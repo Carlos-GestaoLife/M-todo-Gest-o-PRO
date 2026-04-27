@@ -1017,6 +1017,7 @@
       </div>
     </div>
     <div class="evv-grid">
+      <div class="evv-item" id="evv-empresa-wrap"><span class="evv-lbl">🏢 Empresa</span><span class="evv-val" id="evv-empresa">—</span></div>
       <div class="evv-item" id="evv-local-wrap"><span class="evv-lbl">📍 Local</span><span class="evv-val" id="evv-local">—</span></div>
       <div class="evv-item" id="evv-mentor-wrap"><span class="evv-lbl">👤 Mentor</span><span class="evv-val" id="evv-mentor">—</span></div>
       <div class="evv-item" id="evv-conv-wrap"><span class="evv-lbl">👥 Convidados</span><span class="evv-val" id="evv-conv">—</span></div>
@@ -1620,11 +1621,27 @@ function navegarMesAgenda(delta) {
 function recarregarAgenda() { carregarEventos(); }
 
 // =========== TOOLTIP DOS EVENTOS (hover) ===========
+function extrairEmpresaDoTitulo(titulo) {
+  if (!titulo) return '';
+  // Formato esperado: "Empresa · R2" ou "Empresa · R3" etc
+  const m = titulo.match(/^(.+?)\s*[·\-]\s*R?\d+/i);
+  if (m) return m[1].trim();
+  // Tenta achar match com lista de empresas conhecidas
+  const empMatch = (_crmCache || []).find(c => c.empresa && titulo.includes(c.empresa));
+  if (empMatch) return empMatch.empresa;
+  return '';
+}
+
 function montarTextoTooltipEvento(ev) {
   const conv = (ev.convidados || []).map(c => c.nome || c.email).filter(Boolean).slice(0, 5);
-  const linhas = [ '📌 ' + (ev.titulo || 'Sem título') ];
+  const titulo = ev.titulo || 'Sem título';
+  const empresa = extrairEmpresaDoTitulo(titulo);
+
+  const linhas = [];
+  linhas.push('📌 ' + titulo);
+  if (empresa) linhas.push('🏢 ' + empresa);
+
   if (ev.diaTodo) {
-    // Mostra "dia inteiro" com período se for multi-dia
     const dInicio = new Date(ev.inicio);
     const dFim = new Date(ev.fim);
     if (dFim.getHours() === 0 && dFim.getMinutes() === 0) dFim.setMilliseconds(dFim.getMilliseconds() - 1);
@@ -1638,9 +1655,10 @@ function montarTextoTooltipEvento(ev) {
     const horaFim = new Date(ev.fim).toTimeString().slice(0,5);
     linhas.push('🕐 ' + hora + ' - ' + horaFim);
   }
+
   if (ev.local) linhas.push('📍 ' + (ev.local.length > 60 ? ev.local.slice(0,60) + '…' : ev.local));
   if (conv.length) linhas.push('👥 ' + conv.join(', ') + (ev.convidados.length > 5 ? ' +' + (ev.convidados.length - 5) : ''));
-  if (ev.descricao) linhas.push('\n' + (ev.descricao.length > 160 ? ev.descricao.slice(0,160) + '…' : ev.descricao));
+  if (ev.descricao) linhas.push('\n📝 ' + (ev.descricao.length > 200 ? ev.descricao.slice(0,200) + '…' : ev.descricao));
   return linhas.join('\n');
 }
 
@@ -1686,6 +1704,10 @@ function verEvento(idEvento) {
     dataStr = `${DIAS[dt.getDay()]}, ${dt.getDate()} de ${MESES[dt.getMonth()]} · ${dt.toTimeString().slice(0,5)} - ${dtFim.toTimeString().slice(0,5)}`;
   }
   $('evv-data').textContent = dataStr;
+
+  // Empresa (extraída do título)
+  const empresa = extrairEmpresaDoTitulo(ev.titulo);
+  $('evv-empresa').textContent = empresa || '—';
 
   // Local: se for link, vira clicável
   const local = ev.local || '';
