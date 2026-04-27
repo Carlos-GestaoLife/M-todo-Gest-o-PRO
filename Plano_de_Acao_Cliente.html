@@ -176,36 +176,48 @@
   .cal-dia.hoje { border-color: var(--accent); background: rgba(77,201,255,.08); }
   .cal-dia .num-dia { font-size: 13px; font-weight: 700; color: var(--text); }
   .cal-dia.hoje .num-dia { color: var(--accent); }
-  .cal-evento { background: rgba(77,201,255,.18); color: var(--accent); border-left: 3px solid var(--accent); font-size: 11.5px; line-height: 1.25; padding: 4px 6px; border-radius: 4px; cursor: pointer; position: relative; font-weight: 600; word-break: break-word; overflow: hidden; max-height: 36px; }
-  .cal-evento:hover { background: rgba(77,201,255,.3); max-height: none; z-index: 10; }
+  .cal-evento { background: rgba(77,201,255,.18); color: var(--accent); border-left: 3px solid var(--accent); font-size: 11.5px; line-height: 1.25; padding: 3px 6px; border-radius: 4px; cursor: pointer; position: relative; font-weight: 600; word-break: break-word; overflow: hidden; max-height: 32px; white-space: nowrap; text-overflow: ellipsis; }
+  .cal-evento:hover { background: rgba(77,201,255,.3); max-height: none; z-index: 10; white-space: normal; }
   .cal-mais { color: var(--text-dim); font-size: 10px; padding: 1px 4px; }
 
-  /* Tooltip customizado nos eventos */
-  .cal-evento[data-tooltip]:hover::after {
-    content: attr(data-tooltip);
-    position: absolute;
-    left: 0; top: calc(100% + 6px);
-    background: #0a1230;
-    color: #fff;
-    padding: 10px 14px;
-    border-radius: 8px;
-    border: 1px solid var(--accent);
-    box-shadow: 0 8px 28px rgba(0,0,0,.6);
-    font-size: 12px;
-    font-weight: 500;
-    z-index: 100;
-    min-width: 220px;
-    max-width: 320px;
-    white-space: pre-wrap;
-    pointer-events: none;
+  /* Evento all-day (dia inteiro) — estilo Google Calendar */
+  .cal-evento.allday {
+    background: linear-gradient(90deg, #a855f7, #c084fc);
+    color: #ffffff;
+    border-left: none;
+    border-radius: 4px;
+    font-weight: 700;
+    padding: 3px 8px;
+    text-transform: none;
   }
+  .cal-evento.allday:hover { background: linear-gradient(90deg, #9333ea, #a855f7); }
+  /* Continuação de all-day em dias intermediários */
+  .cal-evento.allday.continuacao::before { content: '… '; opacity: .7; }
+  .cal-evento.allday.continuacao { color: rgba(255,255,255,.85); }
+
+  /* Evento com horário — visual mais compacto */
+  .cal-evento.timed { background: transparent; border-left: none; padding: 2px 4px; color: var(--text); font-weight: 500; }
+  .cal-evento.timed::before { content: '●'; color: var(--accent); margin-right: 4px; font-size: 10px; }
+  .cal-evento.timed:hover { background: rgba(77,201,255,.1); }
+  .cal-evento.timed .ev-hora { color: var(--accent); font-weight: 700; margin-right: 3px; font-size: 11px; }
 
   @media (max-width: 700px) {
     .cal-dia { min-height: 80px; padding: 4px; }
     .cal-dia .num-dia { font-size: 11px; }
     .cal-evento { font-size: 10px; padding: 2px 4px; max-height: 28px; }
-    .cal-evento[data-tooltip]:hover::after { display: none; }
   }
+
+  /* Modal de visualização do evento */
+  .evv-grid { display: flex; flex-direction: column; gap: 14px; padding: 8px 0; }
+  .evv-item { display: flex; flex-direction: column; gap: 4px; padding: 10px 14px; background: rgba(255,255,255,.02); border: 1px solid var(--border); border-radius: 8px; }
+  .evv-lbl { font-size: 10.5px; color: var(--text-dim); letter-spacing: 1px; text-transform: uppercase; font-weight: 700; }
+  .evv-val { font-size: 14px; color: var(--text); white-space: pre-wrap; word-break: break-word; }
+  .evv-val a { color: var(--accent); text-decoration: none; word-break: break-all; }
+  .evv-val a:hover { text-decoration: underline; }
+
+  /* Tooltip (flutuante via JS) */
+  .tooltip-evento { position: fixed; background: #0a1230; color: #fff; padding: 12px 16px; border-radius: 10px; border: 1px solid var(--accent); box-shadow: 0 10px 36px rgba(0,0,0,.7); font-size: 12.5px; font-weight: 500; z-index: 9999; min-width: 240px; max-width: 360px; white-space: pre-wrap; pointer-events: none; opacity: 0; transition: opacity .12s; line-height: 1.5; }
+  .tooltip-evento.show { opacity: 1; }
 
   /* Card "Suas reuniões dessa semana" */
   .reunioes-semana-card { background: linear-gradient(135deg, rgba(77,201,255,.1), rgba(122,162,255,.05)); border: 1px solid rgba(77,201,255,.4); border-left: 5px solid var(--accent); border-radius: 12px; padding: 16px 20px; margin-bottom: 18px; }
@@ -994,6 +1006,29 @@
   <footer>Método Gestão Life · Gestão PRO<br><small>Ferramenta interna · Planos de Ação v2</small></footer>
 </div>
 
+<!-- Modal: VISUALIZAR evento (read-only) -->
+<div class="modal-bg" id="modal-evento-view">
+  <div class="modal modal-crm-content">
+    <div style="display:flex;align-items:flex-start;gap:14px;margin-bottom:12px">
+      <div style="font-size:32px">📅</div>
+      <div style="flex:1">
+        <h3 id="evv-titulo" style="margin:0 0 6px;font-size:18px">—</h3>
+        <p id="evv-data" style="margin:0;font-size:13px;color:var(--accent);font-weight:600">—</p>
+      </div>
+    </div>
+    <div class="evv-grid">
+      <div class="evv-item" id="evv-local-wrap"><span class="evv-lbl">📍 Local</span><span class="evv-val" id="evv-local">—</span></div>
+      <div class="evv-item" id="evv-mentor-wrap"><span class="evv-lbl">👤 Mentor</span><span class="evv-val" id="evv-mentor">—</span></div>
+      <div class="evv-item" id="evv-conv-wrap"><span class="evv-lbl">👥 Convidados</span><span class="evv-val" id="evv-conv">—</span></div>
+      <div class="evv-item" id="evv-desc-wrap"><span class="evv-lbl">📝 Pauta / Descrição</span><span class="evv-val" id="evv-desc">—</span></div>
+    </div>
+    <div class="actions" style="justify-content:flex-end;gap:8px;margin-top:18px;flex-wrap:wrap">
+      <button class="btn btn-secondary" onclick="fecharModalEventoView()">Fechar</button>
+      <button class="btn btn-primary" onclick="editarEventoVisualizado()">✏️ Editar</button>
+    </div>
+  </div>
+</div>
+
 <!-- Modal: criar/editar evento da agenda -->
 <div class="modal-bg" id="modal-evento">
   <div class="modal modal-crm-content">
@@ -1115,6 +1150,7 @@
 
 <div class="toast" id="toast"></div>
 <div class="save-indicator" id="save-indicator">💾 Salvo automaticamente</div>
+<div class="tooltip-evento" id="tooltip-evento"></div>
 
 <script>
 
@@ -1583,6 +1619,108 @@ function navegarMesAgenda(delta) {
 
 function recarregarAgenda() { carregarEventos(); }
 
+// =========== TOOLTIP DOS EVENTOS (hover) ===========
+function montarTextoTooltipEvento(ev) {
+  const conv = (ev.convidados || []).map(c => c.nome || c.email).filter(Boolean).slice(0, 5);
+  const linhas = [ '📌 ' + (ev.titulo || 'Sem título') ];
+  if (ev.diaTodo) {
+    // Mostra "dia inteiro" com período se for multi-dia
+    const dInicio = new Date(ev.inicio);
+    const dFim = new Date(ev.fim);
+    if (dFim.getHours() === 0 && dFim.getMinutes() === 0) dFim.setMilliseconds(dFim.getMilliseconds() - 1);
+    const fmtDia = (d) => `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}`;
+    const inicioStr = fmtDia(dInicio);
+    const fimStr = fmtDia(dFim);
+    if (inicioStr === fimStr) linhas.push('📅 Dia inteiro · ' + inicioStr);
+    else linhas.push('📅 Dia inteiro · ' + inicioStr + ' a ' + fimStr);
+  } else {
+    const hora = new Date(ev.inicio).toTimeString().slice(0,5);
+    const horaFim = new Date(ev.fim).toTimeString().slice(0,5);
+    linhas.push('🕐 ' + hora + ' - ' + horaFim);
+  }
+  if (ev.local) linhas.push('📍 ' + (ev.local.length > 60 ? ev.local.slice(0,60) + '…' : ev.local));
+  if (conv.length) linhas.push('👥 ' + conv.join(', ') + (ev.convidados.length > 5 ? ' +' + (ev.convidados.length - 5) : ''));
+  if (ev.descricao) linhas.push('\n' + (ev.descricao.length > 160 ? ev.descricao.slice(0,160) + '…' : ev.descricao));
+  return linhas.join('\n');
+}
+
+function mostrarTooltipEvento(elTrigger, texto) {
+  const tip = $('tooltip-evento');
+  if (!tip) return;
+  tip.textContent = texto;
+  // Posiciona próximo ao elemento
+  const rect = elTrigger.getBoundingClientRect();
+  tip.style.left = Math.min(rect.left, window.innerWidth - 380) + 'px';
+  tip.style.top = (rect.bottom + 8) + 'px';
+  tip.classList.add('show');
+}
+
+function esconderTooltipEvento() {
+  const tip = $('tooltip-evento');
+  if (tip) tip.classList.remove('show');
+}
+
+// =========== VER EVENTO (read-only) ===========
+let _eventoVisualizando = null;
+
+function verEvento(idEvento) {
+  const ev = _agendaEventos.find(e => e.id === idEvento);
+  if (!ev) return;
+  _eventoVisualizando = ev;
+
+  $('evv-titulo').textContent = ev.titulo || 'Sem título';
+  const dt = new Date(ev.inicio);
+  const dtFim = new Date(ev.fim);
+  const DIAS = ['Domingo','Segunda','Terça','Quarta','Quinta','Sexta','Sábado'];
+  const MESES = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+  let dataStr;
+  if (ev.diaTodo) {
+    const dFim = new Date(dtFim);
+    if (dFim.getHours() === 0 && dFim.getMinutes() === 0) dFim.setMilliseconds(dFim.getMilliseconds() - 1);
+    if (dt.toDateString() === dFim.toDateString()) {
+      dataStr = `${DIAS[dt.getDay()]}, ${dt.getDate()} de ${MESES[dt.getMonth()]} · 📅 Dia inteiro`;
+    } else {
+      dataStr = `📅 Dia inteiro · ${dt.getDate()} de ${MESES[dt.getMonth()]} a ${dFim.getDate()} de ${MESES[dFim.getMonth()]}`;
+    }
+  } else {
+    dataStr = `${DIAS[dt.getDay()]}, ${dt.getDate()} de ${MESES[dt.getMonth()]} · ${dt.toTimeString().slice(0,5)} - ${dtFim.toTimeString().slice(0,5)}`;
+  }
+  $('evv-data').textContent = dataStr;
+
+  // Local: se for link, vira clicável
+  const local = ev.local || '';
+  const eLink = /^https?:\/\//.test(local);
+  $('evv-local').innerHTML = local
+    ? (eLink ? `<a href="${local}" target="_blank">${local}</a>` : local.replace(/</g,'&lt;'))
+    : '—';
+
+  // Mentor (heurística — primeiro consultor presente nos convidados)
+  const mentor = (_consultoresCache || []).find(c => c.email && (ev.convidados || []).some(x => (x.email || '').toLowerCase() === c.email.toLowerCase()));
+  $('evv-mentor').textContent = mentor ? mentor.nome : (ev.criador || '—');
+
+  // Convidados
+  const convs = (ev.convidados || []).map(c => c.nome ? `${c.nome} <${c.email}>` : c.email);
+  $('evv-conv').textContent = convs.length ? convs.join('\n') : '—';
+
+  // Descrição
+  $('evv-desc').textContent = ev.descricao || '—';
+
+  $('modal-evento-view').classList.add('show');
+}
+
+function fecharModalEventoView() {
+  $('modal-evento-view').classList.remove('show');
+  _eventoVisualizando = null;
+}
+
+function editarEventoVisualizado() {
+  if (!_eventoVisualizando) return;
+  const id = _eventoVisualizando.id;
+  fecharModalEventoView();
+  // Pequeno delay pra transição do modal não conflitar
+  setTimeout(() => abrirModalEvento(id), 100);
+}
+
 // =========== Reuniões da semana — card no topo da dashboard ===========
 async function carregarReunioesSemana() {
   const root = $('reunioes-semana-root');
@@ -1673,6 +1811,41 @@ async function carregarEventos() {
   }
 }
 
+// Helpers pra distribuir eventos em todos os dias que cobrem
+function chaveDia(d) {
+  const dt = new Date(d);
+  const ano = dt.getFullYear(), mes = String(dt.getMonth()+1).padStart(2,'0'), dia = String(dt.getDate()).padStart(2,'0');
+  return `${ano}-${mes}-${dia}`;
+}
+
+function distribuirEventoPorDias(ev) {
+  // Retorna array {chave, posicao: 'unico'|'inicio'|'meio'|'fim', evento}
+  const inicio = new Date(ev.inicio);
+  const fim = new Date(ev.fim);
+  // Pra all-day, o Calendar API às vezes coloca o fim como início do dia seguinte. Ajusta:
+  const fimEfetivo = new Date(fim);
+  if (ev.diaTodo) {
+    // Se fim é exatamente meia-noite, retira 1 ms pra ficar no dia anterior
+    if (fimEfetivo.getHours() === 0 && fimEfetivo.getMinutes() === 0 && fimEfetivo.getSeconds() === 0) {
+      fimEfetivo.setMilliseconds(fimEfetivo.getMilliseconds() - 1);
+    }
+  }
+  const lista = [];
+  let d = new Date(inicio.getFullYear(), inicio.getMonth(), inicio.getDate());
+  const dFim = new Date(fimEfetivo.getFullYear(), fimEfetivo.getMonth(), fimEfetivo.getDate());
+  while (d.getTime() <= dFim.getTime()) {
+    let posicao = 'unico';
+    if (d.getTime() !== dFim.getTime() || d.getTime() !== inicio.getTime()) {
+      if (d.getTime() === new Date(inicio.getFullYear(), inicio.getMonth(), inicio.getDate()).getTime() && d.getTime() !== dFim.getTime()) posicao = 'inicio';
+      else if (d.getTime() === dFim.getTime()) posicao = 'fim';
+      else posicao = 'meio';
+    }
+    lista.push({ chave: chaveDia(d), posicao, evento: ev });
+    d.setDate(d.getDate() + 1);
+  }
+  return lista;
+}
+
 function renderCalendario() {
   if (!_agendaMes) _agendaMes = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
   const ano = _agendaMes.getFullYear();
@@ -1680,52 +1853,55 @@ function renderCalendario() {
   $('cal-mes-atual').textContent = `${MESES_NOMES[mes]} de ${ano}`;
 
   const primeiroDia = new Date(ano, mes, 1);
-  const dowInicio = primeiroDia.getDay(); // 0=Dom
+  const dowInicio = primeiroDia.getDay();
   const ultimoDia = new Date(ano, mes + 1, 0).getDate();
   const hoje = new Date(); hoje.setHours(0,0,0,0);
 
-  // Agrupa eventos por dia (yyyy-mm-dd)
+  // Agrupa eventos: distribuindo multi-dia em todos os dias que cobre
   const eventosPorDia = {};
   _agendaEventos.forEach(ev => {
-    const d = new Date(ev.inicio);
-    const key = d.toISOString().slice(0,10);
-    if (!eventosPorDia[key]) eventosPorDia[key] = [];
-    eventosPorDia[key].push(ev);
+    distribuirEventoPorDias(ev).forEach(({ chave, posicao }) => {
+      if (!eventosPorDia[chave]) eventosPorDia[chave] = [];
+      eventosPorDia[chave].push({ evento: ev, posicao });
+    });
+  });
+
+  // Ordena: all-day primeiro, depois por hora de início
+  Object.keys(eventosPorDia).forEach(k => {
+    eventosPorDia[k].sort((a, b) => {
+      if (a.evento.diaTodo && !b.evento.diaTodo) return -1;
+      if (!a.evento.diaTodo && b.evento.diaTodo) return 1;
+      return new Date(a.evento.inicio) - new Date(b.evento.inicio);
+    });
   });
 
   const grid = $('cal-grid-dias');
   let html = '';
 
-  // Dias do mês anterior pra preencher início
   for (let i = 0; i < dowInicio; i++) {
     const d = new Date(ano, mes, -dowInicio + i + 1);
     html += `<div class="cal-dia fora-mes"><div class="num-dia">${d.getDate()}</div></div>`;
   }
-  // Dias do mês
   for (let dia = 1; dia <= ultimoDia; dia++) {
     const data = new Date(ano, mes, dia);
     const ehHoje = data.getTime() === hoje.getTime();
-    const key = data.toISOString().slice(0,10);
+    const key = chaveDia(data);
     const evs = eventosPorDia[key] || [];
-    const evsHtml = evs.slice(0, 3).map(ev => {
-      const hora = new Date(ev.inicio).toTimeString().slice(0,5);
-      const horaFim = new Date(ev.fim).toTimeString().slice(0,5);
+    const evsHtml = evs.slice(0, 4).map(({ evento: ev, posicao }) => {
       const titulo = (ev.titulo || 'Sem título').replace(/</g,'&lt;');
-      // Tooltip com resumo
-      const conv = (ev.convidados || []).map(c => c.nome || c.email).filter(Boolean).slice(0, 4).join(', ');
-      const tooltip = [
-        `📌 ${titulo}`,
-        `🕐 ${hora} - ${horaFim}`,
-        ev.local ? `📍 ${ev.local.length > 50 ? ev.local.slice(0,50)+'…' : ev.local}` : '',
-        conv ? `👥 ${conv}${ev.convidados.length > 4 ? ' +'+(ev.convidados.length-4) : ''}` : '',
-        ev.descricao ? `\n${ev.descricao.length > 120 ? ev.descricao.slice(0,120)+'…' : ev.descricao}` : ''
-      ].filter(Boolean).join('\n').replace(/"/g, '&quot;');
-      return `<div class="cal-evento" data-tooltip="${tooltip}" onclick="event.stopPropagation();abrirModalEvento('${ev.id.replace(/'/g,"\\'")}')">${hora} ${titulo}</div>`;
+      const safeId = ev.id.replace(/'/g,"\\'");
+      const handlers = `onmouseenter="mostrarTooltipEvento(this, montarTextoTooltipEvento(_agendaEventos.find(e=>e.id==='${safeId}') || {}))" onmouseleave="esconderTooltipEvento()" onclick="event.stopPropagation();esconderTooltipEvento();verEvento('${safeId}')"`;
+      if (ev.diaTodo) {
+        const cls = (posicao === 'meio' || posicao === 'fim') ? 'allday continuacao' : 'allday';
+        return `<div class="cal-evento ${cls}" ${handlers}>${titulo}</div>`;
+      } else {
+        const hora = new Date(ev.inicio).toTimeString().slice(0,5);
+        return `<div class="cal-evento timed" ${handlers}><span class="ev-hora">${hora}</span>${titulo}</div>`;
+      }
     }).join('');
-    const mais = evs.length > 3 ? `<div class="cal-mais">+${evs.length - 3} mais</div>` : '';
-    html += `<div class="cal-dia ${ehHoje ? 'hoje' : ''}" onclick="abrirModalEventoNoDia('${data.toISOString().slice(0,10)}')"><div class="num-dia">${dia}</div>${evsHtml}${mais}</div>`;
+    const mais = evs.length > 4 ? `<div class="cal-mais">+${evs.length - 4} mais</div>` : '';
+    html += `<div class="cal-dia ${ehHoje ? 'hoje' : ''}" onclick="abrirModalEventoNoDia('${chaveDia(data)}')"><div class="num-dia">${dia}</div>${evsHtml}${mais}</div>`;
   }
-  // Completa últimos dias
   const totalCelulas = dowInicio + ultimoDia;
   const restante = (7 - (totalCelulas % 7)) % 7;
   for (let i = 1; i <= restante; i++) {
@@ -1977,17 +2153,19 @@ function renderCalendarioCompromissos(lista) {
     const evsHtml = evs.slice(0, 3).map(c => {
       const cls = classeStatusCompromisso(c.status, c.prazo);
       const safeDesc = (c.descricao || '').replace(/</g,'&lt;').slice(0, 60);
-      const safeEmp = (c.empresa || '').replace(/</g,'&lt;');
       const tooltip = [
-        `📌 ${safeDesc}`,
-        `🏢 ${safeEmp} · R${c.reuniao || '?'}`,
-        c.responsavel ? `👤 ${c.responsavel}` : '',
-        c.prazo ? `📅 Prazo: ${new Date(c.prazo).toLocaleDateString('pt-BR')}` : '',
-        `🔵 Status: ${c.status || 'Aberto'}`,
-        c.obs ? `\n${c.obs.length > 100 ? c.obs.slice(0,100)+'…' : c.obs}` : ''
-      ].filter(Boolean).join('\n').replace(/"/g, '&quot;');
+        '📌 ' + (c.descricao || ''),
+        '🏢 ' + (c.empresa || '') + ' · R' + (c.reuniao || '?'),
+        c.responsavel ? '👤 ' + c.responsavel : '',
+        c.prazo ? '📅 Prazo: ' + new Date(c.prazo).toLocaleDateString('pt-BR') : '',
+        '🔵 Status: ' + (c.status || 'Aberto'),
+        c.obs ? '\n' + (c.obs.length > 100 ? c.obs.slice(0,100) + '…' : c.obs) : ''
+      ].filter(Boolean).join('\n').replace(/"/g, '&quot;').replace(/`/g, '\\`').replace(/\$/g, '\\$').replace(/'/g, "\\'");
       const safeIdPlano = (c.idPlano || '').replace(/'/g, "\\'");
-      return `<div class="cal-evento compromisso ${cls}" data-tooltip="${tooltip}" onclick="event.stopPropagation();editarPlano('${safeIdPlano}')">${safeDesc}</div>`;
+      return `<div class="cal-evento compromisso ${cls}"
+        onmouseenter="mostrarTooltipEvento(this, '${tooltip}')"
+        onmouseleave="esconderTooltipEvento()"
+        onclick="event.stopPropagation();esconderTooltipEvento();editarPlano('${safeIdPlano}')">${safeDesc}</div>`;
     }).join('');
     const mais = evs.length > 3 ? `<div class="cal-mais">+${evs.length - 3} mais</div>` : '';
     html += `<div class="cal-dia ${ehHoje ? 'hoje' : ''}"><div class="num-dia">${dia}</div>${evsHtml}${mais}</div>`;
