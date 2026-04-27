@@ -108,6 +108,18 @@
   .ctx-card .ctx-row .lbl { min-width: 130px; color: var(--text-dim); font-weight: 600; }
   .ctx-card .ctx-row .val { flex: 1; color: var(--text); }
 
+  /* Toggle de view (cal/lista) */
+  .view-toggle { display: flex; gap: 4px; background: rgba(0,0,0,.25); border-radius: 8px; padding: 3px; }
+  .view-toggle-btn { background: transparent; color: var(--text-dim); border: none; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 700; }
+  .view-toggle-btn.ativa { background: var(--accent); color: #0b1230; }
+
+  /* Eventos no calendário de compromissos (com cor pelo status) */
+  .cal-evento.compromisso { background: rgba(77,201,255,.18); color: var(--accent); border-left: 2px solid var(--accent); }
+  .cal-evento.compromisso.atrasado { background: rgba(248,113,113,.2); color: #f87171; border-left-color: #f87171; }
+  .cal-evento.compromisso.concluido { background: rgba(34,197,94,.2); color: #22c55e; border-left-color: #22c55e; opacity: .8; }
+  .cal-evento.compromisso.naofeita { background: rgba(160,170,200,.15); color: #94a3b8; border-left-color: #94a3b8; opacity: .7; text-decoration: line-through; }
+  .cal-evento.compromisso.andamento { background: rgba(251,191,36,.2); color: #fbbf24; border-left-color: #fbbf24; }
+
   /* Compromissos (Fase 3) */
   .compromissos-resumo { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; margin-bottom: 16px; }
   .resumo-card { background: rgba(255,255,255,.02); border: 1px solid var(--border); border-left: 4px solid var(--accent); border-radius: 10px; padding: 14px 16px; }
@@ -516,7 +528,6 @@
           <button class="btn btn-primary" onclick="novaEmpresa()">+ Criar nova reunião</button>
         </div>
       </div>
-    </div>
     <div class="search-bar"><input type="text" id="busca" placeholder="🔍 Buscar empresa..." oninput="filtrarEmpresas()"></div>
 
     <div class="crm-filtros">
@@ -625,7 +636,32 @@
       </div>
 
       <div id="compromissos-resumo" class="compromissos-resumo"></div>
-      <div id="compromissos-lista" class="compromissos-lista"></div>
+
+      <div class="cal-toolbar" style="margin-top:6px">
+        <button class="cal-nav" onclick="navegarMesCompromissos(-1)">←</button>
+        <div class="cal-mes-atual" id="compr-mes-atual">—</div>
+        <button class="cal-nav" onclick="navegarMesCompromissos(1)">→</button>
+        <div style="flex:1"></div>
+        <div class="view-toggle">
+          <button class="view-toggle-btn ativa" id="vt-cal" onclick="setViewCompromissos('cal')">📅 Calendário</button>
+          <button class="view-toggle-btn" id="vt-lista" onclick="setViewCompromissos('lista')">📋 Lista</button>
+        </div>
+      </div>
+
+      <div id="compromissos-cal-view">
+        <div class="cal-grid">
+          <div class="cal-dow">DOM</div>
+          <div class="cal-dow">SEG</div>
+          <div class="cal-dow">TER</div>
+          <div class="cal-dow">QUA</div>
+          <div class="cal-dow">QUI</div>
+          <div class="cal-dow">SEX</div>
+          <div class="cal-dow">SAB</div>
+        </div>
+        <div id="compr-cal-grid" class="cal-grid"></div>
+      </div>
+
+      <div id="compromissos-lista" class="compromissos-lista" style="display:none"></div>
     </div>
   </div>
 
@@ -923,16 +959,39 @@
 <div class="modal-bg" id="modal-evento">
   <div class="modal modal-crm-content">
     <h3 id="modal-evento-titulo">📅 Nova reunião</h3>
-    <p style="font-size:12px;color:var(--text-dim);margin:6px 0 14px">Cria um evento na agenda compartilhada · todos os convidados recebem convite por email</p>
-    <div class="field"><label>Título</label><input type="text" id="ev-titulo" placeholder="Ex.: Mentoria Burger do João · R3"></div>
+    <p style="font-size:12px;color:var(--text-dim);margin:6px 0 14px">Cria um evento na agenda compartilhada · convite por email · link do Meet auto-gerado</p>
+
+    <div class="field-group">
+      <div class="field"><label>Empresa</label>
+        <select id="ev-empresa" onchange="onEmpresaEventoChange()">
+          <option value="">-- Selecione --</option>
+        </select>
+      </div>
+      <div class="field"><label>Mentor</label>
+        <select id="ev-mentor" onchange="onMentorEventoChange()">
+          <option value="">-- Selecione --</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="field"><label>Título da reunião</label><input type="text" id="ev-titulo" placeholder="Auto-gerado a partir da empresa"></div>
+
     <div class="field-group">
       <div class="field"><label>Data</label><input type="date" id="ev-data"></div>
       <div class="field"><label>Início</label><input type="time" id="ev-inicio"></div>
-      <div class="field"><label>Fim</label><input type="time" id="ev-fim"></div>
     </div>
-    <div class="field"><label>Local / Link da reunião</label><input type="text" id="ev-local" placeholder="Online (Google Meet) ou endereço"></div>
+
+    <div class="field"><label>Local / Link da reunião</label>
+      <div style="display:flex;gap:6px">
+        <input type="text" id="ev-local" placeholder="Será gerado automaticamente um link do Meet" style="flex:1">
+        <button type="button" class="btn btn-secondary" onclick="gerarLinkMeet()" title="Gerar Meet" style="white-space:nowrap;font-size:12px">🎥 Gerar Meet</button>
+      </div>
+    </div>
+
     <div class="field"><label>Descrição / Pauta</label><textarea id="ev-descricao" rows="3" placeholder="Pauta, objetivo da reunião, materiais..."></textarea></div>
+
     <div class="field"><label>Convidados (emails separados por vírgula)</label><input type="text" id="ev-convidados" placeholder="email1@ex.com, email2@ex.com"></div>
+
     <div class="actions" style="justify-content:space-between;gap:8px;margin-top:14px;flex-wrap:wrap">
       <button class="btn btn-secondary" id="ev-btn-apagar" onclick="apagarEvento()" style="background:rgba(248,113,113,.15);color:#f87171;border-color:rgba(248,113,113,.4);display:none">🗑 Apagar</button>
       <div style="flex:1"></div>
@@ -1552,17 +1611,88 @@ function renderCalendario() {
   grid.innerHTML = html;
 }
 
+function popularSelectEmpresasEvento() {
+  const sel = $('ev-empresa');
+  if (!sel) return;
+  const atual = sel.value;
+  // Usa a lista do CRM (ordem alfabética)
+  const empresas = (_crmCache || []).slice().sort((a,b) => (a.empresa || '').localeCompare(b.empresa || ''));
+  sel.innerHTML = '<option value="">-- Selecione --</option>' +
+    empresas.map(e => `<option value="${(e.empresa || '').replace(/"/g,'&quot;')}">${e.empresa}</option>`).join('');
+  sel.value = atual || '';
+}
+
+function popularSelectMentorEvento() {
+  const sel = $('ev-mentor');
+  if (!sel) return;
+  const atual = sel.value;
+  sel.innerHTML = '<option value="">-- Selecione --</option>' +
+    (_consultoresCache || []).map(c => `<option value="${c.nome.replace(/"/g,'&quot;')}">${c.nome}</option>`).join('');
+  sel.value = atual || '';
+}
+
+function onEmpresaEventoChange() {
+  const empresa = $('ev-empresa').value;
+  if (!empresa) return;
+  const crm = getCRMByEmpresa(empresa);
+
+  // Auto-preenche título se estiver vazio
+  if (!$('ev-titulo').value.trim()) {
+    $('ev-titulo').value = `Mentoria · ${empresa}`;
+  }
+
+  // Adiciona o telefone/email do dono nos convidados (se for email)
+  const tel = (crm && crm.telefone) || '';
+  // Se for email (tem @), adiciona; se for telefone/grupo, ignora
+  if (tel && tel.includes('@')) {
+    adicionarConvidadoEmEvento(tel);
+  }
+
+  // Re-aplica o mentor pra adicionar email
+  onMentorEventoChange();
+}
+
+function onMentorEventoChange() {
+  const nome = $('ev-mentor').value;
+  if (!nome) return;
+  const c = (_consultoresCache || []).find(c => c.nome === nome);
+  if (c && c.email) adicionarConvidadoEmEvento(c.email);
+}
+
+function adicionarConvidadoEmEvento(email) {
+  if (!email || !email.includes('@')) return;
+  const inp = $('ev-convidados');
+  const atuais = inp.value.split(',').map(e => e.trim()).filter(e => e);
+  if (atuais.includes(email)) return;
+  atuais.push(email);
+  inp.value = atuais.join(', ');
+}
+
+function gerarLinkMeet() {
+  // Gera um link de "Nova reunião" do Meet usando o slug aleatório
+  // Não cria realmente uma sala — só o link template do Meet (que cria ao clicar)
+  // Pra criar sala REAL, o Apps Script faz no momento de criar o evento via Calendar API v3
+  const url = 'https://meet.google.com/new';
+  $('ev-local').value = url;
+  toast('✓ Link do Meet preparado · vai ser gerado ao salvar', 3000);
+}
+
 function abrirModalEvento(idEvento) {
   _eventoEditando = null;
   $('modal-evento-titulo').textContent = '📅 Nova reunião';
   $('ev-btn-apagar').style.display = 'none';
+  popularSelectEmpresasEvento();
+  popularSelectMentorEvento();
+  $('ev-empresa').value = '';
+  $('ev-mentor').value = consultorLogado?.nome || ''; // mentor padrão = quem tá logado
   $('ev-titulo').value = '';
   $('ev-data').value = new Date().toISOString().slice(0,10);
   $('ev-inicio').value = '14:00';
-  $('ev-fim').value = '15:00';
   $('ev-local').value = '';
   $('ev-descricao').value = '';
   $('ev-convidados').value = '';
+  // Já adiciona email do mentor logado automaticamente
+  if (consultorLogado?.email) adicionarConvidadoEmEvento(consultorLogado.email);
 
   if (idEvento) {
     const ev = _agendaEventos.find(e => e.id === idEvento);
@@ -1573,10 +1703,12 @@ function abrirModalEvento(idEvento) {
       $('ev-titulo').value = ev.titulo || '';
       $('ev-data').value = new Date(ev.inicio).toISOString().slice(0,10);
       $('ev-inicio').value = new Date(ev.inicio).toTimeString().slice(0,5);
-      $('ev-fim').value = new Date(ev.fim).toTimeString().slice(0,5);
       $('ev-local').value = ev.local || '';
       $('ev-descricao').value = ev.descricao || '';
       $('ev-convidados').value = (ev.convidados || []).map(c => c.email).join(', ');
+      // Tenta inferir empresa a partir do título
+      const empMatch = (_crmCache || []).find(c => (ev.titulo || '').includes(c.empresa));
+      if (empMatch) $('ev-empresa').value = empMatch.empresa;
     }
   }
   $('modal-evento').classList.add('show');
@@ -1592,38 +1724,54 @@ function fecharModalEvento() {
 }
 
 async function salvarEvento() {
-  const titulo = $('ev-titulo').value.trim();
+  const empresa = $('ev-empresa').value;
+  const mentor = $('ev-mentor').value;
+  let titulo = $('ev-titulo').value.trim();
+  // Se não preencheu título, gera automaticamente
+  if (!titulo && empresa) titulo = `Mentoria · ${empresa}`;
   const data = $('ev-data').value;
   const inicio = $('ev-inicio').value;
-  const fim = $('ev-fim').value;
-  if (!titulo) { toast('⚠ Preencha o título', 3000, true); return; }
-  if (!data || !inicio || !fim) { toast('⚠ Preencha data, início e fim', 3000, true); return; }
+  if (!titulo) { toast('⚠ Selecione a empresa ou preencha o título', 3000, true); return; }
+  if (!data || !inicio) { toast('⚠ Preencha data e horário de início', 3000, true); return; }
+  // Duração padrão 1 hora
   const dtInicio = new Date(data + 'T' + inicio + ':00');
-  const dtFim = new Date(data + 'T' + fim + ':00');
-  if (dtFim <= dtInicio) { toast('⚠ Hora final precisa ser depois do início', 3000, true); return; }
+  const dtFim = new Date(dtInicio.getTime() + 60 * 60 * 1000);
 
   const convidados = $('ev-convidados').value.split(',').map(e => e.trim()).filter(e => e.includes('@'));
+  const local = $('ev-local').value.trim();
+  // Se for "https://meet.google.com/new", servidor vai gerar link real
+  const gerarMeet = local === 'https://meet.google.com/new' || local === '';
+
   const payload = {
     titulo,
     descricao: $('ev-descricao').value.trim(),
-    local: $('ev-local').value.trim(),
+    local: gerarMeet ? '' : local,
+    gerarMeet,
     inicio: dtInicio.toISOString(),
     fim: dtFim.toISOString(),
-    convidados
+    convidados,
+    empresa,
+    mentor
   };
+
+  const btn = document.querySelector('#modal-evento .btn-primary');
+  if (btn) { btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> Salvando...'; }
 
   try {
     if (_eventoEditando) {
       await chamarAPI('editar-evento', { id: _eventoEditando.id, ...payload });
       toast('✓ Evento atualizado!', 2500, false, true);
     } else {
-      await chamarAPI('criar-evento', payload);
-      toast('✓ Evento criado!', 2500, false, true);
+      const r = await chamarAPI('criar-evento', payload);
+      const msgExtra = r.linkMeet ? ' · Meet criado' : '';
+      toast('✓ Evento criado!' + msgExtra, 3000, false, true);
     }
     fecharModalEvento();
     carregarEventos();
   } catch (err) {
     toast('❌ ' + err.message, 4000, true);
+  } finally {
+    if (btn) { btn.disabled = false; btn.innerHTML = 'Salvar'; }
   }
 }
 
@@ -1640,9 +1788,85 @@ async function apagarEvento() {
   }
 }
 
-// =========== COMPROMISSOS · Lista consolidada + Cobrança ===========
+// =========== COMPROMISSOS · Lista + Calendário + Cobrança ===========
 let _compromissosCache = [];
 let _filtroMinhasComprAtivo = false;
+let _comprViewAtiva = 'cal'; // 'cal' ou 'lista'
+let _comprMes = null;
+
+function setViewCompromissos(view) {
+  _comprViewAtiva = view;
+  $('vt-cal').classList.toggle('ativa', view === 'cal');
+  $('vt-lista').classList.toggle('ativa', view === 'lista');
+  $('compromissos-cal-view').style.display = view === 'cal' ? '' : 'none';
+  $('compromissos-lista').style.display = view === 'lista' ? '' : 'none';
+  filtrarCompromissos();
+}
+
+function navegarMesCompromissos(delta) {
+  if (!_comprMes) _comprMes = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
+  _comprMes = new Date(_comprMes.getFullYear(), _comprMes.getMonth() + delta, 1);
+  filtrarCompromissos();
+}
+
+function classeStatusCompromisso(status, prazo) {
+  if (status === 'Concluído') return 'concluido';
+  if (status === 'Não feita') return 'naofeita';
+  if (status === 'Em andamento') return 'andamento';
+  if (prazo && new Date(prazo) < new Date(new Date().setHours(0,0,0,0))) return 'atrasado';
+  return '';
+}
+
+function renderCalendarioCompromissos(lista) {
+  if (!_comprMes) _comprMes = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
+  const ano = _comprMes.getFullYear();
+  const mes = _comprMes.getMonth();
+  $('compr-mes-atual').textContent = `${MESES_NOMES[mes]} de ${ano}`;
+
+  const primeiroDia = new Date(ano, mes, 1);
+  const dowInicio = primeiroDia.getDay();
+  const ultimoDia = new Date(ano, mes + 1, 0).getDate();
+  const hoje = new Date(); hoje.setHours(0,0,0,0);
+
+  // Agrupa por dia (yyyy-mm-dd)
+  const porDia = {};
+  lista.forEach(c => {
+    if (!c.prazo) return;
+    const dt = new Date(c.prazo);
+    if (dt.getFullYear() !== ano || dt.getMonth() !== mes) return;
+    const key = dt.toISOString().slice(0,10);
+    if (!porDia[key]) porDia[key] = [];
+    porDia[key].push(c);
+  });
+
+  const grid = $('compr-cal-grid');
+  let html = '';
+  for (let i = 0; i < dowInicio; i++) {
+    const d = new Date(ano, mes, -dowInicio + i + 1);
+    html += `<div class="cal-dia fora-mes"><div class="num-dia">${d.getDate()}</div></div>`;
+  }
+  for (let dia = 1; dia <= ultimoDia; dia++) {
+    const data = new Date(ano, mes, dia);
+    const ehHoje = data.getTime() === hoje.getTime();
+    const key = data.toISOString().slice(0,10);
+    const evs = porDia[key] || [];
+    const evsHtml = evs.slice(0, 3).map(c => {
+      const cls = classeStatusCompromisso(c.status, c.prazo);
+      const safeDesc = (c.descricao || '').replace(/</g,'&lt;').slice(0, 60);
+      const safeEmp = (c.empresa || '').replace(/'/g, "\\'");
+      const safeIdPlano = (c.idPlano || '').replace(/'/g, "\\'");
+      return `<div class="cal-evento compromisso ${cls}" title="${safeEmp} · ${safeDesc}" onclick="event.stopPropagation();editarPlano('${safeIdPlano}')">${safeDesc}</div>`;
+    }).join('');
+    const mais = evs.length > 3 ? `<div class="cal-mais">+${evs.length - 3} mais</div>` : '';
+    html += `<div class="cal-dia ${ehHoje ? 'hoje' : ''}"><div class="num-dia">${dia}</div>${evsHtml}${mais}</div>`;
+  }
+  const totalCelulas = dowInicio + ultimoDia;
+  const restante = (7 - (totalCelulas % 7)) % 7;
+  for (let i = 1; i <= restante; i++) {
+    html += `<div class="cal-dia fora-mes"><div class="num-dia">${i}</div></div>`;
+  }
+  grid.innerHTML = html;
+}
 
 async function carregarCompromissos() {
   const root = $('compromissos-lista');
@@ -1730,7 +1954,11 @@ function filtrarCompromissos() {
   });
 
   renderResumoCompromissos();
-  renderListaCompromissos(lista);
+  if (_comprViewAtiva === 'cal') {
+    renderCalendarioCompromissos(lista);
+  } else {
+    renderListaCompromissos(lista);
+  }
 }
 
 function renderResumoCompromissos() {
