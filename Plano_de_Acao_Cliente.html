@@ -1604,10 +1604,17 @@ function popularFiltroConsultor() {
   const sel = $('filtro-consultor');
   if (!sel) return;
   const atual = sel.value;
-  const opcoes = ['<option value="">Todos</option>'];
-  _consultoresCache.forEach(c => {
-    opcoes.push(`<option value="${c.nome.replace(/"/g,'&quot;')}">${c.nome}</option>`);
+  // Junta consultores cadastrados + especialistas da Base + consultores principais do CRM
+  const nomes = new Set();
+  _consultoresCache.forEach(c => { if (c.nome) nomes.add(c.nome.trim()); });
+  (_baseCache || []).forEach(b => { if (b.especialista) nomes.add(String(b.especialista).trim()); });
+  (_crmCache || []).forEach(c => {
+    if (c.consultorPrincipal) nomes.add(String(c.consultorPrincipal).trim());
+    if (Array.isArray(c.consultoresApoio)) c.consultoresApoio.forEach(a => { if (a) nomes.add(String(a).trim()); });
   });
+  const lista = [...nomes].filter(Boolean).sort((a, b) => a.localeCompare(b, 'pt-BR'));
+  const opcoes = ['<option value="">Todos</option>']
+    .concat(lista.map(n => `<option value="${n.replace(/"/g,'&quot;')}">${n}</option>`));
   sel.innerHTML = opcoes.join('');
   sel.value = atual || '';
 }
@@ -1763,14 +1770,20 @@ function renderEmpresas(lista) {
       if (nv !== fNivel) return false;
     }
     if (fConsultor) {
-      const principal = (crm.consultorPrincipal || '').trim();
-      const apoio = Array.isArray(crm.consultoresApoio) ? crm.consultoresApoio.join(',') : (crm.consultoresApoio || '');
-      if (principal !== fConsultor && !apoio.includes(fConsultor)) return false;
+      const alvo = fConsultor.trim().toLowerCase();
+      const principal = (crm.consultorPrincipal || '').trim().toLowerCase();
+      const apoio = (Array.isArray(crm.consultoresApoio) ? crm.consultoresApoio.join(',') : (crm.consultoresApoio || '')).toLowerCase();
+      const especialistaBase = (base && base.especialista || '').trim().toLowerCase();
+      const bate = principal === alvo || apoio.includes(alvo) || especialistaBase === alvo || especialistaBase.includes(alvo) || alvo.includes(especialistaBase);
+      if (!bate) return false;
     }
     if (_filtroMinhasAtivo && meuNome) {
-      const principal = (crm.consultorPrincipal || '').trim();
-      const apoio = Array.isArray(crm.consultoresApoio) ? crm.consultoresApoio.join(',') : (crm.consultoresApoio || '');
-      if (principal !== meuNome && !apoio.includes(meuNome)) return false;
+      const alvo = meuNome.trim().toLowerCase();
+      const principal = (crm.consultorPrincipal || '').trim().toLowerCase();
+      const apoio = (Array.isArray(crm.consultoresApoio) ? crm.consultoresApoio.join(',') : (crm.consultoresApoio || '')).toLowerCase();
+      const especialistaBase = (base && base.especialista || '').trim().toLowerCase();
+      const bate = principal === alvo || apoio.includes(alvo) || especialistaBase === alvo || especialistaBase.includes(alvo) || alvo.includes(especialistaBase);
+      if (!bate) return false;
     }
     if (fData && e.ultimaData) {
       const dt = new Date(e.ultimaData);
