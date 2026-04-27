@@ -1177,7 +1177,10 @@
       <div class="field"><label>Empresa</label><input type="text" id="crm-empresa"></div>
     </div>
     <div class="field-group">
-      <div class="field"><label>WhatsApp (telefone ou link do grupo)</label><input type="text" id="crm-telefone" placeholder="(00) 00000-0000 ou https://chat.whatsapp.com/..." oninput="mascaraTelefone(this)"></div>
+      <div class="field"><label>📱 WhatsApp pessoal</label><input type="text" id="crm-telefone" placeholder="(00) 00000-0000" oninput="mascaraTelefone(this)"></div>
+      <div class="field"><label>👥 Link grupo WhatsApp</label><input type="text" id="crm-link-grupo" placeholder="https://chat.whatsapp.com/..."></div>
+    </div>
+    <div class="field-group">
       <div class="field"><label>Status</label>
         <select id="crm-status">
           <option value="Ativo">Ativo</option>
@@ -1186,8 +1189,6 @@
           <option value="Encerrado">Encerrado</option>
         </select>
       </div>
-    </div>
-    <div class="field-group">
       <div class="field"><label>Nível atual</label>
         <select id="crm-nivel">
           <option value="">—</option>
@@ -1198,9 +1199,9 @@
           <option value="Nível 05">Nível 05</option>
         </select>
       </div>
-      <div class="field"><label>Consultor Principal</label>
-        <select id="crm-principal"><option value="">--</option></select>
-      </div>
+    </div>
+    <div class="field"><label>Consultor Principal</label>
+      <select id="crm-principal"><option value="">--</option></select>
     </div>
     <div class="field"><label>Consultores apoio</label><input type="text" id="crm-apoio" placeholder="Ex.: Matheus, Thiago"></div>
     <div class="field"><label>Observações</label><textarea id="crm-obs" rows="3" placeholder="Notas gerais sobre a empresa..."></textarea></div>
@@ -1436,6 +1437,12 @@ async function carregarBaseClientes() {
     } catch (e) { /* localStorage cheio, ignora */ }
     atualizarInfoSync();
     popularFiltroSegmento();
+    // Re-renderiza empresas pra que as vindas da Base apareçam
+    if (typeof renderEmpresas === 'function' && _empresasCache !== undefined) {
+      // chama a partir do que está no _empresasCache atual filtrando pelas que NÃO vieram da base (pra reconstruir)
+      const semBase = (_empresasCache || []).filter(e => !e.origemBase);
+      renderEmpresas(semBase.length ? semBase : (_empresasCache || []));
+    }
   } catch (e) { console.warn('Erro Base Clientes:', e); }
 }
 
@@ -1732,7 +1739,7 @@ function renderEmpresas(lista) {
   popularFiltroConsultor();
   // Atualiza card de rascunhos novos no topo
   renderRascunhosNovos();
-  if (!lista.length) {
+  if (!cache.length) {
     $('empresas-root').innerHTML = `<div class="empty-state"><div class="icon">📂</div><p>Nenhuma empresa cadastrada ainda.</p><p>Clique em <strong>"+ Criar nova reunião"</strong> para começar.</p></div>`;
     return;
   }
@@ -1745,7 +1752,8 @@ function renderEmpresas(lista) {
   const fDiag = $('filtro-diag')?.value || '';
   const meuNome = consultorLogado?.nome || '';
 
-  let filtradas = lista.filter(e => {
+  // BUG FIX: usar `cache` (que inclui empresas vindas da Base) em vez de `lista`
+  let filtradas = cache.filter(e => {
     const crm = getCRMByEmpresa(e.empresa) || {};
     const base = getBaseByEmpresa(e.empresa, e.cnpj || crm.cnpj);
     if (termo && !(e.empresa||'').toLowerCase().includes(termo) && !(e.cnpj||'').includes(termo) && !(crm.cnpj||'').includes(termo)) return false;
@@ -1826,7 +1834,7 @@ function renderEmpresas(lista) {
       base.sistema ? '⚙ ' + base.sistema : '',
       base.segmento ? '🍴 ' + base.segmento : '',
       contratoTxt,
-      base.formaPagamento ? '💳 ' + base.formaPagamento : '',
+      base.plano ? '💳 ' + base.plano : '',
       base.origem ? '🔗 ' + base.origem : '',
       base.canalVenda ? '📣 ' + base.canalVenda : '',
       base.cidadeUF ? '📍 ' + base.cidadeUF : '',
@@ -1901,7 +1909,7 @@ function renderCRMCard(empresa) {
   if (base.sistema) extrasBase.push(`<div class="crm-item"><span class="lbl">Sistema</span><span class="val">⚙ ${base.sistema}</span></div>`);
   if (base.cidadeUF) extrasBase.push(`<div class="crm-item"><span class="lbl">Cidade/UF</span><span class="val">📍 ${base.cidadeUF}</span></div>`);
   if (base.contratoAssinado) extrasBase.push(`<div class="crm-item"><span class="lbl">Contrato</span><span class="val">${/sim|assinad/i.test(base.contratoAssinado) ? '✅ Assinado' : '⏳ ' + base.contratoAssinado}</span></div>`);
-  if (base.formaPagamento) extrasBase.push(`<div class="crm-item"><span class="lbl">Forma de Pagamento</span><span class="val">💳 ${base.formaPagamento}</span></div>`);
+  if (base.plano) extrasBase.push(`<div class="crm-item"><span class="lbl">Plano / Pagamento</span><span class="val">💳 ${base.plano}</span></div>`);
   if (base.dataContrato) extrasBase.push(`<div class="crm-item"><span class="lbl">Início</span><span class="val">📅 ${base.dataContrato}</span></div>`);
   if (base.origem) extrasBase.push(`<div class="crm-item"><span class="lbl">Origem</span><span class="val">${base.origem}</span></div>`);
   if (base.canalVenda) extrasBase.push(`<div class="crm-item"><span class="lbl">Canal de venda</span><span class="val">📣 ${base.canalVenda}</span></div>`);
@@ -1961,7 +1969,15 @@ function abrirModalCRM(empresa) {
   const crm = getCRMByEmpresa(empresa) || { empresa, status: 'Ativo' };
   $('crm-cnpj').value = crm.cnpj ? aplicarMascaraCNPJ(crm.cnpj) : '';
   $('crm-empresa').value = crm.empresa || empresa || '';
-  $('crm-telefone').value = crm.telefone ? aplicarMascaraTelefone(crm.telefone) : '';
+  // Telefone: se for link de grupo (legado), move pro campo grupo; senão, mantém em telefone
+  let telPessoal = crm.telefone || '';
+  let linkGrupo = crm.linkGrupo || '';
+  if (telPessoal && ehLinkGrupoWhatsApp(telPessoal) && !linkGrupo) {
+    linkGrupo = telPessoal;
+    telPessoal = '';
+  }
+  $('crm-telefone').value = telPessoal ? aplicarMascaraTelefone(telPessoal) : '';
+  if ($('crm-link-grupo')) $('crm-link-grupo').value = linkGrupo;
   $('crm-status').value = crm.status || 'Ativo';
   $('crm-nivel').value = crm.nivel || '';
   $('crm-obs').value = crm.observacoes || '';
@@ -2880,13 +2896,19 @@ function verCompromisso(idPlano, idxCompromisso) {
   $('cv-obs').textContent = c.obs || '—';
   $('cv-obs-wrap').style.display = c.obs ? '' : 'none';
 
-  // Habilita/desabilita botões de zap conforme telefone
+  // Habilita/desabilita botões de zap conforme cada campo
   const tel = c.telefoneEmpresa || '';
-  const ehGrupo = ehLinkGrupoWhatsApp(tel);
-  $('cv-btn-zap-pessoal').disabled = !tel || ehGrupo;
-  $('cv-btn-zap-pessoal').style.opacity = (!tel || ehGrupo) ? '.4' : '1';
-  $('cv-btn-zap-grupo').disabled = !tel || !ehGrupo;
-  $('cv-btn-zap-grupo').style.opacity = (!tel || !ehGrupo) ? '.4' : '1';
+  const grp = c.linkGrupoEmpresa || '';
+  // Detecta se "tel" foi colado como link de grupo (caso legado, antes de ter campo separado)
+  const telEhGrupo = tel && ehLinkGrupoWhatsApp(tel);
+  const temPessoal = tel && !telEhGrupo;
+  const temGrupo = grp || telEhGrupo;
+  $('cv-btn-zap-pessoal').disabled = !temPessoal;
+  $('cv-btn-zap-pessoal').style.opacity = temPessoal ? '1' : '.4';
+  $('cv-btn-zap-pessoal').title = temPessoal ? 'Cobrar por WhatsApp pessoal' : 'Sem telefone pessoal cadastrado — edite a empresa pra adicionar';
+  $('cv-btn-zap-grupo').disabled = !temGrupo;
+  $('cv-btn-zap-grupo').style.opacity = temGrupo ? '1' : '.4';
+  $('cv-btn-zap-grupo').title = temGrupo ? 'Cobrar no grupo do WhatsApp' : 'Sem link do grupo cadastrado — edite a empresa pra adicionar';
 
   $('modal-compromisso-view').classList.add('show');
 }
@@ -2899,13 +2921,25 @@ function fecharModalCompromisso() {
 function cobrarPessoalDoModal() {
   if (!_compromissoVisualizando) return;
   const c = _compromissoVisualizando;
-  cobrarWhatsApp(c.empresa, c.descricao, c.prazo, c.telefoneEmpresa);
+  const tel = c.telefoneEmpresa || '';
+  if (!tel || ehLinkGrupoWhatsApp(tel)) {
+    toast('⚠ Sem telefone pessoal cadastrado. Edite a empresa pra adicionar.', 4000, true);
+    return;
+  }
+  cobrarWhatsApp(c.empresa, c.descricao, c.prazo, tel);
 }
 
 function cobrarGrupoDoModal() {
   if (!_compromissoVisualizando) return;
   const c = _compromissoVisualizando;
-  cobrarWhatsApp(c.empresa, c.descricao, c.prazo, c.telefoneEmpresa);
+  // Prioriza linkGrupoEmpresa; fallback pra telefoneEmpresa SE for um link de grupo (caso legado)
+  let alvo = c.linkGrupoEmpresa || '';
+  if (!alvo && c.telefoneEmpresa && ehLinkGrupoWhatsApp(c.telefoneEmpresa)) alvo = c.telefoneEmpresa;
+  if (!alvo) {
+    toast('⚠ Sem link do grupo cadastrado. Edite a empresa pra adicionar.', 4000, true);
+    return;
+  }
+  cobrarWhatsApp(c.empresa, c.descricao, c.prazo, alvo);
 }
 
 function abrirReuniaoDoModal() {
@@ -2952,6 +2986,7 @@ async function salvarCRM() {
     cnpj: $('crm-cnpj').value.trim(),
     empresa: $('crm-empresa').value.trim(),
     telefone: $('crm-telefone').value.trim(),
+    linkGrupo: $('crm-link-grupo') ? $('crm-link-grupo').value.trim() : '',
     status: $('crm-status').value,
     nivel: $('crm-nivel').value,
     consultorPrincipal: $('crm-principal').value,
