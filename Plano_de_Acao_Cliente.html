@@ -1405,14 +1405,38 @@ let _inadCache = []; // inadimplência
 let _canceladosCache = []; // empresas canceladas
 
 // Carrega Base Clientes (do cache local na planilha)
+// Estratégia: tenta carregar PRIMEIRO do localStorage (instantâneo), depois atualiza do servidor em background
 async function carregarBaseClientes() {
+  // 1) carrega instantâneo do localStorage (se houver)
+  try {
+    const cache = localStorage.getItem('baseClientesCache');
+    if (cache) {
+      const parsed = JSON.parse(cache);
+      if (Array.isArray(parsed.empresas) && parsed.empresas.length) {
+        _baseCache = parsed.empresas;
+        _baseUltimaSync = parsed.ultimaSync || '';
+        atualizarInfoSync();
+        popularFiltroSegmento();
+      }
+    }
+  } catch (e) { /* ignora cache corrompido */ }
+
+  // 2) busca do servidor pra atualizar
   try {
     const r = await chamarAPI('listar-empresas-base');
     _baseCache = r.empresas || [];
     _baseUltimaSync = r.ultimaSync || '';
+    // 3) salva no localStorage pra próximas sessões
+    try {
+      localStorage.setItem('baseClientesCache', JSON.stringify({
+        empresas: _baseCache,
+        ultimaSync: _baseUltimaSync,
+        salvoEm: new Date().toISOString()
+      }));
+    } catch (e) { /* localStorage cheio, ignora */ }
     atualizarInfoSync();
     popularFiltroSegmento();
-  } catch (e) { console.warn('Erro Base Clientes:', e); _baseCache = []; }
+  } catch (e) { console.warn('Erro Base Clientes:', e); }
 }
 
 async function carregarInadimplencia() {
@@ -1500,18 +1524,50 @@ async function sincronizarBaseClientesManual() {
   }
 }
 
+// Normaliza nome de empresa pra match permissivo:
+// - lowercase, sem acentos
+// - remove sufixos jurídicos (LTDA, ME, EIRELI, S.A, S/A, EPP, MEI)
+// - remove pontuação extra
+function _normalizeEmpresaNome(s) {
+  return String(s || '')
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '') // tira acento
+    .toLowerCase()
+    .replace(/\b(ltda|me|eireli|s\.?\s*a\.?|s\/a|epp|mei|eire)\b\.?/gi, '')
+    .replace(/[^a-z0-9\s]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
 function getBaseByEmpresa(nome, cnpj) {
   if (!_baseCache || !_baseCache.length) return null;
+
+  // 1) Tenta por CNPJ (mais confiável)
   const cnpjN = String(cnpj || '').replace(/\D/g, '');
   if (cnpjN) {
     const m = _baseCache.find(b => String(b.cnpj || '').replace(/\D/g, '') === cnpjN);
     if (m) return m;
   }
-  const k = String(nome || '').trim().toLowerCase();
-  return _baseCache.find(b =>
-    (b.razaoSocial || '').trim().toLowerCase() === k ||
-    (b.nomeFantasia || '').trim().toLowerCase() === k
-  ) || null;
+
+  const k = _normalizeEmpresaNome(nome);
+  if (!k) return null;
+
+  // 2) Match exato normalizado (sem LTDA/ME/etc)
+  let m = _baseCache.find(b =>
+    _normalizeEmpresaNome(b.razaoSocial) === k ||
+    _normalizeEmpresaNome(b.nomeFantasia) === k
+  );
+  if (m) return m;
+
+  // 3) Match por substring (qualquer um contém o outro) — pra casos tipo "Ferraz Car Detail" vs "Ferraz Car Detail Comercio Ltda"
+  m = _baseCache.find(b => {
+    const r = _normalizeEmpresaNome(b.razaoSocial);
+    const f = _normalizeEmpresaNome(b.nomeFantasia);
+    return (r && (r.includes(k) || k.includes(r))) ||
+           (f && (f.includes(k) || k.includes(f)));
+  });
+  if (m) return m;
+
+  return null;
 }
 
 // Carrega CRM em paralelo com lista de empresas
@@ -1524,8 +1580,17 @@ async function carregarCRM() {
 
 function getCRMByEmpresa(empresa) {
   if (!empresa) return null;
-  const k = String(empresa).trim().toLowerCase();
-  return _crmCache.find(c => (c.empresa || '').trim().toLowerCase() === k) || null;
+  const k = _normalizeEmpresaNome(empresa);
+  if (!k) return null;
+  // Match exato normalizado primeiro
+  let m = _crmCache.find(c => _normalizeEmpresaNome(c.empresa) === k);
+  if (m) return m;
+  // Fallback: substring
+  m = _crmCache.find(c => {
+    const e = _normalizeEmpresaNome(c.empresa);
+    return e && (e.includes(k) || k.includes(e));
+  });
+  return m || null;
 }
 
 function popularFiltroConsultor() {
@@ -1752,14 +1817,19 @@ function renderEmpresas(lista) {
       subInfo = 'última reunião: ' + formatarDataComDia(e.ultimaData);
     }
 
-    // Info adicional da Base (especialista, origem, canal de venda, segmento)
+    // Info adicional da Base
+    const contratoTxt = base && base.contratoAssinado
+      ? (/sim|assinad/i.test(base.contratoAssinado) ? '✅ Contrato assinado' : '⏳ ' + base.contratoAssinado)
+      : '';
     const linhaBase = base ? [
-      base.cidadeUF ? '📍 ' + base.cidadeUF : '',
-      base.segmento ? '🍴 ' + base.segmento : '',
       base.especialista ? '🎓 ' + base.especialista : '',
       base.sistema ? '⚙ ' + base.sistema : '',
+      base.segmento ? '🍴 ' + base.segmento : '',
+      contratoTxt,
+      base.formaPagamento ? '💳 ' + base.formaPagamento : '',
       base.origem ? '🔗 ' + base.origem : '',
       base.canalVenda ? '📣 ' + base.canalVenda : '',
+      base.cidadeUF ? '📍 ' + base.cidadeUF : '',
       base.plano ? '📦 ' + base.plano : ''
     ].filter(Boolean).join(' · ') : '';
 
@@ -1803,26 +1873,63 @@ function renderCRMCard(empresa) {
   const root = $('crm-card-empresa');
   if (!root) return;
   const crm = getCRMByEmpresa(empresa) || { empresa };
-  const status = crm.status || 'Ativo';
-  const statusClass = status.toLowerCase();
-  const wa = crm.telefone ? gerarLinkWhatsApp(crm.telefone) : '';
-  const ehGrupo = crm.telefone && ehLinkGrupoWhatsApp(crm.telefone);
+  const base = getBaseByEmpresa(empresa, crm.cnpj) || {};
+  // Debug pro user descobrir por que não achou
+  if (!crm.cnpj && !base.cnpj) {
+    console.log('[renderCRMCard] empresa NÃO encontrada nem no CRM nem na BASE:', empresa, '| baseCache size:', _baseCache.length, '| crmCache size:', _crmCache.length);
+    if (_baseCache.length) {
+      const sample = _baseCache.slice(0, 5).map(b => b.razaoSocial || b.nomeFantasia);
+      console.log('[renderCRMCard] amostra de empresas na BASE:', sample);
+    }
+  }
+
+  // Mescla CRM (prioridade) com BASE (fallback)
+  const cnpj = crm.cnpj || base.cnpj || '';
+  const telefone = crm.telefone || base.telefone || '';
+  const status = crm.status || base.status || 'Ativo';
+  const statusClass = String(status).toLowerCase().replace(/\s+/g,'-');
+  const consultorPrincipal = crm.consultorPrincipal || base.especialista || '';
+  const consultoresApoio = (crm.consultoresApoio && crm.consultoresApoio.length) ? crm.consultoresApoio.join(', ') : '';
+  const wa = telefone ? gerarLinkWhatsApp(telefone) : '';
+  const ehGrupo = telefone && ehLinkGrupoWhatsApp(telefone);
   const labelTel = ehGrupo ? 'Grupo WhatsApp' : 'Telefone (WhatsApp)';
-  const valTel = wa ? `<a href="${wa}" target="_blank">${ehGrupo ? '👥 Abrir grupo' : '📱 ' + crm.telefone}</a>` : '—';
+  const valTel = wa ? `<a href="${wa}" target="_blank">${ehGrupo ? '👥 Abrir grupo' : '📱 ' + telefone}</a>` : '—';
+
+  // Linhas extras vindas SÓ da Base (informativas — não editáveis aqui)
+  const extrasBase = [];
+  if (base.segmento) extrasBase.push(`<div class="crm-item"><span class="lbl">Segmento</span><span class="val">🍴 ${base.segmento}</span></div>`);
+  if (base.sistema) extrasBase.push(`<div class="crm-item"><span class="lbl">Sistema</span><span class="val">⚙ ${base.sistema}</span></div>`);
+  if (base.cidadeUF) extrasBase.push(`<div class="crm-item"><span class="lbl">Cidade/UF</span><span class="val">📍 ${base.cidadeUF}</span></div>`);
+  if (base.contratoAssinado) extrasBase.push(`<div class="crm-item"><span class="lbl">Contrato</span><span class="val">${/sim|assinad/i.test(base.contratoAssinado) ? '✅ Assinado' : '⏳ ' + base.contratoAssinado}</span></div>`);
+  if (base.formaPagamento) extrasBase.push(`<div class="crm-item"><span class="lbl">Forma de Pagamento</span><span class="val">💳 ${base.formaPagamento}</span></div>`);
+  if (base.dataContrato) extrasBase.push(`<div class="crm-item"><span class="lbl">Início</span><span class="val">📅 ${base.dataContrato}</span></div>`);
+  if (base.origem) extrasBase.push(`<div class="crm-item"><span class="lbl">Origem</span><span class="val">${base.origem}</span></div>`);
+  if (base.canalVenda) extrasBase.push(`<div class="crm-item"><span class="lbl">Canal de venda</span><span class="val">📣 ${base.canalVenda}</span></div>`);
+
+  const naoEncontrada = !crm.cnpj && !base.cnpj && !crm.telefone && !base.telefone;
+  const aviso = naoEncontrada ? `
+    <div style="background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.3);border-radius:8px;padding:10px 14px;margin-bottom:12px;color:#fca5a5;font-size:13px">
+      ⚠️ Esta empresa não foi encontrada na Base Clientes. Verifique se o nome confere com a planilha ou clique em <strong>"Sincronizar base"</strong> na dashboard. Você também pode preencher os dados manualmente em "Editar".
+    </div>
+  ` : '';
+
   root.innerHTML = `
     <div class="crm-card">
+      ${aviso}
       <div class="crm-card-head">
         <h3>📇 Dados da empresa</h3>
         <button class="crm-edit-btn" onclick="abrirModalCRM('${(empresa||'').replace(/'/g,"\\'")}')">✏️ Editar</button>
       </div>
       <div class="crm-grid">
-        <div class="crm-item"><span class="lbl">CNPJ</span><span class="val">${crm.cnpj || '—'}</span></div>
+        <div class="crm-item"><span class="lbl">CNPJ</span><span class="val">${cnpj || '—'}</span></div>
         <div class="crm-item"><span class="lbl">${labelTel}</span><span class="val">${valTel}</span></div>
         <div class="crm-item"><span class="lbl">Status</span><span class="val"><span class="status-badge ${statusClass}">${status}</span></span></div>
         <div class="crm-item"><span class="lbl">Nível atual</span><span class="val">${crm.nivel || '—'}</span></div>
-        <div class="crm-item"><span class="lbl">Consultor Principal</span><span class="val">${crm.consultorPrincipal || '—'}</span></div>
-        <div class="crm-item"><span class="lbl">Consultores Apoio</span><span class="val">${(crm.consultoresApoio && crm.consultoresApoio.length) ? crm.consultoresApoio.join(', ') : '—'}</span></div>
+        <div class="crm-item"><span class="lbl">${base.especialista && !crm.consultorPrincipal ? 'Especialista' : 'Consultor Principal'}</span><span class="val">${consultorPrincipal || '—'}</span></div>
+        <div class="crm-item"><span class="lbl">Consultores Apoio</span><span class="val">${consultoresApoio || '—'}</span></div>
+        ${extrasBase.join('')}
         ${crm.observacoes ? `<div class="crm-item" style="grid-column:1/-1"><span class="lbl">Observações</span><span class="val">${crm.observacoes}</span></div>` : ''}
+        ${(!crm.observacoes && base.observacoes) ? `<div class="crm-item" style="grid-column:1/-1"><span class="lbl">Observações</span><span class="val">${base.observacoes}</span></div>` : ''}
       </div>
     </div>
   `;
