@@ -108,6 +108,43 @@
   .ctx-card .ctx-row .lbl { min-width: 130px; color: var(--text-dim); font-weight: 600; }
   .ctx-card .ctx-row .val { flex: 1; color: var(--text); }
 
+  /* Compromissos (Fase 3) */
+  .compromissos-resumo { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; margin-bottom: 16px; }
+  .resumo-card { background: rgba(255,255,255,.02); border: 1px solid var(--border); border-left: 4px solid var(--accent); border-radius: 10px; padding: 14px 16px; }
+  .resumo-card.vermelho { border-left-color: #f87171; }
+  .resumo-card.amarelo { border-left-color: #fbbf24; }
+  .resumo-card.verde { border-left-color: #22c55e; }
+  .resumo-card.cinza { border-left-color: #94a3b8; }
+  .resumo-card .num { font-size: 24px; font-weight: 800; color: var(--text); }
+  .resumo-card .lbl { font-size: 11px; color: var(--text-dim); letter-spacing: 1px; text-transform: uppercase; font-weight: 700; margin-top: 2px; }
+
+  .compromissos-lista { display: flex; flex-direction: column; gap: 8px; }
+  .compr-item { display: grid; grid-template-columns: 1fr 130px 130px 90px; gap: 12px; align-items: center; background: rgba(255,255,255,.02); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; transition: all .15s; }
+  .compr-item:hover { border-color: rgba(77,201,255,.4); }
+  .compr-item.atrasado { border-left: 4px solid #f87171; }
+  .compr-item.vencendo { border-left: 4px solid #fbbf24; }
+  .compr-item.concluido { border-left: 4px solid #22c55e; opacity: .7; }
+  .compr-item .principal { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+  .compr-item .desc { font-size: 14px; font-weight: 700; color: var(--text); }
+  .compr-item .meta { font-size: 11.5px; color: var(--text-dim); }
+  .compr-item .meta b { color: var(--text); }
+  .compr-prazo { font-size: 12px; font-weight: 700; }
+  .compr-prazo .data { display: block; font-size: 13px; }
+  .compr-prazo.atrasado { color: #f87171; }
+  .compr-prazo.vencendo { color: #fbbf24; }
+  .compr-prazo .relativa { font-size: 10.5px; color: var(--text-dim); margin-top: 2px; }
+  .compr-status-sel { background: var(--card); border: 1px solid var(--border); color: var(--text); padding: 6px 10px; border-radius: 6px; font-size: 12px; width: 100%; }
+  .compr-acoes-fase3 { display: flex; gap: 4px; justify-content: flex-end; }
+  .compr-btn-wa { background: rgba(34,197,94,.15); color: #22c55e; border: 1px solid rgba(34,197,94,.4); border-radius: 6px; width: 36px; height: 36px; cursor: pointer; font-size: 16px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .compr-btn-wa:hover { background: rgba(34,197,94,.25); }
+  .compr-btn-wa:disabled { opacity: .4; cursor: not-allowed; }
+  .compr-btn-abrir { background: rgba(77,201,255,.1); color: var(--accent); border: 1px solid rgba(77,201,255,.3); border-radius: 6px; width: 36px; height: 36px; cursor: pointer; font-size: 14px; }
+
+  @media (max-width: 800px) {
+    .compr-item { grid-template-columns: 1fr; gap: 8px; }
+    .compr-acoes-fase3 { justify-content: flex-start; }
+  }
+
   /* Navegação por abas (dashboard) */
   .nav-abas { display: flex; gap: 6px; margin-bottom: 18px; border-bottom: 1px solid var(--border); }
   .nav-aba { background: transparent; color: var(--text-dim); border: none; padding: 12px 18px; cursor: pointer; font-size: 14px; font-weight: 700; letter-spacing: .3px; border-bottom: 3px solid transparent; transition: all .15s; }
@@ -468,6 +505,7 @@
     <div class="nav-abas">
       <button class="nav-aba ativa" onclick="trocarAba('empresas')">🏢 Empresas</button>
       <button class="nav-aba" onclick="trocarAba('agenda')">📅 Agenda</button>
+      <button class="nav-aba" onclick="trocarAba('compromissos')">✅ Compromissos</button>
     </div>
 
     <div id="aba-empresas">
@@ -546,6 +584,48 @@
         <div class="cal-dow">SAB</div>
       </div>
       <div id="cal-grid-dias" class="cal-grid"></div>
+    </div>
+
+    <div id="aba-compromissos" style="display:none">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; flex-wrap:wrap; gap: 10px">
+        <h1 style="text-transform:none;font-size:22px;margin:0">Compromissos · Cobrança</h1>
+        <button class="btn btn-secondary" onclick="recarregarCompromissos()">↻ Atualizar</button>
+      </div>
+
+      <div class="crm-filtros">
+        <div class="filtro-mini"><label>Prazo</label>
+          <select id="cf-prazo" onchange="filtrarCompromissos()">
+            <option value="">Todos</option>
+            <option value="atrasados">🔴 Atrasados</option>
+            <option value="semana" selected>⏳ Vencem essa semana</option>
+            <option value="mes">📅 Esse mês</option>
+            <option value="futuros">→ Futuros</option>
+          </select>
+        </div>
+        <div class="filtro-mini"><label>Status</label>
+          <select id="cf-status" onchange="filtrarCompromissos()">
+            <option value="">Todos</option>
+            <option value="Aberto">Aberto</option>
+            <option value="Em andamento">Em andamento</option>
+            <option value="Concluído">Concluído</option>
+            <option value="Atrasado">Atrasado</option>
+            <option value="Não feita">Não feita</option>
+          </select>
+        </div>
+        <div class="filtro-mini"><label>Empresa</label>
+          <select id="cf-empresa" onchange="filtrarCompromissos()"><option value="">Todas</option></select>
+        </div>
+        <div class="filtro-mini"><label>Consultor da empresa</label>
+          <select id="cf-consultor" onchange="filtrarCompromissos()"><option value="">Todos</option></select>
+        </div>
+        <div class="filtro-mini"><label>Responsável</label>
+          <input type="text" id="cf-resp" placeholder="Buscar nome..." oninput="filtrarCompromissos()">
+        </div>
+        <button type="button" class="toggle-minhas" id="cf-minhas" onclick="toggleMinhasCompromissos()">👤 Minhas</button>
+      </div>
+
+      <div id="compromissos-resumo" class="compromissos-resumo"></div>
+      <div id="compromissos-lista" class="compromissos-lista"></div>
     </div>
   </div>
 
@@ -1378,14 +1458,19 @@ function trocarAba(aba) {
   document.querySelectorAll('.nav-aba').forEach(b => b.classList.remove('ativa'));
   document.querySelectorAll('.nav-aba').forEach(b => {
     if ((aba === 'empresas' && b.textContent.includes('Empresas')) ||
-        (aba === 'agenda' && b.textContent.includes('Agenda'))) b.classList.add('ativa');
+        (aba === 'agenda' && b.textContent.includes('Agenda')) ||
+        (aba === 'compromissos' && b.textContent.includes('Compromissos'))) b.classList.add('ativa');
   });
   $('aba-empresas').style.display = aba === 'empresas' ? '' : 'none';
   $('aba-agenda').style.display = aba === 'agenda' ? '' : 'none';
+  $('aba-compromissos').style.display = aba === 'compromissos' ? '' : 'none';
   if (aba === 'agenda') {
     if (!_agendaMes) _agendaMes = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
     renderCalendario();
     carregarEventos();
+  }
+  if (aba === 'compromissos') {
+    carregarCompromissos();
   }
 }
 
@@ -1553,6 +1638,201 @@ async function apagarEvento() {
   } catch (err) {
     toast('❌ ' + err.message, 4000, true);
   }
+}
+
+// =========== COMPROMISSOS · Lista consolidada + Cobrança ===========
+let _compromissosCache = [];
+let _filtroMinhasComprAtivo = false;
+
+async function carregarCompromissos() {
+  const root = $('compromissos-lista');
+  if (!root) return;
+  root.innerHTML = '<div class="loading"><span class="spinner"></span>Carregando compromissos...</div>';
+  try {
+    const r = await chamarAPI('listar-compromissos');
+    _compromissosCache = r.compromissos || [];
+    popularFiltrosCompromissos();
+    filtrarCompromissos();
+  } catch (err) {
+    root.innerHTML = `<div class="empty-state"><div class="icon">⚠</div>${err.message}</div>`;
+  }
+}
+
+function recarregarCompromissos() { carregarCompromissos(); }
+
+function popularFiltrosCompromissos() {
+  // Empresa
+  const empSel = $('cf-empresa');
+  if (empSel) {
+    const atual = empSel.value;
+    const empresas = [...new Set(_compromissosCache.map(c => c.empresa).filter(Boolean))].sort();
+    empSel.innerHTML = '<option value="">Todas</option>' + empresas.map(e =>
+      `<option value="${e.replace(/"/g,'&quot;')}">${e}</option>`
+    ).join('');
+    empSel.value = atual || '';
+  }
+  // Consultor
+  const cSel = $('cf-consultor');
+  if (cSel) {
+    const atual = cSel.value;
+    cSel.innerHTML = '<option value="">Todos</option>' + _consultoresCache.map(c =>
+      `<option value="${c.nome.replace(/"/g,'&quot;')}">${c.nome}</option>`
+    ).join('');
+    cSel.value = atual || '';
+  }
+}
+
+function toggleMinhasCompromissos() {
+  _filtroMinhasComprAtivo = !_filtroMinhasComprAtivo;
+  $('cf-minhas').classList.toggle('ativo', _filtroMinhasComprAtivo);
+  filtrarCompromissos();
+}
+
+function filtrarCompromissos() {
+  const fPrazo = $('cf-prazo')?.value || '';
+  const fStatus = $('cf-status')?.value || '';
+  const fEmp = $('cf-empresa')?.value || '';
+  const fCons = $('cf-consultor')?.value || '';
+  const fResp = ($('cf-resp')?.value || '').trim().toLowerCase();
+  const meuNome = consultorLogado?.nome || '';
+  const hoje = new Date(); hoje.setHours(0,0,0,0);
+  const fimSemana = new Date(hoje); fimSemana.setDate(hoje.getDate() + (7 - hoje.getDay()));
+  const fimMes = new Date(hoje.getFullYear(), hoje.getMonth() + 1, 0);
+
+  let lista = _compromissosCache.slice();
+  if (fStatus) lista = lista.filter(c => c.status === fStatus);
+  if (fEmp) lista = lista.filter(c => c.empresa === fEmp);
+  if (fCons) lista = lista.filter(c => c.consultorEmpresa === fCons || c.consultorPlano === fCons);
+  if (fResp) lista = lista.filter(c => (c.responsavel || '').toLowerCase().includes(fResp));
+  if (_filtroMinhasComprAtivo && meuNome) {
+    lista = lista.filter(c => c.consultorEmpresa === meuNome || c.consultorPlano === meuNome);
+  }
+
+  if (fPrazo) {
+    lista = lista.filter(c => {
+      if (!c.prazo) return false;
+      const dt = new Date(c.prazo);
+      const concluido = c.status === 'Concluído';
+      if (fPrazo === 'atrasados') return dt < hoje && !concluido && c.status !== 'Não feita';
+      if (fPrazo === 'semana') return dt >= hoje && dt <= fimSemana;
+      if (fPrazo === 'mes') return dt >= hoje && dt <= fimMes;
+      if (fPrazo === 'futuros') return dt > fimSemana;
+      return true;
+    });
+  }
+
+  // Ordena: mais urgentes primeiro
+  lista.sort((a, b) => {
+    if (!a.prazo && !b.prazo) return 0;
+    if (!a.prazo) return 1;
+    if (!b.prazo) return -1;
+    return new Date(a.prazo) - new Date(b.prazo);
+  });
+
+  renderResumoCompromissos();
+  renderListaCompromissos(lista);
+}
+
+function renderResumoCompromissos() {
+  const root = $('compromissos-resumo');
+  if (!root) return;
+  const hoje = new Date(); hoje.setHours(0,0,0,0);
+  const fimSemana = new Date(hoje); fimSemana.setDate(hoje.getDate() + (7 - hoje.getDay()));
+  const meuNome = consultorLogado?.nome || '';
+  const filtrar = _filtroMinhasComprAtivo
+    ? _compromissosCache.filter(c => c.consultorEmpresa === meuNome || c.consultorPlano === meuNome)
+    : _compromissosCache;
+  const total = filtrar.length;
+  const atrasados = filtrar.filter(c => c.prazo && new Date(c.prazo) < hoje && c.status !== 'Concluído' && c.status !== 'Não feita').length;
+  const semana = filtrar.filter(c => c.prazo && new Date(c.prazo) >= hoje && new Date(c.prazo) <= fimSemana && c.status !== 'Concluído').length;
+  const concluidos = filtrar.filter(c => c.status === 'Concluído').length;
+  root.innerHTML = `
+    <div class="resumo-card vermelho"><div class="num">${atrasados}</div><div class="lbl">🔴 Atrasados</div></div>
+    <div class="resumo-card amarelo"><div class="num">${semana}</div><div class="lbl">⏳ Vencem essa semana</div></div>
+    <div class="resumo-card verde"><div class="num">${concluidos}</div><div class="lbl">✅ Concluídos</div></div>
+    <div class="resumo-card cinza"><div class="num">${total}</div><div class="lbl">Total</div></div>
+  `;
+}
+
+function renderListaCompromissos(lista) {
+  const root = $('compromissos-lista');
+  if (!root) return;
+  if (!lista.length) {
+    root.innerHTML = `<div class="empty-state"><div class="icon">✅</div><p>Nenhum compromisso com esses filtros.</p></div>`;
+    return;
+  }
+  const hoje = new Date(); hoje.setHours(0,0,0,0);
+  const fimSemana = new Date(hoje); fimSemana.setDate(hoje.getDate() + (7 - hoje.getDay()));
+
+  root.innerHTML = lista.map(c => {
+    let classeItem = '', classePrazo = '', textoRel = '';
+    if (c.prazo) {
+      const dt = new Date(c.prazo);
+      const dias = Math.round((dt - hoje) / (1000*60*60*24));
+      if (c.status === 'Concluído') { classeItem = 'concluido'; }
+      else if (dt < hoje) { classeItem = 'atrasado'; classePrazo = 'atrasado'; textoRel = `há ${Math.abs(dias)} dia${Math.abs(dias) !== 1 ? 's' : ''}`; }
+      else if (dt <= fimSemana) { classeItem = 'vencendo'; classePrazo = 'vencendo'; textoRel = dias === 0 ? 'hoje' : `em ${dias} dia${dias !== 1 ? 's' : ''}`; }
+      else textoRel = `em ${dias} dias`;
+    }
+    const dataFmt = c.prazo ? new Date(c.prazo).toLocaleDateString('pt-BR') : '—';
+    const escapeAttr = (s) => String(s || '').replace(/'/g, "\\'").replace(/"/g, '&quot;');
+
+    return `
+      <div class="compr-item ${classeItem}">
+        <div class="principal">
+          <div class="desc">${(c.descricao || '').replace(/</g,'&lt;')}</div>
+          <div class="meta">🏢 <b>${(c.empresa || '—').replace(/</g,'&lt;')}</b> · R${c.reuniao || '?'}${c.responsavel ? ' · 👤 ' + c.responsavel : ''}${c.consultorEmpresa ? ' · 🎯 ' + c.consultorEmpresa : ''}</div>
+        </div>
+        <div class="compr-prazo ${classePrazo}">
+          <span class="data">${dataFmt}</span>
+          ${textoRel ? `<span class="relativa">${textoRel}</span>` : ''}
+        </div>
+        <select class="compr-status-sel" onchange="mudarStatusCompromisso(this, '${escapeAttr(c.idPlano)}', ${c.idxCompromisso})">
+          <option value="Aberto" ${c.status==='Aberto'?'selected':''}>Aberto</option>
+          <option value="Em andamento" ${c.status==='Em andamento'?'selected':''}>Em andamento</option>
+          <option value="Concluído" ${c.status==='Concluído'?'selected':''}>Concluído</option>
+          <option value="Atrasado" ${c.status==='Atrasado'?'selected':''}>Atrasado</option>
+          <option value="Não feita" ${c.status==='Não feita'?'selected':''}>Não feita</option>
+        </select>
+        <div class="compr-acoes-fase3">
+          <button class="compr-btn-wa" title="Cobrar via WhatsApp" ${c.telefoneEmpresa ? '' : 'disabled'} onclick="cobrarWhatsApp('${escapeAttr(c.empresa)}', '${escapeAttr(c.descricao)}', '${escapeAttr(c.prazo)}', '${escapeAttr(c.telefoneEmpresa)}')">📱</button>
+          <button class="compr-btn-abrir" title="Abrir reunião" onclick="editarPlano('${escapeAttr(c.idPlano)}')">↗</button>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+async function mudarStatusCompromisso(sel, idPlano, idxCompromisso) {
+  const novoStatus = sel.value;
+  const original = sel.dataset.original || '';
+  sel.disabled = true;
+  try {
+    await chamarAPI('atualizar-status-compromisso', { idPlano, idxCompromisso, status: novoStatus });
+    // Atualiza cache local
+    const c = _compromissosCache.find(c => c.idPlano === idPlano && c.idxCompromisso === idxCompromisso);
+    if (c) c.status = novoStatus;
+    toast('✓ Status atualizado', 2000, false, true);
+    filtrarCompromissos();
+  } catch (err) {
+    toast('❌ ' + err.message, 4000, true);
+    sel.value = original;
+  } finally {
+    sel.disabled = false;
+  }
+}
+
+function cobrarWhatsApp(empresa, descricao, prazo, telefone) {
+  if (!telefone) {
+    toast('⚠ Empresa sem telefone cadastrado no CRM', 4000, true);
+    return;
+  }
+  const dataFmt = prazo ? new Date(prazo).toLocaleDateString('pt-BR') : 'definido';
+  const consultor = consultorLogado?.nome || 'Equipe';
+  const msg = `Olá! Tudo bem? Passando aqui pra confirmar o compromisso da nossa última reunião:\n\n📌 ${descricao}\n📅 Prazo: ${dataFmt}\n\nComo tá o andamento? Conseguiu avançar?\n\n— ${consultor}, Gestão PRO`;
+  const url = gerarLinkWhatsApp(telefone, msg);
+  if (!url) { toast('⚠ Telefone inválido', 4000, true); return; }
+  window.open(url, '_blank');
 }
 
 async function salvarCRM() {
