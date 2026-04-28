@@ -853,6 +853,18 @@
           </div>
           <textarea id="objetivoReuniao" rows="4" placeholder="Resumo do que o cliente trouxe pra essa reunião..."></textarea>
         </div>
+
+        <!-- Unidades abrangidas (matriz com filiais) — só aparece se houver irmãs -->
+        <div id="unidades-abrangidas-card" class="objetivo-card" style="display:none;background:rgba(77,201,255,.06);border-color:rgba(77,201,255,.3)">
+          <div class="objetivo-head">
+            <span class="objetivo-icon">🏢</span>
+            <div>
+              <h4>Reunião abrange outras unidades?</h4>
+              <p>Marque as unidades do mesmo grupo que esta reunião também cobre. Cada uma terá seu próprio quadro de execução.</p>
+            </div>
+          </div>
+          <div id="unidades-abrangidas-lista" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px"></div>
+        </div>
       </div>
     </section>
 
@@ -985,6 +997,11 @@
     <section class="section">
       <div class="section-head"><div class="num">06</div><div><h2>QUADRO DE EXECUÇÃO (INDICADORES)</h2><div class="sub">Indicadores atuais da operação · puxado da última atualização do cliente</div></div></div>
       <div class="section-body">
+        <!-- Abas de unidade (só aparecem se a reunião abrange várias unidades) -->
+        <div id="qe-unidades-tabs" style="display:none;margin-bottom:14px;border-bottom:1px solid var(--border);padding-bottom:12px">
+          <div style="font-size:11px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px;font-weight:700">📊 Quadro por unidade</div>
+          <div id="qe-unidades-tabs-list" style="display:flex;flex-wrap:wrap;gap:6px"></div>
+        </div>
         <div class="qe-toolbar">
           <button type="button" class="qe-nav" id="qe-prev" onclick="navegarMesQE(-1)" title="Mês anterior">←</button>
           <div class="qe-mes-info">
@@ -1191,6 +1208,22 @@
   </div>
 </div>
 
+<!-- Modal: Painel completo do diagnóstico -->
+<div class="modal-bg" id="modal-painel-diag">
+  <div class="modal" style="max-width:920px;max-height:90vh;overflow-y:auto">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+      <div>
+        <h3 style="margin:0;font-size:18px">📊 Diagnóstico</h3>
+        <p id="pd-empresa" style="margin:4px 0 0;font-size:13px;color:var(--text-dim)">—</p>
+      </div>
+      <button class="btn btn-secondary" onclick="$('modal-painel-diag').classList.remove('show')">Fechar</button>
+    </div>
+    <div id="pd-corpo">
+      <div class="loading"><span class="spinner"></span>Carregando diagnóstico...</div>
+    </div>
+  </div>
+</div>
+
 <!-- Modal: Lixeira (apaga em 60 dias) -->
 <div class="modal-bg" id="modal-lixeira">
   <div class="modal" style="max-width:760px;max-height:80vh;overflow-y:auto">
@@ -1215,6 +1248,11 @@
     <div class="field-group">
       <div class="field"><label>📱 WhatsApp pessoal</label><input type="text" id="crm-telefone" placeholder="(00) 00000-0000" oninput="mascaraTelefone(this)"></div>
       <div class="field"><label>👥 Link grupo WhatsApp</label><input type="text" id="crm-link-grupo" placeholder="https://chat.whatsapp.com/..."></div>
+    </div>
+    <div class="field"><label>🏢 Grupo (vincular a uma empresa-mãe)</label>
+      <input type="text" id="crm-grupo" list="crm-grupo-list" placeholder="Ex: Grupo Palato — digite o mesmo nome em todas as unidades" autocomplete="off">
+      <datalist id="crm-grupo-list"></datalist>
+      <small style="color:var(--text-dim);font-size:11px;margin-top:4px;display:block">Use pra agrupar matriz + filiais. Empresas com o mesmo nome de grupo aparecem vinculadas.</small>
     </div>
     <div class="field-group">
       <div class="field"><label>Status</label>
@@ -1930,11 +1968,53 @@ function renderEmpresas(lista) {
 function filtrarEmpresas() { renderEmpresas(_empresasCache); }
 
 // =========== CRM — Card no histórico + modal de edição ===========
+// Acha empresa em _empresasCache (que tem statusDiagnostico, nivelDiagnostico, etc do diagnóstico)
+function getEmpresaCacheByNome(empresa) {
+  if (!empresa || !_empresasCache) return null;
+  const k = String(empresa).trim().toLowerCase();
+  return _empresasCache.find(e => (e.empresa || '').trim().toLowerCase() === k) || null;
+}
+
+// Acha empresas irmãs (mesmo grupo OU mesma raiz CNPJ — primeiros 8 dígitos)
+function getEmpresasIrmas(empresa, cnpj, grupo) {
+  const cnpjN = String(cnpj || '').replace(/\D/g, '');
+  const raizCNPJ = cnpjN.length >= 8 ? cnpjN.slice(0, 8) : '';
+  const grupoN = String(grupo || '').trim().toLowerCase();
+  const nomeAtual = String(empresa || '').trim().toLowerCase();
+  const irmas = [];
+  // Junta CRM + Base + lista de empresas
+  const todas = new Map();
+  (_crmCache || []).forEach(c => {
+    if (!c.empresa) return;
+    const k = c.empresa.trim().toLowerCase();
+    if (!todas.has(k)) todas.set(k, { empresa: c.empresa, cnpj: c.cnpj || '', grupo: c.grupo || '' });
+  });
+  (_baseCache || []).forEach(b => {
+    const nome = b.razaoSocial || b.nomeFantasia;
+    if (!nome) return;
+    const k = nome.trim().toLowerCase();
+    if (!todas.has(k)) todas.set(k, { empresa: nome, cnpj: b.cnpj || '', grupo: '' });
+    else if (!todas.get(k).cnpj) todas.get(k).cnpj = b.cnpj || '';
+  });
+  todas.forEach((info) => {
+    if ((info.empresa || '').trim().toLowerCase() === nomeAtual) return;
+    const cnpjI = String(info.cnpj || '').replace(/\D/g, '');
+    const raizI = cnpjI.length >= 8 ? cnpjI.slice(0, 8) : '';
+    const matchGrupo = grupoN && (info.grupo || '').trim().toLowerCase() === grupoN;
+    const matchCnpjRaiz = raizCNPJ && raizI && raizCNPJ === raizI;
+    if (matchGrupo || matchCnpjRaiz) {
+      irmas.push({ ...info, vinculoTipo: matchGrupo ? 'grupo' : 'cnpj' });
+    }
+  });
+  return irmas;
+}
+
 function renderCRMCard(empresa) {
   const root = $('crm-card-empresa');
   if (!root) return;
   const crm = getCRMByEmpresa(empresa) || { empresa };
   const base = getBaseByEmpresa(empresa, crm.cnpj) || {};
+  const empCache = getEmpresaCacheByNome(empresa) || {};
   // Debug pro user descobrir por que não achou
   if (!crm.cnpj && !base.cnpj) {
     console.log('[renderCRMCard] empresa NÃO encontrada nem no CRM nem na BASE:', empresa, '| baseCache size:', _baseCache.length, '| crmCache size:', _crmCache.length);
@@ -1974,13 +2054,26 @@ function renderCRMCard(empresa) {
     </div>
   ` : '';
 
+  // Unidades irmãs (mesmo grupo OU mesma raiz CNPJ)
+  const irmas = getEmpresasIrmas(empresa, cnpj, crm.grupo);
+  const blocoIrmas = irmas.length ? `
+    <div style="background:rgba(77,201,255,.06);border:1px solid rgba(77,201,255,.2);border-radius:8px;padding:10px 14px;margin-bottom:12px;font-size:13px">
+      <div style="font-weight:700;color:var(--accent);margin-bottom:6px">🏢 Unidades vinculadas (${irmas.length}) ${crm.grupo ? '· Grupo: ' + crm.grupo : ''}</div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px">
+        ${irmas.map(u => `<button onclick="abrirHistorico('${(u.empresa||'').replace(/'/g,"\\'")}')" class="btn btn-secondary" style="padding:4px 10px;font-size:12px;background:rgba(77,201,255,.1);border-color:rgba(77,201,255,.3);color:var(--accent)" title="${u.vinculoTipo === 'cnpj' ? 'Mesma raiz CNPJ' : 'Mesmo grupo'}">${u.vinculoTipo === 'cnpj' ? '🔗' : '👥'} ${u.empresa}</button>`).join('')}
+      </div>
+      ${!crm.grupo ? '<small style="color:var(--text-dim);font-size:11px;display:block;margin-top:6px">💡 Clique em <strong>Editar</strong> e preencha o campo <strong>Grupo</strong> em todas as unidades pra agrupar manualmente.</small>' : ''}
+    </div>
+  ` : '';
+
   root.innerHTML = `
     <div class="crm-card">
       ${aviso}
       <div class="crm-card-head">
         <h3>📇 Dados da empresa</h3>
         <div style="display:flex;gap:6px;flex-wrap:wrap">
-          <button class="crm-edit-btn" onclick="baixarPdfDiagnostico('${(empresa||'').replace(/'/g,"\\'")}')" style="background:rgba(34,197,94,.12);color:#22c55e;border-color:rgba(34,197,94,.4)" title="Abrir/baixar PDF do diagnóstico que foi enviado por email">📥 PDF Diagnóstico</button>
+          <button class="crm-edit-btn" onclick="abrirPainelDiagnostico('${(empresa||'').replace(/'/g,"\\'")}')" style="background:rgba(168,85,247,.12);color:#c084fc;border-color:rgba(168,85,247,.4)" title="Ver respostas e nível atual do diagnóstico">📊 Diagnóstico</button>
+          <button class="crm-edit-btn" onclick="baixarPdfDiagnostico('${(empresa||'').replace(/'/g,"\\'")}')" style="background:rgba(34,197,94,.12);color:#22c55e;border-color:rgba(34,197,94,.4)" title="Abrir/baixar PDF do diagnóstico que foi enviado por email">📥 PDF</button>
           <button class="crm-edit-btn" onclick="abrirModalCRM('${(empresa||'').replace(/'/g,"\\'")}')">✏️ Editar</button>
         </div>
       </div>
@@ -1988,7 +2081,7 @@ function renderCRMCard(empresa) {
         <div class="crm-item"><span class="lbl">CNPJ</span><span class="val">${cnpj || '—'}</span></div>
         <div class="crm-item"><span class="lbl">${labelTel}</span><span class="val">${valTel}</span></div>
         <div class="crm-item"><span class="lbl">Status</span><span class="val"><span class="status-badge ${statusClass}">${status}</span></span></div>
-        <div class="crm-item"><span class="lbl">Nível atual</span><span class="val">${crm.nivel || '—'}</span></div>
+        <div class="crm-item"><span class="lbl">Nível atual</span><span class="val">${(empCache.nivelDiagnostico || crm.nivel || '—')}${empCache.nivelDiagnostico && crm.nivel && empCache.nivelDiagnostico !== crm.nivel ? ' <span style="color:#fbbf24;font-size:10px">⚠ CRM: ' + crm.nivel + '</span>' : ''}</span></div>
         <div class="crm-item"><span class="lbl">${base.especialista && !crm.consultorPrincipal ? 'Especialista' : 'Consultor Principal'}</span><span class="val">${consultorPrincipal || '—'}</span></div>
         <div class="crm-item"><span class="lbl">Consultores Apoio</span><span class="val">${consultoresApoio || '—'}</span></div>
         ${extrasBase.join('')}
@@ -2034,6 +2127,15 @@ function abrirModalCRM(empresa) {
   }
   $('crm-telefone').value = telPessoal ? aplicarMascaraTelefone(telPessoal) : '';
   if ($('crm-link-grupo')) $('crm-link-grupo').value = linkGrupo;
+  // Campo Grupo + datalist com grupos já existentes
+  if ($('crm-grupo')) {
+    $('crm-grupo').value = crm.grupo || '';
+    const dl = $('crm-grupo-list');
+    if (dl) {
+      const gruposUnicos = [...new Set((_crmCache || []).map(c => (c.grupo || '').trim()).filter(Boolean))].sort();
+      dl.innerHTML = gruposUnicos.map(g => `<option value="${g.replace(/"/g,'&quot;')}"></option>`).join('');
+    }
+  }
   $('crm-status').value = crm.status || 'Ativo';
   $('crm-nivel').value = crm.nivel || '';
   $('crm-obs').value = crm.observacoes || '';
@@ -3086,6 +3188,7 @@ async function salvarCRM() {
     empresa: $('crm-empresa').value.trim(),
     telefone: $('crm-telefone').value.trim(),
     linkGrupo: $('crm-link-grupo') ? $('crm-link-grupo').value.trim() : '',
+    grupo: $('crm-grupo') ? $('crm-grupo').value.trim() : '',
     status: $('crm-status').value,
     nivel: $('crm-nivel').value,
     consultorPrincipal: $('crm-principal').value,
@@ -3307,6 +3410,184 @@ async function confirmarBuscaEmpresa() {
   }
 }
 
+// =========== PAINEL COMPLETO DO DIAGNÓSTICO ===========
+async function abrirPainelDiagnostico(empresa) {
+  if (!empresa) empresa = empresaAtual;
+  if (!empresa) { toast('⚠ Empresa não identificada', 3000, true); return; }
+  $('pd-empresa').textContent = empresa;
+  $('pd-corpo').innerHTML = '<div class="loading"><span class="spinner"></span>Carregando diagnóstico...</div>';
+  $('modal-painel-diag').classList.add('show');
+
+  const crm = getCRMByEmpresa(empresa) || {};
+  const base = getBaseByEmpresa(empresa, crm.cnpj) || {};
+  const cnpj = crm.cnpj || base.cnpj || '';
+
+  try {
+    const r = await chamarAPI('importar-diagnostico', { cnpj, nomeEmpresa: empresa });
+    renderPainelDiagnostico(r, empresa);
+  } catch (err) {
+    $('pd-corpo').innerHTML = `
+      <div style="background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.3);border-radius:10px;padding:18px;color:#fca5a5;font-size:14px">
+        ❌ ${err.message || 'Erro ao buscar diagnóstico'}
+      </div>
+    `;
+  }
+}
+
+function renderPainelDiagnostico(r, empresa) {
+  const ig = r.informacoesGerais || {};
+  const diag = r.diagnostico;
+  const corpo = $('pd-corpo');
+
+  // Status
+  let blocoStatus = '';
+  if (r.statusDiagnostico === 'PENDENTE_FASE2' || r.statusDiagnostico === 'INCONSISTENTE' || r.statusDiagnostico === 'SEM_DIAGNOSTICO') {
+    blocoStatus = `
+      <div style="background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.4);border-radius:10px;padding:14px 18px;margin-bottom:18px;color:#fbbf24;font-size:13px;white-space:pre-wrap">
+        ⚠️ ${r.avisoConsultor || 'Diagnóstico incompleto'}
+      </div>
+    `;
+  }
+
+  // Score Geral + Headline
+  let scoreGeral = '';
+  let blocoHeadline = '';
+  if (diag) {
+    // Calcula score geral como média dos 5 níveis
+    const pcts = (diag.niveis || []).map(n => Number(String(n.pct).replace(',','.'))).filter(v => !isNaN(v));
+    const score = pcts.length ? Math.round(pcts.reduce((a,b)=>a+b,0) / pcts.length) : 0;
+    let cor = '#f87171', txt = 'EM DESENVOLVIMENTO';
+    if (score >= 80) { cor = '#22c55e'; txt = 'CONSOLIDADO'; }
+    else if (score >= 50) { cor = '#fbbf24'; txt = 'EM DESENVOLVIMENTO'; }
+    else { cor = '#f87171'; txt = 'INICIANDO'; }
+    scoreGeral = `
+      <div style="display:grid;grid-template-columns:1fr 2fr;gap:14px;margin-bottom:18px">
+        <div style="background:rgba(15,23,42,.6);border:1px solid var(--border);border-radius:10px;padding:18px;text-align:center">
+          <div style="font-size:11px;color:var(--text-dim);font-weight:700;text-transform:uppercase;letter-spacing:.4px;margin-bottom:8px">Score Geral</div>
+          <div style="font-size:38px;font-weight:800;color:${cor}">${score}%</div>
+          <div style="display:inline-block;margin-top:8px;padding:4px 10px;background:${cor};color:#000;border-radius:6px;font-size:11px;font-weight:700;letter-spacing:.4px">${txt}</div>
+        </div>
+        <div style="background:rgba(15,23,42,.6);border:1px solid var(--border);border-radius:10px;padding:18px">
+          <div style="font-size:11px;color:var(--text-dim);font-weight:700;text-transform:uppercase;letter-spacing:.4px;margin-bottom:8px">Headline · Próximo Passo</div>
+          <div style="font-size:18px;font-weight:700;color:var(--accent);margin-bottom:6px">${(diag.headline || '—').replace(/</g,'&lt;')}</div>
+          <div style="font-size:13px;color:var(--text-dim);font-style:italic">${(diag.proximoPasso || '—').replace(/</g,'&lt;')}</div>
+        </div>
+      </div>
+    `;
+    // Níveis com barras
+    const NIVEL_NOMES = {
+      '01': 'Nível 01 · Saindo do Caos',
+      '02': 'Nível 02 · Colocando Ordem',
+      '03': 'Nível 03 · Virando Empresa',
+      '04': 'Nível 04 · Jogando o Jogo dos Números',
+      '05': 'Nível 05 · Pronto para Escalar'
+    };
+    const renderBarras = (diag.niveis || []).map(n => {
+      const pctNum = Number(String(n.pct).replace(',','.')) || 0;
+      const corBarra = pctNum >= 80 ? '#22c55e' : (pctNum >= 50 ? '#fbbf24' : '#f87171');
+      const sUp = String(n.status || '').toUpperCase();
+      const corStatus = sUp.indexOf('CONSOLID') >= 0 ? 'rgba(34,197,94,.18)' : (sUp.indexOf('CONSTRU') >= 0 ? 'rgba(251,191,36,.18)' : 'rgba(248,113,113,.18)');
+      const textStatus = sUp.indexOf('CONSOLID') >= 0 ? '#22c55e' : (sUp.indexOf('CONSTRU') >= 0 ? '#fbbf24' : '#f87171');
+      return `
+        <div style="display:grid;grid-template-columns:240px 60px 1fr 130px;gap:12px;align-items:center;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.05)">
+          <div style="font-size:13px;font-weight:600;color:var(--text)">${NIVEL_NOMES[n.num] || ('Nível ' + n.num)}</div>
+          <div style="font-size:14px;font-weight:800;color:${corBarra}">${pctNum}%</div>
+          <div style="background:rgba(255,255,255,.05);height:14px;border-radius:7px;overflow:hidden">
+            <div style="height:100%;width:${Math.max(2, Math.min(100, pctNum))}%;background:${corBarra};border-radius:7px"></div>
+          </div>
+          <div style="text-align:center;padding:4px 8px;background:${corStatus};color:${textStatus};border-radius:6px;font-size:10px;font-weight:700;letter-spacing:.3px">${n.status || '—'}</div>
+        </div>
+      `;
+    }).join('');
+    blocoHeadline = `
+      <div style="background:rgba(15,23,42,.6);border:1px solid var(--border);border-radius:10px;padding:18px;margin-bottom:18px">
+        <div style="font-size:11px;color:var(--text-dim);font-weight:700;text-transform:uppercase;letter-spacing:.4px;margin-bottom:8px">Níveis de Maturidade</div>
+        ${renderBarras}
+      </div>
+    `;
+  }
+
+  // Informações Gerais (campos do diagnóstico)
+  const camposIG = [
+    { lbl: 'Responsável', k: 'Responsável', alts: ['responsavel'] },
+    { lbl: 'Cidade/Estado', k: 'G03 Cidade/Estado', alts: ['Cidade', 'Cidade/Estado'] },
+    { lbl: 'CNPJ', k: 'G02 CNPJ', alts: ['CNPJ'] },
+    { lbl: 'Segmento', k: 'G05 Segmento', alts: ['Segmento'] },
+    { lbl: 'Capacidade', k: 'G06 Capacidade', alts: [] },
+    { lbl: 'Modalidade', k: 'G07 Modalidade', alts: ['Modalidade'] },
+    { lbl: 'Colaboradores', k: 'G08 Colaboradores', alts: [] },
+    { lbl: 'Líderes', k: 'G09 Líderes', alts: [] },
+    { lbl: 'Itens cardápio', k: 'G10 Itens cardápio', alts: [] },
+    { lbl: 'Faturamento 3m', k: 'G13 Faturamento 3m', alts: ['Faturamento'] },
+    { lbl: 'Faturamento salão', k: 'G14 Faturamento salão', alts: [] },
+    { lbl: 'Faturamento delivery', k: 'G15 Faturamento delivery', alts: [] },
+    { lbl: 'Ticket salão', k: 'G16 Ticket salão', alts: [] },
+    { lbl: 'Ticket delivery', k: 'G17 Ticket delivery', alts: [] },
+    { lbl: 'Lucro líquido %', k: 'G19 Lucro líquido %', alts: [] },
+    { lbl: 'Meta 12 meses', k: 'G20 Meta 12 meses', alts: [] },
+    { lbl: 'KPIs', k: 'G21 KPIs', alts: [] },
+    { lbl: 'Diferencial', k: 'G22 Diferencial', alts: [] },
+    { lbl: 'Fidelidade', k: 'G23 Fidelidade', alts: [] }
+  ];
+  const findValor = (campo) => {
+    // Tenta chave exata primeiro, depois parecida
+    const keys = Object.keys(ig);
+    let v = ig[campo.k];
+    if (v != null && v !== '') return v;
+    for (const alt of (campo.alts || [])) {
+      v = ig[alt];
+      if (v != null && v !== '') return v;
+    }
+    // Fuzzy
+    const k = keys.find(kk => kk.toLowerCase().indexOf(campo.lbl.toLowerCase()) >= 0);
+    if (k) return ig[k];
+    return '';
+  };
+  const itensIG = camposIG
+    .map(c => ({ lbl: c.lbl, val: findValor(c) }))
+    .filter(it => it.val !== '' && it.val != null);
+  const blocoIG = itensIG.length ? `
+    <div style="background:rgba(15,23,42,.6);border:1px solid var(--border);border-radius:10px;padding:18px;margin-bottom:18px">
+      <div style="font-size:11px;color:var(--text-dim);font-weight:700;text-transform:uppercase;letter-spacing:.4px;margin-bottom:12px">Informações Gerais</div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px 16px">
+        ${itensIG.map(it => `
+          <div>
+            <div style="font-size:10.5px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.3px;margin-bottom:2px">${it.lbl}</div>
+            <div style="font-size:13px;color:var(--text);font-weight:600">${String(it.val).replace(/</g,'&lt;')}</div>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  ` : '';
+
+  // Objetivos / Dificuldades (procura nas keys de IG)
+  const findKeyContains = (substr) => {
+    const keys = Object.keys(ig);
+    const k = keys.find(kk => kk.toLowerCase().indexOf(substr.toLowerCase()) >= 0);
+    return k ? ig[k] : '';
+  };
+  const objetivos = findKeyContains('objetivo') || findKeyContains('metodologia');
+  const dificuldades = findKeyContains('dificuldade') || findKeyContains('dor');
+  const blocoExtras = (objetivos || dificuldades) ? `
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+      ${objetivos ? `
+        <div style="background:rgba(34,197,94,.06);border:1px solid rgba(34,197,94,.3);border-radius:10px;padding:14px 18px">
+          <div style="font-size:11px;color:#22c55e;font-weight:700;text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px">🎯 Objetivos com a Metodologia</div>
+          <div style="font-size:13px;color:var(--text);line-height:1.5">${String(objetivos).replace(/</g,'&lt;')}</div>
+        </div>
+      ` : ''}
+      ${dificuldades ? `
+        <div style="background:rgba(248,113,113,.06);border:1px solid rgba(248,113,113,.3);border-radius:10px;padding:14px 18px">
+          <div style="font-size:11px;color:#f87171;font-weight:700;text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px">⚠️ Dificuldades</div>
+          <div style="font-size:13px;color:var(--text);line-height:1.5">${String(dificuldades).replace(/</g,'&lt;')}</div>
+        </div>
+      ` : ''}
+    </div>
+  ` : '';
+
+  corpo.innerHTML = blocoStatus + scoreGeral + blocoHeadline + blocoIG + blocoExtras;
+}
+
 // =========== PDF DIAGNÓSTICO ===========
 async function baixarPdfDiagnostico(empresa) {
   if (!empresa) empresa = empresaAtual;
@@ -3435,6 +3716,12 @@ async function novaReuniaoEmpresaAtual() {
   $('reuniao').value = ultimaReuniao + 1;
   $('form-titulo-num').textContent = ultimaReuniao + 1;
   $('form-nome').textContent = consultorLogado.nome;
+  // Reset multi-unidade e renderiza opções (se a empresa for matriz com filiais)
+  _unidadesAbrangidas = [];
+  _quadrosPorUnidade = {};
+  _unidadeQEAtual = '';
+  renderOpcoesUnidadesAbrangidas();
+  renderTabsQE();
   if (ultimaReuniao > 0) {
     const ultima = planos.find(p => p.reuniao === ultimaReuniao);
     if (ultima && ultima.id) {
@@ -3494,6 +3781,12 @@ async function editarPlano(idPlano) {
     // Indicadores: carrega histórico do CNPJ pra navegação, mas preenche com os do plano salvo
     if (p.cnpj) await carregarQuadroExecucao(p.cnpj);
     if (p.indicadores) preencherIndicadores(p.indicadores, p.indicadoresReferencia || '');
+    // Restaura multi-unidade (matriz + filiais cobertas pela mesma reunião)
+    _unidadesAbrangidas = Array.isArray(p.unidadesAbrangidas) ? p.unidadesAbrangidas.slice() : [];
+    _quadrosPorUnidade = (p.quadrosPorUnidade && typeof p.quadrosPorUnidade === 'object') ? p.quadrosPorUnidade : {};
+    _unidadeQEAtual = empresaAtual || $('empresa').value.trim();
+    renderOpcoesUnidadesAbrangidas();
+    renderTabsQE();
     atualizarSugestoesCompromissos();
     $('proxData').value = p.proxData || '';
     $('proxHora').value = p.proxHora || '';
@@ -3963,6 +4256,117 @@ function atualizarSugestoesCompromissos() {
 // =========== QUADRO DE EXECUÇÃO ===========
 let _quadroExecucaoMeses = []; // array de registros {referencia, faturamento, ..., meta...}
 let _quadroExecucaoIdx = 0;
+
+// === Multi-unidade: matriz + filiais cobertas pela mesma reunião ===
+let _unidadesAbrangidas = []; // ["Empresa A", "Empresa B"]
+let _quadrosPorUnidade = {};  // { "Empresa A": [{registros}], "Empresa B": [...] }
+let _unidadeQEAtual = '';     // nome da unidade ativa nas tabs do QE
+
+// Renderiza checkboxes de unidades irmãs pra o consultor escolher quais a reunião abrange
+function renderOpcoesUnidadesAbrangidas() {
+  const card = $('unidades-abrangidas-card');
+  const lista = $('unidades-abrangidas-lista');
+  if (!card || !lista) return;
+  const empAtual = empresaAtual || $('empresa').value.trim();
+  if (!empAtual) { card.style.display = 'none'; return; }
+  const crm = getCRMByEmpresa(empAtual) || {};
+  const cnpj = crm.cnpj || '';
+  const irmas = getEmpresasIrmas(empAtual, cnpj, crm.grupo);
+  if (!irmas.length) { card.style.display = 'none'; return; }
+  card.style.display = '';
+  lista.innerHTML = irmas.map(u => {
+    const checked = _unidadesAbrangidas.includes(u.empresa) ? 'checked' : '';
+    const safe = u.empresa.replace(/'/g, "\\'");
+    return `
+      <label style="display:flex;align-items:center;gap:6px;padding:8px 12px;background:rgba(77,201,255,.08);border:1px solid rgba(77,201,255,.25);border-radius:8px;cursor:pointer;font-size:13px">
+        <input type="checkbox" ${checked} onchange="toggleUnidadeAbrangida('${safe}')" style="margin:0">
+        <span>${u.vinculoTipo === 'cnpj' ? '🔗' : '👥'} ${u.empresa}</span>
+      </label>
+    `;
+  }).join('');
+}
+
+function toggleUnidadeAbrangida(empresa) {
+  const i = _unidadesAbrangidas.indexOf(empresa);
+  if (i >= 0) {
+    _unidadesAbrangidas.splice(i, 1);
+    delete _quadrosPorUnidade[empresa];
+  } else {
+    _unidadesAbrangidas.push(empresa);
+    _quadrosPorUnidade[empresa] = []; // inicia vazio — quando trocar de aba carrega da planilha
+  }
+  renderTabsQE();
+  salvarRascunhoDebounced && salvarRascunhoDebounced();
+}
+
+// Renderiza as tabs no Quadro de Execução (uma por unidade abrangida + a empresa principal)
+function renderTabsQE() {
+  const wrap = $('qe-unidades-tabs');
+  const list = $('qe-unidades-tabs-list');
+  if (!wrap || !list) return;
+  const empAtual = empresaAtual || $('empresa').value.trim();
+  if (!empAtual || !_unidadesAbrangidas.length) {
+    wrap.style.display = 'none';
+    _unidadeQEAtual = '';
+    return;
+  }
+  wrap.style.display = '';
+  if (!_unidadeQEAtual || (_unidadeQEAtual !== empAtual && !_unidadesAbrangidas.includes(_unidadeQEAtual))) {
+    _unidadeQEAtual = empAtual;
+  }
+  const todas = [empAtual, ..._unidadesAbrangidas];
+  list.innerHTML = todas.map(u => {
+    const ativa = u === _unidadeQEAtual;
+    const safe = u.replace(/'/g, "\\'");
+    const isMatriz = u === empAtual;
+    return `
+      <button type="button" onclick="selecionarUnidadeQE('${safe}')"
+        style="padding:8px 14px;border-radius:8px;border:1px solid ${ativa ? 'var(--accent)' : 'var(--border)'};
+        background:${ativa ? 'rgba(77,201,255,.18)' : 'transparent'};
+        color:${ativa ? 'var(--accent)' : 'var(--text)'};
+        font-weight:${ativa ? '700' : '500'};font-size:12.5px;cursor:pointer">
+        ${isMatriz ? '🏢' : (u === empAtual ? '🏢' : '🔗')} ${u}
+      </button>
+    `;
+  }).join('');
+}
+
+async function selecionarUnidadeQE(unidade) {
+  // Salva os valores atuais em memória ANTES de trocar
+  if (_unidadeQEAtual && _quadroExecucaoMeses.length && _quadroExecucaoMeses[_quadroExecucaoIdx]) {
+    const dadosAtuais = coletarIndicadores();
+    _quadroExecucaoMeses[_quadroExecucaoIdx] = { ..._quadroExecucaoMeses[_quadroExecucaoIdx], ...dadosAtuais };
+    _quadrosPorUnidade[_unidadeQEAtual] = _quadroExecucaoMeses;
+  }
+  _unidadeQEAtual = unidade;
+  renderTabsQE();
+  // Carrega o quadro da unidade selecionada
+  if (_quadrosPorUnidade[unidade] && _quadrosPorUnidade[unidade].length) {
+    _quadroExecucaoMeses = _quadrosPorUnidade[unidade];
+    _quadroExecucaoIdx = 0;
+    mostrarMesQE(0);
+  } else {
+    // Busca da planilha pra essa unidade
+    const empAtual = empresaAtual || $('empresa').value.trim();
+    if (unidade !== empAtual) {
+      // Buscar dados de outra unidade requer chamada à API
+      try {
+        const cnpjUnidade = (getCRMByEmpresa(unidade) || {}).cnpj || '';
+        const r = await chamarAPI('buscar-quadro-execucao', { empresa: unidade, cnpj: cnpjUnidade });
+        _quadroExecucaoMeses = r.registros || [];
+        _quadrosPorUnidade[unidade] = _quadroExecucaoMeses;
+        _quadroExecucaoIdx = 0;
+        if (_quadroExecucaoMeses.length) mostrarMesQE(0);
+        else { renderQuadroCards(); $('qe-mes-atual').textContent = '— sem dados —'; }
+      } catch (e) {
+        toast('⚠ Sem dados de execução pra ' + unidade, 3000, true);
+        _quadroExecucaoMeses = [];
+        renderQuadroCards();
+        $('qe-mes-atual').textContent = '— sem dados —';
+      }
+    }
+  }
+}
 let _indicadoresRefAtual = '';
 let _qeMetas = {}; // metas fixas por CNPJ
 
@@ -4242,6 +4646,10 @@ function limparFormulario(){
   QE_FIELDS.forEach(f => { const el = $('qe-'+f); if (el) el.value = ''; });
   const me = $('qe-mes-atual'); if (me) me.textContent = '—';
   _quadroExecucaoMeses = []; _quadroExecucaoIdx = 0; _indicadoresRefAtual = '';
+  // Reset multi-unidade
+  _unidadesAbrangidas = []; _quadrosPorUnidade = {}; _unidadeQEAtual = '';
+  const utabs = $('qe-unidades-tabs'); if (utabs) utabs.style.display = 'none';
+  const uabr = $('unidades-abrangidas-card'); if (uabr) uabr.style.display = 'none';
   $('secao-checkin').style.display = 'none';
   $('checkin-root').innerHTML = '';
   $('ctx-card').style.display = 'none';
@@ -4335,6 +4743,12 @@ function recuperarRascunho() {
   $('compr-body').innerHTML = '';
   (p.compromissos || []).forEach(c => addCompromisso(c));
   if (p.indicadores) preencherIndicadores(p.indicadores, p.indicadoresReferencia || '');
+  // Restaura multi-unidade
+  _unidadesAbrangidas = Array.isArray(p.unidadesAbrangidas) ? p.unidadesAbrangidas.slice() : [];
+  _quadrosPorUnidade = (p.quadrosPorUnidade && typeof p.quadrosPorUnidade === 'object') ? p.quadrosPorUnidade : {};
+  _unidadeQEAtual = empresaAtual || $('empresa').value.trim();
+  renderOpcoesUnidadesAbrangidas();
+  renderTabsQE();
   $('proxData').value = p.proxData || '';
   $('proxHora').value = p.proxHora || '';
   setSelectIfExists('proxFormato', p.proxFormato || '');
@@ -4411,6 +4825,24 @@ function coletar() {
     prioridades, vitorias, compromissos,
     indicadores: coletarIndicadores(),
     indicadoresReferencia: _indicadoresRefAtual || '',
+    // Multi-unidade: salva a aba ativa em _quadrosPorUnidade antes de empacotar
+    unidadesAbrangidas: _unidadesAbrangidas.slice(),
+    quadrosPorUnidade: (() => {
+      // Snapshot do estado atual da aba ativa
+      if (_unidadeQEAtual && _quadroExecucaoMeses.length) {
+        const dados = coletarIndicadores();
+        if (_quadroExecucaoMeses[_quadroExecucaoIdx]) {
+          _quadroExecucaoMeses[_quadroExecucaoIdx] = { ..._quadroExecucaoMeses[_quadroExecucaoIdx], ...dados };
+        }
+        _quadrosPorUnidade[_unidadeQEAtual] = _quadroExecucaoMeses;
+      }
+      // Retorna só o que tem _unidadesAbrangidas (filiais), pra não duplicar a matriz
+      const out = {};
+      _unidadesAbrangidas.forEach(u => {
+        if (_quadrosPorUnidade[u] && _quadrosPorUnidade[u].length) out[u] = _quadrosPorUnidade[u];
+      });
+      return out;
+    })(),
     proxData: $('proxData').value || '',
     proxHora: $('proxHora').value || '',
     proxFormato: $('proxFormato')?.value || '',
