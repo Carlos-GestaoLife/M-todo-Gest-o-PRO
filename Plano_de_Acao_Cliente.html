@@ -779,7 +779,8 @@
       <p id="hist-empresa-info">—</p>
     </header>
     <div id="crm-card-empresa"></div>
-    <div id="timeline-root" class="timeline"></div>
+    <div id="painel-diag-inline" style="margin-top:18px"></div>
+    <div id="timeline-root" class="timeline" style="margin-top:18px"></div>
     <div class="actions" style="flex-direction:column;gap:10px">
       <button class="btn btn-primary btn-big" onclick="novaReuniaoEmpresaAtual()">+ Nova reunião desta empresa</button>
       <button class="btn btn-secondary" onclick="cancelarEmpresaAtual()" style="background:rgba(248,113,113,.12);color:#f87171;border-color:rgba(248,113,113,.4)">🚫 Marcar empresa como cancelada</button>
@@ -2072,8 +2073,7 @@ function renderCRMCard(empresa) {
       <div class="crm-card-head">
         <h3>📇 Dados da empresa</h3>
         <div style="display:flex;gap:6px;flex-wrap:wrap">
-          <button class="crm-edit-btn" onclick="abrirPainelDiagnostico('${(empresa||'').replace(/'/g,"\\'")}')" style="background:rgba(168,85,247,.12);color:#c084fc;border-color:rgba(168,85,247,.4)" title="Ver respostas e nível atual do diagnóstico">📊 Diagnóstico</button>
-          <button class="crm-edit-btn" onclick="baixarPdfDiagnostico('${(empresa||'').replace(/'/g,"\\'")}')" style="background:rgba(34,197,94,.12);color:#22c55e;border-color:rgba(34,197,94,.4)" title="Abrir/baixar PDF do diagnóstico que foi enviado por email">📥 PDF</button>
+          <button class="crm-edit-btn" onclick="baixarPdfDiagnostico('${(empresa||'').replace(/'/g,"\\'")}')" style="background:rgba(34,197,94,.12);color:#22c55e;border-color:rgba(34,197,94,.4)" title="Abrir/baixar PDF do diagnóstico que foi enviado por email">📥 PDF Diagnóstico</button>
           <button class="crm-edit-btn" onclick="abrirModalCRM('${(empresa||'').replace(/'/g,"\\'")}')">✏️ Editar</button>
         </div>
       </div>
@@ -3215,6 +3215,9 @@ async function abrirHistorico(empresa) {
   $('hist-empresa-info').textContent = 'Carregando...';
   mostrarView('view-historico');
   renderCRMCard(empresa);
+  // Carrega o painel de diagnóstico inline (aparece automaticamente, sem clique)
+  $('painel-diag-inline').innerHTML = '';
+  carregarPainelDiagnosticoInline(empresa);
   $('timeline-root').innerHTML = '<div class="loading"><span class="spinner"></span>Carregando reuniões...</div>';
   try {
     const r = await chamarAPI('listar-planos', { empresa });
@@ -3410,13 +3413,26 @@ async function confirmarBuscaEmpresa() {
   }
 }
 
-// =========== PAINEL COMPLETO DO DIAGNÓSTICO ===========
-async function abrirPainelDiagnostico(empresa) {
-  if (!empresa) empresa = empresaAtual;
-  if (!empresa) { toast('⚠ Empresa não identificada', 3000, true); return; }
-  $('pd-empresa').textContent = empresa;
-  $('pd-corpo').innerHTML = '<div class="loading"><span class="spinner"></span>Carregando diagnóstico...</div>';
-  $('modal-painel-diag').classList.add('show');
+// =========== PAINEL COMPLETO DO DIAGNÓSTICO (inline no histórico) ===========
+let _painelDiagCache = {}; // { 'empresa': { data, ts } } pra evitar re-fetch desnecessário
+
+async function carregarPainelDiagnosticoInline(empresa) {
+  const root = $('painel-diag-inline');
+  if (!root) return;
+  if (!empresa) { root.innerHTML = ''; return; }
+
+  // Cache de 60s pra não fazer fetch toda hora
+  const cached = _painelDiagCache[empresa];
+  if (cached && (Date.now() - cached.ts) < 60000) {
+    renderPainelDiagnosticoInline(cached.data, empresa);
+    return;
+  }
+
+  root.innerHTML = `
+    <div style="background:rgba(15,23,42,.5);border:1px solid var(--border);border-radius:10px;padding:18px;text-align:center;color:var(--text-dim);font-size:13px">
+      <span class="spinner" style="display:inline-block;margin-right:8px"></span>Carregando diagnóstico...
+    </div>
+  `;
 
   const crm = getCRMByEmpresa(empresa) || {};
   const base = getBaseByEmpresa(empresa, crm.cnpj) || {};
@@ -3424,16 +3440,188 @@ async function abrirPainelDiagnostico(empresa) {
 
   try {
     const r = await chamarAPI('importar-diagnostico', { cnpj, nomeEmpresa: empresa });
-    renderPainelDiagnostico(r, empresa);
+    _painelDiagCache[empresa] = { data: r, ts: Date.now() };
+    renderPainelDiagnosticoInline(r, empresa);
   } catch (err) {
-    $('pd-corpo').innerHTML = `
-      <div style="background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.3);border-radius:10px;padding:18px;color:#fca5a5;font-size:14px">
-        ❌ ${err.message || 'Erro ao buscar diagnóstico'}
+    root.innerHTML = `
+      <div style="background:rgba(248,113,113,.06);border:1px solid rgba(248,113,113,.3);border-radius:10px;padding:14px 18px;color:#fca5a5;font-size:13px">
+        ⚠️ Diagnóstico não disponível: ${(err.message || 'Erro').replace(/</g,'&lt;')}
       </div>
     `;
   }
 }
 
+function renderPainelDiagnosticoInline(r, empresa) {
+  const root = $('painel-diag-inline');
+  if (!root) return;
+  const ig = r.informacoesGerais || {};
+  const diag = r.diagnostico;
+
+  // Status (aviso quando incompleto)
+  let blocoStatus = '';
+  if (r.statusDiagnostico === 'PENDENTE_FASE2' || r.statusDiagnostico === 'INCONSISTENTE' || r.statusDiagnostico === 'SEM_DIAGNOSTICO') {
+    blocoStatus = `
+      <div style="background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.4);border-radius:10px;padding:14px 18px;margin-bottom:14px;color:#fbbf24;font-size:13px;white-space:pre-wrap">
+        ⚠️ ${r.avisoConsultor || 'Diagnóstico incompleto'}
+      </div>
+    `;
+    if (!diag) {
+      root.innerHTML = blocoStatus;
+      return;
+    }
+  }
+
+  // Score Geral + Headline
+  let scoreGeral = '';
+  let blocoHeadline = '';
+  if (diag) {
+    const pcts = (diag.niveis || []).map(n => Number(String(n.pct).replace(',','.'))).filter(v => !isNaN(v));
+    const score = pcts.length ? Math.round(pcts.reduce((a,b)=>a+b,0) / pcts.length) : 0;
+    let cor = '#f87171', txt = 'INICIANDO';
+    if (score >= 80) { cor = '#22c55e'; txt = 'CONSOLIDADO'; }
+    else if (score >= 50) { cor = '#fbbf24'; txt = 'EM DESENVOLVIMENTO'; }
+    scoreGeral = `
+      <div style="display:grid;grid-template-columns:280px 1fr;gap:14px;margin-bottom:14px">
+        <div style="background:rgba(15,23,42,.6);border:1px solid var(--border);border-radius:10px;padding:18px;text-align:center">
+          <div style="font-size:11px;color:var(--text-dim);font-weight:700;text-transform:uppercase;letter-spacing:.4px;margin-bottom:8px">📊 Score Geral da Empresa</div>
+          <div style="font-size:48px;font-weight:800;color:${cor};line-height:1">${score}%</div>
+          <div style="display:inline-block;margin-top:10px;padding:5px 12px;background:${cor};color:#0a0e2c;border-radius:6px;font-size:11px;font-weight:800;letter-spacing:.5px">${txt}</div>
+        </div>
+        <div style="background:rgba(77,201,255,.06);border:1px solid rgba(77,201,255,.3);border-radius:10px;padding:18px">
+          <div style="font-size:11px;color:var(--accent);font-weight:700;text-transform:uppercase;letter-spacing:.4px;margin-bottom:8px">🎯 Headline · Próximo Passo</div>
+          <div style="font-size:20px;font-weight:800;color:var(--text);margin-bottom:8px">${(diag.headline || '—').replace(/</g,'&lt;')}</div>
+          <div style="font-size:13.5px;color:var(--text-dim);font-style:italic;line-height:1.5">${(diag.proximoPasso || '—').replace(/</g,'&lt;')}</div>
+        </div>
+      </div>
+    `;
+    // Níveis com barras (estilo planilha)
+    const NIVEL_NOMES = {
+      '01': 'Saindo do Caos',
+      '02': 'Colocando Ordem',
+      '03': 'Virando Empresa',
+      '04': 'Jogando o Jogo dos Números',
+      '05': 'Pronto para Escalar'
+    };
+    const renderBarras = (diag.niveis || []).map(n => {
+      const pctNum = Number(String(n.pct).replace(',','.')) || 0;
+      const corBarra = pctNum >= 80 ? '#22c55e' : (pctNum >= 50 ? '#fbbf24' : '#f87171');
+      const sUp = String(n.status || '').toUpperCase();
+      const corBg = sUp.indexOf('CONSOLID') >= 0 ? 'rgba(34,197,94,.18)' : (sUp.indexOf('CONSTRU') >= 0 ? 'rgba(251,191,36,.18)' : 'rgba(248,113,113,.18)');
+      const corText = sUp.indexOf('CONSOLID') >= 0 ? '#22c55e' : (sUp.indexOf('CONSTRU') >= 0 ? '#fbbf24' : '#f87171');
+      return `
+        <div style="display:grid;grid-template-columns:60px 1fr 90px;gap:14px;align-items:center;padding:12px 0;border-bottom:1px solid rgba(255,255,255,.05)">
+          <div>
+            <div style="font-size:13px;font-weight:800;color:var(--text)">N${n.num}</div>
+            <div style="font-size:10px;color:var(--text-dim);margin-top:2px">${NIVEL_NOMES[n.num] || ''}</div>
+          </div>
+          <div>
+            <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px">
+              <div style="font-size:12px;color:var(--text-dim);font-weight:600">Maturidade</div>
+              <div style="font-size:18px;font-weight:800;color:${corBarra}">${pctNum}%</div>
+            </div>
+            <div style="background:rgba(255,255,255,.06);height:18px;border-radius:9px;overflow:hidden;position:relative">
+              <div style="height:100%;width:${Math.max(2, Math.min(100, pctNum))}%;background:linear-gradient(90deg,${corBarra},${corBarra}dd);border-radius:9px;transition:width .4s"></div>
+            </div>
+          </div>
+          <div style="text-align:center;padding:5px 8px;background:${corBg};color:${corText};border-radius:6px;font-size:10px;font-weight:800;letter-spacing:.4px">${(n.status || '—').toUpperCase()}</div>
+        </div>
+      `;
+    }).join('');
+    blocoHeadline = `
+      <div style="background:rgba(15,23,42,.6);border:1px solid var(--border);border-radius:10px;padding:18px;margin-bottom:14px">
+        <div style="font-size:11px;color:var(--text-dim);font-weight:700;text-transform:uppercase;letter-spacing:.4px;margin-bottom:8px">📈 Níveis de Maturidade</div>
+        ${renderBarras}
+      </div>
+    `;
+  }
+
+  // Informações Gerais
+  const camposIG = [
+    { lbl: 'Responsável', alts: ['Responsável', 'responsavel'] },
+    { lbl: 'Cidade/Estado', alts: ['G03 Cidade/Estado', 'Cidade', 'Cidade/Estado'] },
+    { lbl: 'CNPJ', alts: ['G02 CNPJ', 'CNPJ'] },
+    { lbl: 'Instagram', alts: ['G24 Instagram', 'Instagram'] },
+    { lbl: 'Segmento', alts: ['G05 Segmento', 'Segmento'] },
+    { lbl: 'Capacidade', alts: ['G06 Capacidade', 'Capacidade'] },
+    { lbl: 'Modalidade', alts: ['G07 Modalidade', 'Modalidade'] },
+    { lbl: 'Colaboradores', alts: ['G08 Colaboradores', 'Colaboradores'] },
+    { lbl: 'Líderes', alts: ['G09 Líderes', 'Lideres'] },
+    { lbl: 'Itens cardápio', alts: ['G10 Itens cardápio', 'Itens cardápio'] },
+    { lbl: 'Tempo operação', alts: ['G11 Tempo operação', 'Tempo operação'] },
+    { lbl: 'Revisão cardápio', alts: ['G12 Revisão cardápio', 'Revisão cardápio'] },
+    { lbl: 'Faturamento 3m', alts: ['G13 Faturamento 3m', 'Faturamento 3m'] },
+    { lbl: 'Faturamento salão', alts: ['G14 Faturamento salão', 'Faturamento salão'] },
+    { lbl: 'Faturamento delivery', alts: ['G15 Faturamento delivery', 'Faturamento delivery'] },
+    { lbl: 'Ticket salão', alts: ['G16 Ticket salão', 'Ticket salão'] },
+    { lbl: 'Ticket delivery', alts: ['G17 Ticket delivery', 'Ticket delivery'] },
+    { lbl: 'Lucro líquido %', alts: ['G19 Lucro líquido %', 'Lucro líquido'] },
+    { lbl: 'Meta 12 meses', alts: ['G20 Meta 12 meses', 'Meta 12 meses'] },
+    { lbl: 'KPIs', alts: ['G21 KPIs', 'KPIs'] },
+    { lbl: 'Diferencial', alts: ['G22 Diferencial', 'Diferencial'] },
+    { lbl: 'Fidelidade', alts: ['G23 Fidelidade', 'Fidelidade'] }
+  ];
+  const findValor = (campo) => {
+    const keys = Object.keys(ig);
+    for (const alt of campo.alts) {
+      if (ig[alt] != null && ig[alt] !== '') return ig[alt];
+    }
+    const k = keys.find(kk => kk.toLowerCase().indexOf(campo.lbl.toLowerCase()) >= 0);
+    if (k) return ig[k];
+    return '';
+  };
+  const itensIG = camposIG.map(c => ({ lbl: c.lbl, val: findValor(c) })).filter(it => it.val !== '' && it.val != null);
+  const blocoIG = itensIG.length ? `
+    <div style="background:rgba(15,23,42,.6);border:1px solid var(--border);border-radius:10px;padding:18px;margin-bottom:14px">
+      <div style="font-size:11px;color:var(--text-dim);font-weight:700;text-transform:uppercase;letter-spacing:.4px;margin-bottom:12px">ℹ️ Informações Gerais</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(180px, 1fr));gap:12px 18px">
+        ${itensIG.map(it => `
+          <div>
+            <div style="font-size:10.5px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.3px;margin-bottom:3px;font-weight:700">${it.lbl}</div>
+            <div style="font-size:13.5px;color:var(--text);font-weight:600;line-height:1.4">${String(it.val).replace(/</g,'&lt;')}</div>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  ` : '';
+
+  // Objetivos / Dificuldades
+  const findKeyContains = (substr) => {
+    const k = Object.keys(ig).find(kk => kk.toLowerCase().indexOf(substr.toLowerCase()) >= 0);
+    return k ? ig[k] : '';
+  };
+  const objetivos = findKeyContains('objetivo') || findKeyContains('metodologia');
+  const dificuldades = findKeyContains('dificuldade') || findKeyContains('dor');
+  const blocoExtras = (objetivos || dificuldades) ? `
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px">
+      ${objetivos ? `
+        <div style="background:rgba(34,197,94,.06);border:1px solid rgba(34,197,94,.3);border-radius:10px;padding:14px 18px">
+          <div style="font-size:11px;color:#22c55e;font-weight:800;text-transform:uppercase;letter-spacing:.4px;margin-bottom:8px">🎯 Objetivos com a Metodologia</div>
+          <div style="font-size:13.5px;color:var(--text);line-height:1.55">${String(objetivos).replace(/</g,'&lt;')}</div>
+        </div>
+      ` : ''}
+      ${dificuldades ? `
+        <div style="background:rgba(248,113,113,.06);border:1px solid rgba(248,113,113,.3);border-radius:10px;padding:14px 18px">
+          <div style="font-size:11px;color:#f87171;font-weight:800;text-transform:uppercase;letter-spacing:.4px;margin-bottom:8px">⚠️ Dificuldades</div>
+          <div style="font-size:13.5px;color:var(--text);line-height:1.55">${String(dificuldades).replace(/</g,'&lt;')}</div>
+        </div>
+      ` : ''}
+    </div>
+  ` : '';
+
+  root.innerHTML = blocoStatus + scoreGeral + blocoHeadline + blocoIG + blocoExtras;
+}
+
+// === Função antiga do modal — mantida pra retrocompatibilidade caso alguém chame ===
+async function abrirPainelDiagnostico(empresa) {
+  if (!empresa) empresa = empresaAtual;
+  if (!empresa) { toast('⚠ Empresa não identificada', 3000, true); return; }
+  // Agora simplesmente força o reload do painel inline
+  delete _painelDiagCache[empresa];
+  await carregarPainelDiagnosticoInline(empresa);
+  toast('✓ Painel atualizado', 2000);
+}
+
+// Mantida por compat. mas redireciona pra inline.
 function renderPainelDiagnostico(r, empresa) {
   const ig = r.informacoesGerais || {};
   const diag = r.diagnostico;
