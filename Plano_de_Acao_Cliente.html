@@ -1105,6 +1105,7 @@
     </div>
     <div class="actions" style="justify-content:flex-end;gap:8px;margin-top:18px;flex-wrap:wrap">
       <button class="btn btn-secondary" onclick="fecharModalEventoView()">Fechar</button>
+      <a id="evv-btn-meet" class="btn btn-primary" target="_blank" style="display:none;background:#10b981;border-color:#10b981;text-decoration:none">🎥 Entrar no Meet</a>
       <button class="btn btn-primary" onclick="editarEventoVisualizado()">✏️ Editar</button>
     </div>
   </div>
@@ -1118,9 +1119,8 @@
 
     <div class="field-group">
       <div class="field"><label>Empresa</label>
-        <select id="ev-empresa" onchange="onEmpresaEventoChange()">
-          <option value="">-- Selecione --</option>
-        </select>
+        <input type="text" id="ev-empresa" list="ev-empresa-list" placeholder="Digite pra buscar..." oninput="onEmpresaEventoChange()" autocomplete="off">
+        <datalist id="ev-empresa-list"></datalist>
       </div>
       <div class="field"><label>Mentor</label>
         <select id="ev-mentor" onchange="onMentorEventoChange()">
@@ -1129,7 +1129,27 @@
       </div>
     </div>
 
-    <div class="field"><label>Título da reunião</label><input type="text" id="ev-titulo" placeholder="Auto-gerado a partir da empresa"></div>
+    <div class="field-group">
+      <div class="field"><label>Tipo de reunião</label>
+        <select id="ev-tipo" onchange="aoMudarTipoEvento()">
+          <option value="Onboarding">🎯 Onboarding</option>
+          <option value="R1">R1 · Reunião 1</option>
+          <option value="R2">R2 · Reunião 2</option>
+          <option value="R3">R3 · Reunião 3</option>
+          <option value="R4">R4 · Reunião 4</option>
+          <option value="R5">R5 · Reunião 5</option>
+          <option value="R6">R6 · Reunião 6</option>
+          <option value="R7">R7 · Reunião 7</option>
+          <option value="R8">R8 · Reunião 8</option>
+          <option value="R9">R9 · Reunião 9</option>
+          <option value="R10">R10 · Reunião 10</option>
+          <option value="R11">R11 · Reunião 11</option>
+          <option value="R12">R12 · Reunião 12</option>
+          <option value="Extra">📌 Extra</option>
+        </select>
+      </div>
+      <div class="field"><label>Título da reunião</label><input type="text" id="ev-titulo" placeholder="Auto-gerado a partir da empresa"></div>
+    </div>
 
     <div class="field-group">
       <div class="field"><label>Data</label><input type="date" id="ev-data"></div>
@@ -2239,9 +2259,27 @@ function verEvento(idEvento) {
   // Local: se for link, vira clicável
   const local = ev.local || '';
   const eLink = /^https?:\/\//.test(local);
+  const ehMeet = /meet\.google\.com/i.test(local);
   $('evv-local').innerHTML = local
-    ? (eLink ? `<a href="${local}" target="_blank">${local}</a>` : local.replace(/</g,'&lt;'))
+    ? (eLink ? `<a href="${local}" target="_blank">${ehMeet ? '🎥 ' + local : local}</a>` : local.replace(/</g,'&lt;'))
     : '—';
+  // Botão "Entrar no Meet" destacado se houver link Meet (do campo local OU descrição)
+  const btnMeet = $('evv-btn-meet');
+  let urlMeet = '';
+  if (ehMeet) urlMeet = local;
+  else {
+    // Procura link Meet na descrição
+    const m = String(ev.descricao || '').match(/https?:\/\/meet\.google\.com\/[a-z0-9\-_/]+/i);
+    if (m) urlMeet = m[0];
+  }
+  if (btnMeet) {
+    if (urlMeet) {
+      btnMeet.href = urlMeet;
+      btnMeet.style.display = '';
+    } else {
+      btnMeet.style.display = 'none';
+    }
+  }
 
   // Mentores (todos os consultores nos convidados) e outros
   const { mentores, outros } = identificarMentoresEvento(ev);
@@ -2461,14 +2499,21 @@ function renderCalendario() {
 }
 
 function popularSelectEmpresasEvento() {
-  const sel = $('ev-empresa');
-  if (!sel) return;
-  const atual = sel.value;
-  // Usa a lista do CRM (ordem alfabética)
-  const empresas = (_crmCache || []).slice().sort((a,b) => (a.empresa || '').localeCompare(b.empresa || ''));
-  sel.innerHTML = '<option value="">-- Selecione --</option>' +
-    empresas.map(e => `<option value="${(e.empresa || '').replace(/"/g,'&quot;')}">${e.empresa}</option>`).join('');
-  sel.value = atual || '';
+  const list = $('ev-empresa-list');
+  if (!list) return;
+  // Junta empresas da BASE + CRM + planos (cache já mesclado em _empresasCache)
+  const set = new Map(); // chave normalizada -> nome original
+  const addNome = (n) => {
+    const nome = String(n || '').trim();
+    if (!nome) return;
+    const k = nome.toLowerCase();
+    if (!set.has(k)) set.set(k, nome);
+  };
+  (_baseCache || []).forEach(b => { addNome(b.razaoSocial || b.nomeFantasia); });
+  (_crmCache || []).forEach(c => { addNome(c.empresa); });
+  (_empresasCache || []).forEach(e => { addNome(e.empresa); });
+  const todas = [...set.values()].sort((a,b) => a.localeCompare(b, 'pt-BR'));
+  list.innerHTML = todas.map(n => `<option value="${n.replace(/"/g,'&quot;')}"></option>`).join('');
 }
 
 function popularSelectMentorEvento() {
@@ -2481,25 +2526,42 @@ function popularSelectMentorEvento() {
 }
 
 function onEmpresaEventoChange() {
-  const empresa = $('ev-empresa').value;
+  const empresa = $('ev-empresa').value.trim();
   if (!empresa) return;
-  const crm = getCRMByEmpresa(empresa);
 
-  // Próximo número de reunião baseado no que já existe na empresa
-  const empCache = (_empresasCache || []).find(e => (e.empresa || '').trim().toLowerCase() === empresa.trim().toLowerCase());
-  const proxR = (empCache && empCache.reunioes ? empCache.reunioes : 0) + 1;
-
-  // Auto-preenche título: (Empresa) · R(N)
-  $('ev-titulo').value = `${empresa} · R${proxR}`;
-
-  // Adiciona o telefone/email do dono nos convidados (se for email)
-  const tel = (crm && crm.telefone) || '';
-  if (tel && tel.includes('@')) {
-    adicionarConvidadoEmEvento(tel);
+  // Próximo tipo: se ainda não teve reunião, sugere Onboarding; senão, R(N)
+  const empCache = (_empresasCache || []).find(e => (e.empresa || '').trim().toLowerCase() === empresa.toLowerCase());
+  const totalReunioes = empCache && empCache.reunioes ? empCache.reunioes : 0;
+  let tipoSugerido;
+  if (totalReunioes === 0) tipoSugerido = 'Onboarding';
+  else tipoSugerido = 'R' + totalReunioes; // se já fez 1, próxima é R1 (assumindo onboarding == R0)
+  // Se já tem opção, seleciona; senão deixa como R{N}
+  const sel = $('ev-tipo');
+  if (sel) {
+    const existe = Array.from(sel.options).some(o => o.value === tipoSugerido);
+    if (!existe) {
+      // Adiciona dinamicamente caso passe do limite
+      const op = document.createElement('option');
+      op.value = tipoSugerido; op.textContent = tipoSugerido;
+      sel.appendChild(op);
+    }
+    sel.value = tipoSugerido;
   }
+  aoMudarTipoEvento();
+
+  // Adiciona o email do contato (CRM) nos convidados se for email
+  const crm = getCRMByEmpresa(empresa);
+  const tel = (crm && crm.telefone) || '';
+  if (tel && tel.includes('@')) adicionarConvidadoEmEvento(tel);
 
   // Re-aplica o mentor pra adicionar email
   onMentorEventoChange();
+}
+
+function aoMudarTipoEvento() {
+  const empresa = $('ev-empresa').value.trim();
+  const tipo = $('ev-tipo')?.value || 'R1';
+  if (empresa) $('ev-titulo').value = `${empresa} · ${tipo}`;
 }
 
 function onMentorEventoChange() {
@@ -2535,6 +2597,7 @@ function abrirModalEvento(idEvento) {
   popularSelectMentorEvento();
   $('ev-empresa').value = '';
   $('ev-mentor').value = consultorLogado?.nome || ''; // mentor padrão = quem tá logado
+  $('ev-tipo').value = 'R1';
   $('ev-titulo').value = '';
   $('ev-data').value = new Date().toISOString().slice(0,10);
   $('ev-inicio').value = '14:00';
