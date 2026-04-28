@@ -1311,16 +1311,23 @@ async function gerarPDFBase64() {
   const gridW = PAGE_W - marginX * 2;
   const cardGap = 2.5;
   const cardW = (gridW - cardGap * 3) / 4;
-  const cardH = 44;  // mais alto pra acomodar fonte ATUAL grande
+  const cardH = 41;
+
+  // cor única dos headers de seção: azul escuro (mesma do título)
+  const corSecao = { bg: [3, 15, 59], txt: [255, 255, 255] }; // fundo navy escuro, texto branco
+
+  function drawSectionHeader(x, y, w, label, cor) {
+    doc.setFillColor(...cor.bg);
+    doc.roundedRect(x, y, w, 7, 2.5, 2.5, 'F');
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(13);
+    doc.setTextColor(...cor.txt);
+    doc.text(label, x + w / 2, y + 4.9, { align: 'center' });
+  }
 
   // ========= RECEITA =========
-  const receitaY = 33;
-  doc.setFillColor(...headerBg);
-  doc.roundedRect(marginX, receitaY - 4, gridW, 6, 2, 2, 'F');
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(12);
-  doc.setTextColor(...navyDeep);
-  doc.text('RECEITA', PAGE_W / 2, receitaY + 0.5, { align: 'center' });
+  const receitaY = 35;
+  drawSectionHeader(marginX, receitaY - 5, gridW, 'RECEITA', corSecao);
 
   const receitaCards = [
     { t: 'FATURAMENTO',           m: fmtMoney(state.metas.faturamento, 'money'),     a: fmtMoney(state.atuais.faturamento, 'money') },
@@ -1328,27 +1335,22 @@ async function gerarPDFBase64() {
     { t: 'TICKET MÉDIO - DELIVERY', m: fmtMoney(state.metas.ticket_delivery, 'money'), a: fmtMoney(state.atuais.ticket_delivery, 'money') },
     { t: '% DE SATISFAÇÃO',       m: fmtMoney(state.metas.satisfacao, 'percent'),    a: fmtMoney(state.atuais.satisfacao, 'percent') }
   ];
-  receitaCards.forEach((c, i) => drawCard(marginX + i * (cardW + cardGap), receitaY + 4, cardW, cardH, c.t, c.m, c.a));
+  receitaCards.forEach((c, i) => drawCard(marginX + i * (cardW + cardGap), receitaY + 5, cardW, cardH, c.t, c.m, c.a));
 
   // ========= DESPESA + DELIVERY =========
-  const meioY = receitaY + cardH + 7;
-  doc.setFillColor(...headerBg);
-  doc.roundedRect(marginX, meioY - 4, cardW * 2 + cardGap, 6, 2, 2, 'F');
-  doc.roundedRect(marginX + 2 * (cardW + cardGap), meioY - 4, cardW * 2 + cardGap, 6, 2, 2, 'F');
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(12);
-  doc.setTextColor(...navyDeep);
-  doc.text('DESPESA', marginX + (cardW * 2 + cardGap) / 2, meioY + 0.5, { align: 'center' });
-  doc.text('DELIVERY', marginX + 2 * (cardW + cardGap) + (cardW * 2 + cardGap) / 2, meioY + 0.5, { align: 'center' });
+  const meioY = receitaY + cardH + 12;
+  drawSectionHeader(marginX, meioY - 5, cardW * 2 + cardGap, 'DESPESA', corSecao);
+  drawSectionHeader(marginX + 2 * (cardW + cardGap), meioY - 5, cardW * 2 + cardGap, 'DELIVERY', corSecao);
 
-  drawCard(marginX,                       meioY + 4, cardW, cardH, '% CMV', fmtMoney(state.metas.cmv, 'percent'), fmtMoney(state.atuais.cmv, 'percent'));
-  drawCard(marginX + cardW + cardGap,     meioY + 4, cardW, cardH, '% CMO', fmtMoney(state.metas.cmo, 'percent'), fmtMoney(state.atuais.cmo, 'percent'));
-  drawCard(marginX + 2 * (cardW + cardGap), meioY + 4, cardW, cardH, 'TEMPO DE ENTREGA', fmtMoney(state.metas.tempo_entrega, 'minutes'), fmtMoney(state.atuais.tempo_entrega, 'minutes'));
-  drawCard(marginX + 3 * (cardW + cardGap), meioY + 4, cardW, cardH, 'NOTA MARKETPLACE', fmtMoney(state.metas.nota_marketplace, 'decimal'), fmtMoney(state.atuais.nota_marketplace, 'decimal'));
+  drawCard(marginX,                       meioY + 5, cardW, cardH, '% CMV', fmtMoney(state.metas.cmv, 'percent'), fmtMoney(state.atuais.cmv, 'percent'));
+  drawCard(marginX + cardW + cardGap,     meioY + 5, cardW, cardH, '% CMO', fmtMoney(state.metas.cmo, 'percent'), fmtMoney(state.atuais.cmo, 'percent'));
+  drawCard(marginX + 2 * (cardW + cardGap), meioY + 5, cardW, cardH, 'TEMPO DE ENTREGA', fmtMoney(state.metas.tempo_entrega, 'minutes'), fmtMoney(state.atuais.tempo_entrega, 'minutes'));
+  drawCard(marginX + 3 * (cardW + cardGap), meioY + 5, cardW, cardH, 'NOTA MARKETPLACE', fmtMoney(state.metas.nota_marketplace, 'decimal'), fmtMoney(state.atuais.nota_marketplace, 'decimal'));
 
   // ========= LUCRO + PLANEJAMENTO =========
-  const baixoY = meioY + cardH + 7;
-  drawCard(marginX, baixoY, cardW, cardH, '% LUCRO', fmtMoney(state.metas.lucro, 'percent'), fmtMoney(state.atuais.lucro, 'percent'));
+  const baixoY = meioY + cardH + 12;
+  drawSectionHeader(marginX, baixoY - 5, cardW, 'RESULTADO', corSecao);
+  drawCard(marginX, baixoY + 5, cardW, cardH, '% LUCRO', fmtMoney(state.metas.lucro, 'percent'), fmtMoney(state.atuais.lucro, 'percent'));
 
   // PLANEJAMENTO ESTRATÉGICO (3 colunas)
   const planX = marginX + cardW + cardGap;
@@ -1391,19 +1393,21 @@ async function gerarPDFBase64() {
   doc.roundedRect(10, tagY, mesW, 6, 3, 3, 'F');
   doc.text(mesTxt, 10 + mesW / 2, tagY + 4.1, { align: 'center' });
 
-  // logo GESTÃO LIFE pequena no centro
+  // logo GESTÃO LIFE pequena no centro (SVG renderizado em alta qualidade)
   try {
     const svgLifeEscuro = SVG_GESTAO_LIFE.replace(/fill="white"/g, 'fill="#030F3B"').replace(/fill="#ffffff"/g, 'fill="#030F3B"');
-    const lifeImg = await svgParaPng(svgLifeEscuro, 600);
-    // largura 38mm, altura proporcional (38 * 532/1310 ≈ 15.4 — mas vamos manter compacto)
-    doc.addImage(lifeImg, 'JPEG', PAGE_W / 2 - 19, tagY - 2, 38, 9);
+    const lifeImg = await svgParaPng(svgLifeEscuro, 900);
+    // 45mm de largura, altura proporcional (45 * 262/1393 ≈ 8.5mm)
+    doc.addImage(lifeImg, 'JPEG', PAGE_W / 2 - 22.5, tagY - 1, 45, 8.5);
   } catch (e) {
-    console.warn('[PDF] erro ao renderizar logo Life no footer:', e);
-    // fallback texto
-    doc.setFontSize(8);
-    doc.setFont('helvetica', 'bold');
+    console.warn('[PDF] erro logo Life footer:', e);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(11);
     doc.setTextColor(...navyDeep);
-    doc.text('Gestão Life', PAGE_W / 2, tagY + 4.1, { align: 'center' });
+    doc.text('Gestão', PAGE_W / 2 - 6, tagY + 4.4, { align: 'right' });
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(77, 145, 195);
+    doc.text('Life', PAGE_W / 2 - 5, tagY + 4.4);
   }
 
   // tag handle (direita)
