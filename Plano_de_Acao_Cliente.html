@@ -1073,7 +1073,7 @@
     </div>
   </div>
 
-  <footer>Método Gestão Life · Gestão PRO<br><small>Ferramenta interna · Planos de Ação v2</small></footer>
+  <footer>Método Gestão Life · Gestão PRO<br><small>Ferramenta interna · Planos de Ação v2.2 · build 30/04 fix-pct</small></footer>
 </div>
 
 <!-- Modal: VISUALIZAR compromisso (read-only) com botões de cobrança -->
@@ -3476,6 +3476,24 @@ function renderPainelDiagnosticoInline(r, empresa) {
   const ig = r.informacoesGerais || {};
   const diag = r.diagnostico;
 
+  // Adiciona campos do diagnóstico no card "Dados da Empresa" do CRM (que está acima)
+  // Pega o headline do diagnóstico pra atualizar o NÍVEL no card de cima
+  if (diag && diag.headline) {
+    const m = String(diag.headline).match(/n[ií]vel\s*0?(\d{1,2})/i);
+    if (m) {
+      const nvDiag = 'Nível ' + m[1].padStart(2,'0');
+      // Procura o item "Nível atual" no card e atualiza
+      const items = document.querySelectorAll('#crm-card-empresa .crm-item');
+      items.forEach(it => {
+        const lbl = it.querySelector('.lbl');
+        if (lbl && /n[ií]vel\s*atual/i.test(lbl.textContent)) {
+          const val = it.querySelector('.val');
+          if (val) val.innerHTML = `${nvDiag} <span style="font-size:10px;color:#22c55e;background:rgba(34,197,94,.18);padding:2px 6px;border-radius:4px;font-weight:700;margin-left:4px">📊 DIAGNÓSTICO</span>`;
+        }
+      });
+    }
+  }
+
   // Status (aviso quando incompleto)
   let blocoStatus = '';
   if (r.statusDiagnostico === 'PENDENTE_FASE2' || r.statusDiagnostico === 'INCONSISTENTE' || r.statusDiagnostico === 'SEM_DIAGNOSTICO') {
@@ -3494,7 +3512,14 @@ function renderPainelDiagnosticoInline(r, empresa) {
   let scoreGeral = '';
   let blocoHeadline = '';
   if (diag) {
-    const pcts = (diag.niveis || []).map(n => Number(String(n.pct).replace(',','.'))).filter(v => !isNaN(v));
+    // Helper: normaliza pct — se vier 0.52 (decimal) vira 52, se já vier 52 mantém 52
+    const normalizarPct = (v) => {
+      let n = Number(String(v).replace(',','.').replace('%','').trim());
+      if (isNaN(n)) return 0;
+      if (n > 0 && n <= 1) n = n * 100; // decimal vira porcentagem
+      return Math.round(n);
+    };
+    const pcts = (diag.niveis || []).map(n => normalizarPct(n.pct)).filter(v => !isNaN(v));
     const score = pcts.length ? Math.round(pcts.reduce((a,b)=>a+b,0) / pcts.length) : 0;
     let cor = '#f87171', txt = 'INICIANDO';
     if (score >= 80) { cor = '#22c55e'; txt = 'CONSOLIDADO'; }
@@ -3522,7 +3547,7 @@ function renderPainelDiagnosticoInline(r, empresa) {
       '05': 'Pronto para Escalar'
     };
     const renderBarras = (diag.niveis || []).map(n => {
-      const pctNum = Number(String(n.pct).replace(',','.')) || 0;
+      const pctNum = normalizarPct(n.pct);
       const corBarra = pctNum >= 80 ? '#22c55e' : (pctNum >= 50 ? '#fbbf24' : '#f87171');
       const sUp = String(n.status || '').toUpperCase();
       const corBg = sUp.indexOf('CONSOLID') >= 0 ? 'rgba(34,197,94,.18)' : (sUp.indexOf('CONSTRU') >= 0 ? 'rgba(251,191,36,.18)' : 'rgba(248,113,113,.18)');
@@ -3554,13 +3579,13 @@ function renderPainelDiagnosticoInline(r, empresa) {
     `;
   }
 
-  // Informações Gerais
+  // Informações Gerais — REMOVE campos que JÁ aparecem no card "Dados da Empresa" (CNPJ, Segmento, etc)
+  // Mantém só os exclusivos do diagnóstico: Capacidade, Modalidade, Colaboradores, Líderes, Itens cardápio,
+  // Tempo operação, Faturamentos, Tickets, Lucro, Meta, KPIs, Diferencial, Fidelidade, Instagram, Responsável, Cidade
   const camposIG = [
     { lbl: 'Responsável', alts: ['Responsável', 'responsavel'] },
     { lbl: 'Cidade/Estado', alts: ['G03 Cidade/Estado', 'Cidade', 'Cidade/Estado'] },
-    { lbl: 'CNPJ', alts: ['G02 CNPJ', 'CNPJ'] },
     { lbl: 'Instagram', alts: ['G24 Instagram', 'Instagram'] },
-    { lbl: 'Segmento', alts: ['G05 Segmento', 'Segmento'] },
     { lbl: 'Capacidade', alts: ['G06 Capacidade', 'Capacidade'] },
     { lbl: 'Modalidade', alts: ['G07 Modalidade', 'Modalidade'] },
     { lbl: 'Colaboradores', alts: ['G08 Colaboradores', 'Colaboradores'] },
@@ -3591,7 +3616,7 @@ function renderPainelDiagnosticoInline(r, empresa) {
   const itensIG = camposIG.map(c => ({ lbl: c.lbl, val: findValor(c) })).filter(it => it.val !== '' && it.val != null);
   const blocoIG = itensIG.length ? `
     <div style="background:rgba(15,23,42,.6);border:1px solid var(--border);border-radius:10px;padding:18px;margin-bottom:14px">
-      <div style="font-size:11px;color:var(--text-dim);font-weight:700;text-transform:uppercase;letter-spacing:.4px;margin-bottom:12px">ℹ️ Informações Gerais</div>
+      <div style="font-size:11px;color:var(--text-dim);font-weight:700;text-transform:uppercase;letter-spacing:.4px;margin-bottom:12px">ℹ️ Informações Operacionais</div>
       <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(180px, 1fr));gap:12px 18px">
         ${itensIG.map(it => `
           <div>
@@ -3661,7 +3686,14 @@ function renderPainelDiagnostico(r, empresa) {
   let blocoHeadline = '';
   if (diag) {
     // Calcula score geral como média dos 5 níveis
-    const pcts = (diag.niveis || []).map(n => Number(String(n.pct).replace(',','.'))).filter(v => !isNaN(v));
+    // Helper: normaliza pct — se vier 0.52 (decimal) vira 52, se já vier 52 mantém 52
+    const normalizarPct = (v) => {
+      let n = Number(String(v).replace(',','.').replace('%','').trim());
+      if (isNaN(n)) return 0;
+      if (n > 0 && n <= 1) n = n * 100; // decimal vira porcentagem
+      return Math.round(n);
+    };
+    const pcts = (diag.niveis || []).map(n => normalizarPct(n.pct)).filter(v => !isNaN(v));
     const score = pcts.length ? Math.round(pcts.reduce((a,b)=>a+b,0) / pcts.length) : 0;
     let cor = '#f87171', txt = 'EM DESENVOLVIMENTO';
     if (score >= 80) { cor = '#22c55e'; txt = 'CONSOLIDADO'; }
@@ -3690,7 +3722,7 @@ function renderPainelDiagnostico(r, empresa) {
       '05': 'Nível 05 · Pronto para Escalar'
     };
     const renderBarras = (diag.niveis || []).map(n => {
-      const pctNum = Number(String(n.pct).replace(',','.')) || 0;
+      const pctNum = normalizarPct(n.pct);
       const corBarra = pctNum >= 80 ? '#22c55e' : (pctNum >= 50 ? '#fbbf24' : '#f87171');
       const sUp = String(n.status || '').toUpperCase();
       const corStatus = sUp.indexOf('CONSOLID') >= 0 ? 'rgba(34,197,94,.18)' : (sUp.indexOf('CONSTRU') >= 0 ? 'rgba(251,191,36,.18)' : 'rgba(248,113,113,.18)');
