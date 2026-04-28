@@ -3216,8 +3216,17 @@ async function abrirHistorico(empresa) {
   mostrarView('view-historico');
   renderCRMCard(empresa);
   // Carrega o painel de diagnóstico inline (aparece automaticamente, sem clique)
-  $('painel-diag-inline').innerHTML = '';
-  carregarPainelDiagnosticoInline(empresa);
+  // Placeholder síncrono ANTES da chamada async, pra garantir visibilidade imediata
+  const _painelEl = $('painel-diag-inline');
+  if (_painelEl) {
+    _painelEl.innerHTML = `
+      <div style="background:rgba(168,85,247,.06);border:1px solid rgba(168,85,247,.3);border-radius:10px;padding:18px;text-align:center;color:#c084fc;font-size:13px;font-weight:600">
+        <span class="spinner" style="display:inline-block;margin-right:8px"></span>📊 Buscando diagnóstico de ${empresa}...
+      </div>
+    `;
+  }
+  // Chama assíncrono — qualquer erro vai ser capturado dentro
+  setTimeout(() => carregarPainelDiagnosticoInline(empresa), 50);
   $('timeline-root').innerHTML = '<div class="loading"><span class="spinner"></span>Carregando reuniões...</div>';
   try {
     const r = await chamarAPI('listar-planos', { empresa });
