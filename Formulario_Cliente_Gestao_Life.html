@@ -465,6 +465,85 @@ function salvarEstadoDebounced() {
   saveTimer = setTimeout(salvarEstado, 300);
 }
 
+// ========== AUTO-ENVIO PARCIAL (servidor) ==========
+// Envia respostas pra planilha em marcos de progresso (25, 50, 75%) — pra não perder dados
+// se o cliente fechar o navegador antes de chegar no fim.
+const MARCOS_PARCIAIS = [25, 50, 75]; // %
+let _ultimoMarcoEnviado = 0; // controla pra não reenviar o mesmo marco
+let _enviandoParcial = false;
+
+function calcularProgressoTotal() {
+  // Conta total de perguntas (gerais + níveis)
+  const totalGerais = PERGUNTAS_GERAIS.length;
+  const totalNiveis = NIVEIS.reduce((a,n) => a + n.temas.reduce((x,t) => x + t.perguntas.length, 0), 0);
+  const totalPerguntas = totalGerais + totalNiveis;
+  const fGerais = respGerais.filter(v => v && String(v).trim()).length;
+  const fNiveis = respNiveis.flat(2).filter(v => v !== null).length;
+  const respondidas = fGerais + fNiveis;
+  const pct = totalPerguntas > 0 ? Math.round((respondidas / totalPerguntas) * 100) : 0;
+  return { respondidas, total: totalPerguntas, pct };
+}
+
+async function enviarParcial(pctAtual) {
+  if (_enviandoParcial) return; // anti-duplicata
+  if (faseAtual !== 2) return; // só faz sentido na fase 2
+  if (!registroId) return; // precisa ter id da fase 1
+  _enviandoParcial = true;
+  try {
+    const responsavel = $('c-dono').value.trim();
+    const dataISO = hojeISO();
+    const empresa = (respGerais[0] || '—').trim();
+    // Calcula scores parciais (perguntas não respondidas viram 0/null)
+    const scoresParciais = calcularScores();
+    const respostasFlat = {};
+    scoresParciais.forEach(s => {
+      respostasFlat[`Nível ${s.num} - ${s.nome} (%)`] = s.pct + '%';
+      respostasFlat[`Nível ${s.num} - ${s.nome} (status)`] = s.status==='done'?'Consolidado':(s.status==='progress'?'Em construção':'Não iniciado');
+      s.detalhes.forEach((d, idx) => { respostasFlat[`N${s.num}.${idx+1} [${d.tema||'-'}] ${d.pergunta.slice(0,60)}`] = d.nota === null ? '—' : String(d.nota); });
+    });
+    const payload = {
+      fase: 'parcial',
+      registroId,
+      progressoPct: pctAtual,
+      timestamp: new Date().toISOString(),
+      empresa, responsavel, data: dataISO,
+      respostas: respostasFlat,
+      scoresNiveis: scoresParciais.map(s => ({num:s.num,nome:s.nome,pct:s.pct,status:s.status})),
+      gerais: PERGUNTAS_GERAIS.map((p, i) => ({ pergunta: p, resposta: respGerais[i] })),
+      token: "DxclbdFY8lbweT6J02kQ3kHX2vcoFpAG",
+      website: (document.getElementById('website')||{}).value || ''
+    };
+    await fetch(WEBHOOK_URL, {
+      method: 'POST', mode: 'no-cors',
+      headers: {'Content-Type':'text/plain;charset=utf-8'},
+      body: JSON.stringify(payload)
+    });
+    console.log('[Auto-envio] ' + pctAtual + '% enviado pra planilha');
+    // Indicador visual
+    const ind = document.getElementById('save-indicator');
+    if (ind) {
+      ind.textContent = `☁️ ${pctAtual}% salvo no servidor`;
+      ind.classList.add('show');
+      setTimeout(() => {
+        ind.classList.remove('show');
+        ind.textContent = '✓ Salvo';
+      }, 2500);
+    }
+  } catch (e) { console.warn('[Auto-envio parcial] erro:', e); }
+  finally { _enviandoParcial = false; }
+}
+
+function checarMarcosParciais() {
+  const { pct } = calcularProgressoTotal();
+  for (const marco of MARCOS_PARCIAIS) {
+    if (pct >= marco && _ultimoMarcoEnviado < marco) {
+      _ultimoMarcoEnviado = marco;
+      enviarParcial(marco);
+      break; // dispara um por vez
+    }
+  }
+}
+
 function carregarEstado() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
@@ -772,6 +851,8 @@ function avancar() {
   }
   passoAtual++;
   salvarEstadoDebounced();
+  // Após cada resposta, checa se cruzou um marco de 25/50/75% e envia parcialmente
+  setTimeout(checarMarcosParciais, 100);
   if (passoAtual >= PASSOS.length) return fimDaFase();
   renderPasso();
 }
@@ -829,9 +910,28 @@ function mostrarResumo() {
       <div class="bar-right"><div class="bar-pct">${s.pct}%</div><span class="status-pill ${s.status}">${s.status==='done'?'Consolidado':(s.status==='progress'?'Em construção':'Não iniciado')}</span></div>
     </div>`).join('');
   mostrarView('view-summary');
+  // 🚀 AUTO-ENVIO: dispara enviarFase2 automaticamente após 1.2s
+  // (assim, mesmo que o cliente esqueça de clicar em "Confirmar e enviar", os dados são enviados)
+  if (!_autoEnvioDisparado) {
+    _autoEnvioDisparado = true;
+    setTimeout(() => {
+      // Só dispara se a view de resumo ainda estiver ativa (cliente não voltou ao revisar)
+      const resumoAtivo = document.getElementById('view-summary')?.classList.contains('show');
+      if (resumoAtivo) {
+        console.log('[Auto-envio final] Disparando enviarFase2 automaticamente...');
+        enviarFase2();
+      }
+    }, 1200);
+  }
 }
+let _autoEnvioDisparado = false;
 
-function revisar() { passoAtual = PASSOS.length - 1; renderPasso(); }
+function revisar() {
+  // Se o usuário clicou em "Revisar", reseta o auto-envio flag pra não disparar de volta
+  _autoEnvioDisparado = false;
+  passoAtual = PASSOS.length - 1;
+  renderPasso();
+}
 
 async function enviarFase1() {
   mostrarView('view-sending-1');
@@ -858,9 +958,12 @@ async function enviarFase1() {
   }
 }
 
+let _fase2Enviando = false;
 async function enviarFase2() {
+  if (_fase2Enviando) return; // proteção anti-duplicata
+  _fase2Enviando = true;
   const btn = $('btn-enviar');
-  btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> Enviando...';
+  if (btn) { btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> Enviando...'; }
   const responsavel = $('c-dono').value.trim();
   const dataISO = hojeISO();
   const dataBR = formatarData(dataISO);
@@ -891,7 +994,8 @@ async function enviarFase2() {
     limparEstado();
     mostrarView('view-thanks');
   } catch (err) {
-    btn.disabled = false; btn.textContent = '✓ Confirmar e enviar';
+    _fase2Enviando = false;
+    if (btn) { btn.disabled = false; btn.textContent = '✓ Confirmar e enviar'; }
     toast('❌ Erro ao enviar: ' + err.message, 5000, true);
   }
 }
