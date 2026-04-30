@@ -14,10 +14,45 @@
     --text:#eef2ff; --text-dim:#a8b2d8;
     --success:#4ade80; --warning:#fbbf24; --danger:#f87171; --purple:#c084fc;
     --border:rgba(255,255,255,0.08);
+    --body-bg-1: #060a1f; --body-bg-2: #0b1230;
+    --input-bg: rgba(0,0,0,.25);
+    --modal-bg: #0a0e2c;
   }
+  /* === MODO CLARO === */
+  [data-theme="light"] {
+    --bg:#ffffff; --bg-2:#f3f5fb; --card:#ffffff; --card-hover:#f5f7ff;
+    --accent:#0d8edb; --accent-2:#3568d4;
+    --text:#0f172a; --text-dim:#64748b;
+    --success:#16a34a; --warning:#d97706; --danger:#dc2626; --purple:#7c3aed;
+    --border:rgba(15,23,42,0.12);
+    --body-bg-1: #f8fafc; --body-bg-2: #ffffff;
+    --input-bg: #ffffff;
+    --modal-bg: #ffffff;
+  }
+  /* Overrides finos pro modo claro: inputs, selects, modais com bg escuro hardcoded */
+  [data-theme="light"] input[type="text"],
+  [data-theme="light"] input[type="number"],
+  [data-theme="light"] input[type="date"],
+  [data-theme="light"] input[type="time"],
+  [data-theme="light"] input[type="email"],
+  [data-theme="light"] input[type="password"],
+  [data-theme="light"] select,
+  [data-theme="light"] textarea {
+    background: var(--input-bg) !important;
+    color: var(--text) !important;
+    border-color: var(--border) !important;
+  }
+  [data-theme="light"] .modal { background: var(--modal-bg) !important; color: var(--text) !important; }
+  [data-theme="light"] .empresa-card { background: var(--card) !important; border-color: var(--border) !important; }
+  [data-theme="light"] .empresa-card:hover { background: var(--card-hover) !important; }
+  [data-theme="light"] body { color: var(--text) !important; }
+  [data-theme="light"] .btn-primary { color: #fff !important; }
+  /* Cards do kanban com background mais claro */
+  [data-theme="light"] [data-coluna-etapa] { background: rgba(15,23,42,0.04) !important; }
+  [data-theme="light"] [data-coluna-etapa] > div > div[draggable="true"] { background: #ffffff !important; }
   * { box-sizing: border-box; }
-  html, body { background: #060a1f; }
-  body { margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif; background: linear-gradient(180deg,#060a1f 0%,#0b1230 100%); color: var(--text); line-height: 1.55; min-height: 100vh; }
+  html, body { background: var(--body-bg-1); }
+  body { margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif; background: linear-gradient(180deg,var(--body-bg-1) 0%,var(--body-bg-2) 100%); color: var(--text); line-height: 1.55; min-height: 100vh; }
   .container { max-width: 1000px; margin: 0 auto; padding: 32px 24px 80px; }
   .site-logo { display:flex; align-items:center; justify-content:center; padding: 20px 16px 10px; }
   .site-logo svg { width: 160px; height: auto; }
@@ -566,7 +601,10 @@
   <div class="view" id="view-dashboard">
     <div class="dash-header">
       <div><div class="brand">Método Gestão Life · Planos de Ação</div><div class="dash-user">Logado como <strong id="dash-nome"></strong></div></div>
-      <button class="btn-logout" onclick="sair()">Sair</button>
+      <div style="display:flex;gap:8px;align-items:center">
+        <button class="btn-logout" onclick="alternarTema()" id="btn-tema" title="Alternar tema claro/escuro" style="font-size:14px">🌙</button>
+        <button class="btn-logout" onclick="sair()">Sair</button>
+      </div>
     </div>
     <div class="nav-abas">
       <button class="nav-aba ativa" onclick="trocarAba('empresas')">🏢 Empresas</button>
@@ -583,6 +621,10 @@
           <p id="base-sync-info" style="margin:0;font-size:11px;color:var(--text-dim)">—</p>
         </div>
         <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+          <div style="display:flex;gap:0;background:rgba(255,255,255,.05);border-radius:8px;padding:3px">
+            <button id="btn-vis-lista" onclick="trocarVisaoEmpresas('lista')" style="padding:6px 14px;border:none;background:transparent;color:var(--text-dim);border-radius:6px;cursor:pointer;font-size:12px;font-weight:600">📋 Lista</button>
+            <button id="btn-vis-kanban" onclick="trocarVisaoEmpresas('kanban')" style="padding:6px 14px;border:none;background:rgba(77,201,255,.18);color:var(--accent);border-radius:6px;cursor:pointer;font-size:12px;font-weight:600">📊 Kanban</button>
+          </div>
           <button class="btn btn-secondary" id="btn-config-colunas" onclick="abrirConfigColunas()" title="Personalizar colunas do kanban">⚙ Colunas</button>
           <button class="btn btn-secondary" onclick="sincronizarBaseClientesManual()" title="Atualizar lista da Base Clientes">🔄 Sincronizar base</button>
           <button class="btn btn-secondary" onclick="gerarPDFBranco()" title="PDF em branco pra reunião presencial">📄 PDF em branco</button>
@@ -671,13 +713,12 @@
     <div id="rascunhos-novos-root"></div>
     <div id="empresas-root" class="empresa-grid" style="display:none"></div>
     <div id="empresas-kanban-root" style="display:flex;gap:10px;overflow-x:auto;padding:8px 0 16px;
-      width:100vw;
+      width:calc(100vw - 48px);
       position:relative;
       left:50%;
       right:50%;
-      margin-left:-50vw;
-      margin-right:-50vw;
-      padding-left:24px;padding-right:24px;
+      margin-left:calc(-50vw + 24px);
+      margin-right:calc(-50vw + 24px);
       box-sizing:border-box"></div>
     </div><!-- /aba-empresas -->
 
@@ -1132,7 +1173,7 @@
     </div>
   </div>
 
-  <footer>Método Gestão Life · Gestão PRO<br><small>Ferramenta interna · Planos de Ação v3.2 · build 30/04 kanban-tela-cheia-dnd</small></footer>
+  <footer>Método Gestão Life · Gestão PRO<br><small>Ferramenta interna · Planos de Ação v3.3 · build 30/04 lista-kanban-tema-claro</small></footer>
 </div>
 
 <!-- Modal: VISUALIZAR compromisso (read-only) com botões de cobrança -->
@@ -1416,6 +1457,32 @@ let consultorLogado = null;
 let contextoImportado = null;
 
 function $(id){return document.getElementById(id);}
+
+// === TEMA CLARO/ESCURO ===
+(function aplicarTemaSalvo(){
+  try {
+    const t = localStorage.getItem('tema_v1');
+    if (t === 'light') document.documentElement.setAttribute('data-theme', 'light');
+  } catch(e) {}
+})();
+function alternarTema() {
+  const atual = document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
+  const novo = atual === 'light' ? 'dark' : 'light';
+  if (novo === 'light') document.documentElement.setAttribute('data-theme', 'light');
+  else document.documentElement.removeAttribute('data-theme');
+  try { localStorage.setItem('tema_v1', novo); } catch(e) {}
+  // Atualiza ícone do botão
+  const btn = $('btn-tema');
+  if (btn) btn.textContent = novo === 'light' ? '☀️' : '🌙';
+}
+// Inicializa ícone após DOMContentLoaded
+document.addEventListener('DOMContentLoaded', () => {
+  const btn = $('btn-tema');
+  if (btn) {
+    const t = document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
+    btn.textContent = t === 'light' ? '☀️' : '🌙';
+  }
+});
 function toast(msg, ms=3500, isErr=false, isSuccess=false){
   const t=$('toast'); t.textContent=msg;
   t.classList.remove('error','success');
@@ -1876,8 +1943,16 @@ function descartarRascunhoKey(key) {
   toast('Rascunho descartado', 2500);
 }
 
+// Wrapper pra render a Lista usando o cache atual (mesmas regras de filtro)
+function renderListaEmpresas() {
+  const visAtual = _visaoEmpresas;
+  _visaoEmpresas = 'lista';
+  renderEmpresas(_empresasCache);
+  _visaoEmpresas = visAtual;
+}
+
 function renderEmpresas(lista) {
-  // Atualiza _empresasCache + mescla Base, e SEMPRE renderiza no formato Kanban (visão única agora)
+  // Atualiza _empresasCache + mescla Base, e renderiza conforme a visão escolhida (lista | kanban)
   const cache = lista.slice();
   const chavesExistentes = new Set(cache.map(e => (e.empresa || '').trim().toLowerCase()));
   (_baseCache || []).forEach(b => {
@@ -1902,9 +1977,22 @@ function renderEmpresas(lista) {
   popularFiltroConsultor();
   // Atualiza card de rascunhos novos no topo
   renderRascunhosNovos();
-  // Visão única agora é Kanban — popula _empresasCache e delega
-  renderKanbanEmpresas();
-  return; // não renderiza a antiga lista
+  // Roteia conforme visão atual
+  const _vis = _visaoEmpresas || 'kanban';
+  const _lista = $('empresas-root');
+  const _kanban = $('empresas-kanban-root');
+  const _btnCfg = $('btn-config-colunas');
+  if (_vis === 'kanban') {
+    if (_lista) _lista.style.display = 'none';
+    if (_kanban) _kanban.style.display = 'flex';
+    if (_btnCfg) _btnCfg.style.display = '';
+    renderKanbanEmpresas();
+    return;
+  }
+  // visão lista
+  if (_lista) _lista.style.display = '';
+  if (_kanban) _kanban.style.display = 'none';
+  if (_btnCfg) _btnCfg.style.display = 'none';
   if (!cache.length) {
     $('empresas-root').innerHTML = `<div class="empty-state"><div class="icon">📂</div><p>Nenhuma empresa cadastrada ainda.</p><p>Clique em <strong>"+ Criar nova reunião"</strong> para começar.</p></div>`;
     return;
@@ -2409,8 +2497,11 @@ const PIPELINE_ETAPAS = [
   { id: 'cancelado',      label: '🚫 Cancelado',         cor: '#94a3b8', desc: 'Encerrado / Cancelado' }
 ];
 
-// === Visão Empresas: kanban tela cheia (substitui a lista) ===
-let _visaoEmpresas = 'kanban'; // só kanban agora
+// === Visão Empresas: Lista OU Kanban (preferência salva no localStorage) ===
+let _visaoEmpresas = (function() {
+  try { const v = localStorage.getItem('visao_empresas_v1'); if (v === 'lista' || v === 'kanban') return v; } catch(e) {}
+  return 'kanban';
+})();
 const KANBAN_CFG_KEY = 'kanban_colunas_v1';
 
 function getConfigColunas() {
@@ -2432,13 +2523,30 @@ function getConfigColunas() {
 }
 
 function trocarVisaoEmpresas(visao) {
-  // Mantida pra compatibilidade — agora só renderiza kanban
-  _visaoEmpresas = 'kanban';
+  if (visao !== 'lista' && visao !== 'kanban') visao = 'kanban';
+  _visaoEmpresas = visao;
+  try { localStorage.setItem('visao_empresas_v1', visao); } catch(e) {}
+  // Atualiza visual dos botões
+  ['lista','kanban'].forEach(v => {
+    const b = $('btn-vis-' + v);
+    if (!b) return;
+    if (v === visao) { b.style.background = 'rgba(77,201,255,.18)'; b.style.color = 'var(--accent)'; }
+    else { b.style.background = 'transparent'; b.style.color = 'var(--text-dim)'; }
+  });
   const lista = $('empresas-root');
   const kanban = $('empresas-kanban-root');
-  if (lista) lista.style.display = 'none';
-  if (kanban) { kanban.style.display = 'flex'; }
-  renderKanbanEmpresas();
+  const btnCfg = $('btn-config-colunas');
+  if (visao === 'lista') {
+    if (lista) lista.style.display = '';
+    if (kanban) kanban.style.display = 'none';
+    if (btnCfg) btnCfg.style.display = 'none';
+    renderListaEmpresas();
+  } else {
+    if (lista) lista.style.display = 'none';
+    if (kanban) kanban.style.display = 'flex';
+    if (btnCfg) btnCfg.style.display = '';
+    renderKanbanEmpresas();
+  }
 }
 
 function renderKanbanEmpresas() {
