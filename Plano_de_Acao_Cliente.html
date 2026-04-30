@@ -583,11 +583,7 @@
           <p id="base-sync-info" style="margin:0;font-size:11px;color:var(--text-dim)">—</p>
         </div>
         <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
-          <div style="display:flex;gap:0;background:rgba(255,255,255,.05);border-radius:8px;padding:3px">
-            <button id="btn-vis-lista" onclick="trocarVisaoEmpresas('lista')" style="padding:6px 14px;border:none;background:rgba(77,201,255,.18);color:var(--accent);border-radius:6px;cursor:pointer;font-size:12px;font-weight:600">📋 Lista</button>
-            <button id="btn-vis-kanban" onclick="trocarVisaoEmpresas('kanban')" style="padding:6px 14px;border:none;background:transparent;color:var(--text-dim);border-radius:6px;cursor:pointer;font-size:12px;font-weight:600">📊 Kanban</button>
-          </div>
-          <button class="btn btn-secondary" id="btn-config-colunas" onclick="abrirConfigColunas()" style="display:none" title="Personalizar colunas do kanban">⚙ Colunas</button>
+          <button class="btn btn-secondary" id="btn-config-colunas" onclick="abrirConfigColunas()" title="Personalizar colunas do kanban">⚙ Colunas</button>
           <button class="btn btn-secondary" onclick="sincronizarBaseClientesManual()" title="Atualizar lista da Base Clientes">🔄 Sincronizar base</button>
           <button class="btn btn-secondary" onclick="gerarPDFBranco()" title="PDF em branco pra reunião presencial">📄 PDF em branco</button>
           <button class="btn btn-primary" onclick="novaEmpresa()">+ Criar nova reunião</button>
@@ -673,8 +669,16 @@
     </div>
 
     <div id="rascunhos-novos-root"></div>
-    <div id="empresas-root" class="empresa-grid"></div>
-    <div id="empresas-kanban-root" style="display:none;gap:10px;overflow-x:auto;padding-bottom:10px"></div>
+    <div id="empresas-root" class="empresa-grid" style="display:none"></div>
+    <div id="empresas-kanban-root" style="display:flex;gap:10px;overflow-x:auto;padding:8px 0 16px;
+      width:100vw;
+      position:relative;
+      left:50%;
+      right:50%;
+      margin-left:-50vw;
+      margin-right:-50vw;
+      padding-left:24px;padding-right:24px;
+      box-sizing:border-box"></div>
     </div><!-- /aba-empresas -->
 
     <div id="aba-pipeline" style="display:none">
@@ -1128,7 +1132,7 @@
     </div>
   </div>
 
-  <footer>Método Gestão Life · Gestão PRO<br><small>Ferramenta interna · Planos de Ação v3.1 · build 30/04 toggle-kanban-colunas</small></footer>
+  <footer>Método Gestão Life · Gestão PRO<br><small>Ferramenta interna · Planos de Ação v3.2 · build 30/04 kanban-tela-cheia-dnd</small></footer>
 </div>
 
 <!-- Modal: VISUALIZAR compromisso (read-only) com botões de cobrança -->
@@ -1873,7 +1877,7 @@ function descartarRascunhoKey(key) {
 }
 
 function renderEmpresas(lista) {
-  // Mescla com empresas da Base Clientes que ainda não estão na lista
+  // Atualiza _empresasCache + mescla Base, e SEMPRE renderiza no formato Kanban (visão única agora)
   const cache = lista.slice();
   const chavesExistentes = new Set(cache.map(e => (e.empresa || '').trim().toLowerCase()));
   (_baseCache || []).forEach(b => {
@@ -1898,6 +1902,9 @@ function renderEmpresas(lista) {
   popularFiltroConsultor();
   // Atualiza card de rascunhos novos no topo
   renderRascunhosNovos();
+  // Visão única agora é Kanban — popula _empresasCache e delega
+  renderKanbanEmpresas();
+  return; // não renderiza a antiga lista
   if (!cache.length) {
     $('empresas-root').innerHTML = `<div class="empty-state"><div class="icon">📂</div><p>Nenhuma empresa cadastrada ainda.</p><p>Clique em <strong>"+ Criar nova reunião"</strong> para começar.</p></div>`;
     return;
@@ -2101,13 +2108,15 @@ function renderEmpresas(lista) {
 
 // === Helpers de Etapa Pipeline e Tempo de Contato ===
 function calcularEtapaEmpresa(e, crm) {
-  // Retorna a etapa atual da empresa baseado nos dados
+  // Retorna a etapa atual da empresa baseado em onboarding + número de reuniões
   const status = (crm.status || 'Ativo').toLowerCase();
-  if (status === 'cancelado' || status === 'encerrado') return { id: 'cancelado', label: '🚫 Cancelado', cor: '#94a3b8' };
-  if (e.reunioes && e.reunioes >= 1) return { id: 'acompanhamento', label: '🚀 Em acompanhamento', cor: '#22c55e' };
-  if (e.statusDiagnostico === 'COMPLETO') return { id: 'diagnostico', label: '📋 Diagnóstico OK', cor: '#a78bfa' };
-  if (crm.onboardingEm) return { id: 'onboarding', label: '🎯 Onboarding feito', cor: '#fbbf24' };
-  return { id: 'posvenda', label: '🆕 Pós-venda', cor: '#60a5fa' };
+  if (status === 'cancelado' || status === 'encerrado') return PIPELINE_ETAPAS.find(p => p.id === 'cancelado');
+  const n = Number(e.reunioes) || 0;
+  if (n >= 7) return PIPELINE_ETAPAS.find(p => p.id === 'avancado');
+  if (n >= 4) return PIPELINE_ETAPAS.find(p => p.id === 'r4_r6');
+  if (n >= 1) return PIPELINE_ETAPAS.find(p => p.id === 'r1_r3');
+  if (crm.onboardingEm) return PIPELINE_ETAPAS.find(p => p.id === 'onboarding');
+  return PIPELINE_ETAPAS.find(p => p.id === 'sem_onboarding');
 }
 
 function diasDesdeContato(crm) {
@@ -2392,15 +2401,16 @@ function trocarAba(aba) {
 
 // === PIPELINE / KANBAN ===
 const PIPELINE_ETAPAS = [
-  { id: 'posvenda',       label: '🆕 Pós-venda',         cor: '#60a5fa', desc: 'Vendido, sem onboarding' },
-  { id: 'onboarding',     label: '🎯 Onboarding feito',  cor: '#fbbf24', desc: 'Onb feito · sem diagnóstico' },
-  { id: 'diagnostico',    label: '📋 Diagnóstico OK',    cor: '#a78bfa', desc: 'Aguardando 1ª reunião' },
-  { id: 'acompanhamento', label: '🚀 Em acompanhamento', cor: '#22c55e', desc: 'Em mentoria ativa' },
+  { id: 'sem_onboarding', label: '🆕 Sem Onboarding',  cor: '#60a5fa', desc: 'Sem onb · sem reuniões' },
+  { id: 'onboarding',     label: '🎯 Onboarding',       cor: '#fbbf24', desc: 'Onb feito · sem reuniões' },
+  { id: 'r1_r3',          label: '🚀 R1 — R3',          cor: '#22c55e', desc: '1 a 3 reuniões' },
+  { id: 'r4_r6',          label: '⭐ R4 — R6',          cor: '#a78bfa', desc: '4 a 6 reuniões' },
+  { id: 'avancado',       label: '🏆 Avançado',         cor: '#ec4899', desc: '7+ reuniões' },
   { id: 'cancelado',      label: '🚫 Cancelado',         cor: '#94a3b8', desc: 'Encerrado / Cancelado' }
 ];
 
-// === Visão Lista/Kanban da aba Empresas + config das colunas ===
-let _visaoEmpresas = 'lista'; // 'lista' | 'kanban'
+// === Visão Empresas: kanban tela cheia (substitui a lista) ===
+let _visaoEmpresas = 'kanban'; // só kanban agora
 const KANBAN_CFG_KEY = 'kanban_colunas_v1';
 
 function getConfigColunas() {
@@ -2422,32 +2432,13 @@ function getConfigColunas() {
 }
 
 function trocarVisaoEmpresas(visao) {
-  _visaoEmpresas = visao;
-  ['lista','kanban'].forEach(v => {
-    const b = $('btn-vis-' + v);
-    if (!b) return;
-    if (v === visao) {
-      b.style.background = 'rgba(77,201,255,.18)';
-      b.style.color = 'var(--accent)';
-    } else {
-      b.style.background = 'transparent';
-      b.style.color = 'var(--text-dim)';
-    }
-  });
+  // Mantida pra compatibilidade — agora só renderiza kanban
+  _visaoEmpresas = 'kanban';
   const lista = $('empresas-root');
   const kanban = $('empresas-kanban-root');
-  const cfgBtn = $('btn-config-colunas');
-  if (visao === 'lista') {
-    if (lista) lista.style.display = '';
-    if (kanban) kanban.style.display = 'none';
-    if (cfgBtn) cfgBtn.style.display = 'none';
-    if (_empresasCache.length) renderEmpresas(_empresasCache);
-  } else {
-    if (lista) lista.style.display = 'none';
-    if (kanban) { kanban.style.display = 'flex'; }
-    if (cfgBtn) cfgBtn.style.display = '';
-    renderKanbanEmpresas();
-  }
+  if (lista) lista.style.display = 'none';
+  if (kanban) { kanban.style.display = 'flex'; }
+  renderKanbanEmpresas();
 }
 
 function renderKanbanEmpresas() {
@@ -2538,7 +2529,13 @@ function renderKanbanEmpresas() {
       const empEsc = (e.empresa||'').replace(/'/g,"\\'");
       const cnpjEsc = (e.cnpj || crm.cnpj || '').replace(/'/g,"\\'");
       return `
-        <div onclick="abrirHistorico('${empEsc}')" style="background:rgba(15,23,42,.7);border:1px solid var(--border);border-left:3px solid ${et.cor};border-radius:8px;padding:10px 12px;cursor:pointer;transition:all .15s" onmouseover="this.style.background='rgba(15,23,42,.9)'" onmouseout="this.style.background='rgba(15,23,42,.7)'">
+        <div draggable="true"
+          ondragstart="kanbanDragStart(event, '${empEsc}', '${cnpjEsc}', '${et.id}')"
+          ondragend="kanbanDragEnd(event)"
+          onclick="abrirHistorico('${empEsc}')"
+          style="background:rgba(15,23,42,.7);border:1px solid var(--border);border-left:3px solid ${et.cor};border-radius:8px;padding:10px 12px;cursor:grab;transition:all .15s"
+          onmouseover="this.style.background='rgba(15,23,42,.9)'"
+          onmouseout="this.style.background='rgba(15,23,42,.7)'">
           <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:4px;line-height:1.3">${e.empresa.replace(/</g,'&lt;')}</div>
           <div style="font-size:11px;color:var(--text-dim);margin-bottom:6px">${principal ? '👤 ' + principal : '— sem consultor'}</div>
           <div style="display:flex;justify-content:space-between;align-items:center;gap:6px;font-size:10.5px">
@@ -2553,17 +2550,90 @@ function renderKanbanEmpresas() {
       `;
     }).join('');
     return `
-      <div style="flex:1;min-width:260px;max-width:300px;background:rgba(15,23,42,.4);border:1px solid var(--border);border-radius:10px;padding:12px;display:flex;flex-direction:column;gap:8px">
+      <div data-coluna-etapa="${et.id}"
+        ondragover="kanbanDragOver(event, this)"
+        ondragleave="kanbanDragLeave(this)"
+        ondrop="kanbanDrop(event, '${et.id}', this)"
+        style="flex:0 0 290px;background:rgba(15,23,42,.4);border:1px solid var(--border);border-radius:10px;padding:12px;display:flex;flex-direction:column;gap:8px;transition:background .15s">
         <div style="border-bottom:2px solid ${et.cor};padding-bottom:8px;margin-bottom:4px">
           <div style="font-size:13px;font-weight:800;color:${et.cor}">${et.label}</div>
           <div style="font-size:10.5px;color:var(--text-dim);margin-top:2px">${et.desc} · <strong>${lista.length}</strong></div>
         </div>
-        <div style="display:flex;flex-direction:column;gap:8px;max-height:65vh;overflow-y:auto;padding-right:4px">
+        <div style="display:flex;flex-direction:column;gap:8px;max-height:75vh;overflow-y:auto;padding-right:4px;min-height:60px">
           ${cards || `<div style="text-align:center;padding:14px 6px;color:var(--text-dim);font-size:11px;font-style:italic">— vazia —</div>`}
         </div>
       </div>
     `;
   }).join('');
+}
+
+// === DRAG-AND-DROP do Kanban ===
+let _kanbanDragData = null;
+
+function kanbanDragStart(ev, empresa, cnpj, etapaOrigem) {
+  _kanbanDragData = { empresa, cnpj, etapaOrigem };
+  try { ev.dataTransfer.effectAllowed = 'move'; ev.dataTransfer.setData('text/plain', empresa); } catch(e) {}
+  ev.currentTarget.style.opacity = '0.4';
+}
+function kanbanDragEnd(ev) {
+  ev.currentTarget.style.opacity = '1';
+  // Reseta highlights
+  document.querySelectorAll('[data-coluna-etapa]').forEach(c => c.style.background = 'rgba(15,23,42,.4)');
+}
+function kanbanDragOver(ev, col) {
+  ev.preventDefault();
+  try { ev.dataTransfer.dropEffect = 'move'; } catch(e) {}
+  col.style.background = 'rgba(77,201,255,.10)';
+}
+function kanbanDragLeave(col) {
+  col.style.background = 'rgba(15,23,42,.4)';
+}
+async function kanbanDrop(ev, etapaDestino, col) {
+  ev.preventDefault();
+  col.style.background = 'rgba(15,23,42,.4)';
+  if (!_kanbanDragData) return;
+  const { empresa, cnpj, etapaOrigem } = _kanbanDragData;
+  _kanbanDragData = null;
+  if (etapaOrigem === etapaDestino) return; // mesmo lugar
+
+  // Decide ação conforme destino
+  if (etapaDestino === 'onboarding') {
+    // Marca onboarding (com data de hoje)
+    if (!confirm(`Marcar onboarding como concluído para "${empresa}"?`)) return;
+    try {
+      await chamarAPI('marcar-onboarding', {
+        empresa, cnpj,
+        consultor: consultorLogado?.nome || ''
+      });
+      toast('✓ Onboarding marcado', 2500, false, true);
+      await carregarCRM();
+      renderKanbanEmpresas();
+    } catch (err) { toast('❌ ' + err.message, 4000, true); }
+    return;
+  }
+
+  if (etapaDestino === 'sem_onboarding') {
+    toast('⚠ Pra desfazer onboarding, edite a empresa manualmente no CRM', 4000, true);
+    return;
+  }
+
+  if (etapaDestino === 'cancelado') {
+    if (!confirm(`Cancelar empresa "${empresa}"?\n\nIsso muda o status pra Cancelado e move pra aba de cancelados.`)) return;
+    const motivo = prompt('Motivo do cancelamento (opcional):') || '';
+    try {
+      await chamarAPI('cancelar-empresa', { empresa, cnpj, motivo });
+      toast('✓ Empresa cancelada', 2500, false, true);
+      await carregarCRM();
+      renderKanbanEmpresas();
+    } catch (err) { toast('❌ ' + err.message, 4000, true); }
+    return;
+  }
+
+  // r1_r3, r4_r6, avancado: precisa criar reuniões — não dá pra arrastar
+  if (['r1_r3','r4_r6','avancado'].includes(etapaDestino)) {
+    toast('ℹ️ Pra avançar de fase, crie uma nova reunião pelo histórico da empresa', 4500);
+    return;
+  }
 }
 
 // Modal de configuração das colunas
@@ -2682,7 +2752,13 @@ function renderPipeline() {
       const empEsc = (e.empresa||'').replace(/'/g,"\\'");
       const cnpjEsc = (e.cnpj || crm.cnpj || '').replace(/'/g,"\\'");
       return `
-        <div onclick="abrirHistorico('${empEsc}')" style="background:rgba(15,23,42,.7);border:1px solid var(--border);border-left:3px solid ${et.cor};border-radius:8px;padding:10px 12px;cursor:pointer;transition:all .15s" onmouseover="this.style.background='rgba(15,23,42,.9)'" onmouseout="this.style.background='rgba(15,23,42,.7)'">
+        <div draggable="true"
+          ondragstart="kanbanDragStart(event, '${empEsc}', '${cnpjEsc}', '${et.id}')"
+          ondragend="kanbanDragEnd(event)"
+          onclick="abrirHistorico('${empEsc}')"
+          style="background:rgba(15,23,42,.7);border:1px solid var(--border);border-left:3px solid ${et.cor};border-radius:8px;padding:10px 12px;cursor:grab;transition:all .15s"
+          onmouseover="this.style.background='rgba(15,23,42,.9)'"
+          onmouseout="this.style.background='rgba(15,23,42,.7)'">
           <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:4px;line-height:1.3">${e.empresa.replace(/</g,'&lt;')}</div>
           <div style="font-size:11px;color:var(--text-dim);margin-bottom:6px">${principal ? '👤 ' + principal : '— sem consultor'}</div>
           <div style="display:flex;justify-content:space-between;align-items:center;gap:6px;font-size:10.5px">
