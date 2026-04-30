@@ -582,7 +582,12 @@
           <h1 style="text-transform:none;font-size:22px;margin:0">Empresas</h1>
           <p id="base-sync-info" style="margin:0;font-size:11px;color:var(--text-dim)">—</p>
         </div>
-        <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+          <div style="display:flex;gap:0;background:rgba(255,255,255,.05);border-radius:8px;padding:3px">
+            <button id="btn-vis-lista" onclick="trocarVisaoEmpresas('lista')" style="padding:6px 14px;border:none;background:rgba(77,201,255,.18);color:var(--accent);border-radius:6px;cursor:pointer;font-size:12px;font-weight:600">📋 Lista</button>
+            <button id="btn-vis-kanban" onclick="trocarVisaoEmpresas('kanban')" style="padding:6px 14px;border:none;background:transparent;color:var(--text-dim);border-radius:6px;cursor:pointer;font-size:12px;font-weight:600">📊 Kanban</button>
+          </div>
+          <button class="btn btn-secondary" id="btn-config-colunas" onclick="abrirConfigColunas()" style="display:none" title="Personalizar colunas do kanban">⚙ Colunas</button>
           <button class="btn btn-secondary" onclick="sincronizarBaseClientesManual()" title="Atualizar lista da Base Clientes">🔄 Sincronizar base</button>
           <button class="btn btn-secondary" onclick="gerarPDFBranco()" title="PDF em branco pra reunião presencial">📄 PDF em branco</button>
           <button class="btn btn-primary" onclick="novaEmpresa()">+ Criar nova reunião</button>
@@ -628,6 +633,32 @@
           <option value="sem">🔴 Sem diagnóstico</option>
         </select>
       </div>
+      <div class="filtro-mini"><label>Etapa pipeline</label>
+        <select id="filtro-etapa" onchange="filtrarEmpresas()">
+          <option value="">Todas</option>
+          <option value="posvenda">🆕 Pós-venda</option>
+          <option value="onboarding">🎯 Onboarding feito</option>
+          <option value="diagnostico">📋 Diagnóstico OK</option>
+          <option value="acompanhamento">🚀 Em acompanhamento</option>
+          <option value="cancelado">🚫 Cancelado</option>
+        </select>
+      </div>
+      <div class="filtro-mini"><label>Sem contato</label>
+        <select id="filtro-contato" onchange="filtrarEmpresas()">
+          <option value="">Todos</option>
+          <option value="recente">🟢 Conversei (≤7d)</option>
+          <option value="atencao">🟡 Atenção (8-14d)</option>
+          <option value="alerta">🔴 Alerta (+14d)</option>
+          <option value="nunca">⚪ Nunca conversou</option>
+        </select>
+      </div>
+      <div class="filtro-mini"><label>Onboarding</label>
+        <select id="filtro-onb" onchange="filtrarEmpresas()">
+          <option value="">Todos</option>
+          <option value="feito">✅ Feito</option>
+          <option value="pendente">⏳ Pendente</option>
+        </select>
+      </div>
       <div class="filtro-mini"><label>Última reunião</label>
         <select id="filtro-data" onchange="filtrarEmpresas()">
           <option value="">Qualquer</option>
@@ -643,7 +674,19 @@
 
     <div id="rascunhos-novos-root"></div>
     <div id="empresas-root" class="empresa-grid"></div>
+    <div id="empresas-kanban-root" style="display:none;gap:10px;overflow-x:auto;padding-bottom:10px"></div>
     </div><!-- /aba-empresas -->
+
+    <div id="aba-pipeline" style="display:none">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; flex-wrap:wrap; gap: 10px">
+        <div>
+          <h1 style="text-transform:none;font-size:22px;margin:0">Pipeline · Funil de Mentoria</h1>
+          <p style="margin:4px 0 0;font-size:12px;color:var(--text-dim)">Distribuição automática das empresas pelas etapas do funil. Filtros da aba Empresas se aplicam aqui também.</p>
+        </div>
+        <button class="btn btn-secondary" onclick="renderPipeline()">↻ Atualizar</button>
+      </div>
+      <div id="pipeline-root" style="display:flex;gap:10px;overflow-x:auto;padding-bottom:10px"></div>
+    </div>
 
     <div id="aba-agenda" style="display:none">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; flex-wrap:wrap; gap: 10px">
@@ -717,9 +760,9 @@
       <div class="crm-filtros">
         <div class="filtro-mini"><label>Prazo</label>
           <select id="cf-prazo" onchange="filtrarCompromissos()">
-            <option value="">Todos</option>
+            <option value="" selected>Todos</option>
             <option value="atrasados">🔴 Atrasados</option>
-            <option value="semana" selected>⏳ Vencem essa semana</option>
+            <option value="semana">⏳ Vencem essa semana</option>
             <option value="mes">📅 Esse mês</option>
             <option value="futuros">→ Futuros</option>
           </select>
@@ -788,6 +831,8 @@
       <p id="hist-empresa-info">—</p>
     </header>
     <div id="crm-card-empresa"></div>
+    <div id="anotacoes-wrap" style="margin-top:18px"></div>
+    <div id="tarefas-cliente-wrap" style="margin-top:18px"></div>
     <div id="qe-historico-wrap" style="margin-top:18px"></div>
     <div id="painel-diag-inline" style="margin-top:18px"></div>
     <div id="timeline-root" class="timeline" style="margin-top:18px"></div>
@@ -1083,29 +1128,29 @@
     </div>
   </div>
 
-  <footer>Método Gestão Life · Gestão PRO<br><small>Ferramenta interna · Planos de Ação v2.5 · build 30/04 onboarding-agenda-views</small></footer>
+  <footer>Método Gestão Life · Gestão PRO<br><small>Ferramenta interna · Planos de Ação v3.1 · build 30/04 toggle-kanban-colunas</small></footer>
 </div>
 
 <!-- Modal: VISUALIZAR compromisso (read-only) com botões de cobrança -->
 <div class="modal-bg" id="modal-compromisso-view">
-  <div class="modal modal-crm-content">
-    <div style="display:flex;align-items:flex-start;gap:14px;margin-bottom:12px">
+  <div class="modal modal-crm-content" style="display:flex;flex-direction:column;max-height:90vh;padding:0">
+    <div style="display:flex;align-items:flex-start;gap:14px;padding:20px 22px 12px;flex-shrink:0;border-bottom:1px solid var(--border)">
       <div style="font-size:32px">✅</div>
-      <div style="flex:1">
-        <h3 id="cv-titulo" style="margin:0 0 6px;font-size:18px">—</h3>
+      <div style="flex:1;min-width:0">
+        <h3 id="cv-titulo" style="margin:0 0 6px;font-size:18px;line-height:1.3">—</h3>
         <p id="cv-status-line" style="margin:0;font-size:12px;color:var(--text-dim)">—</p>
       </div>
     </div>
-    <div class="evv-grid">
-      <div class="evv-item"><span class="evv-lbl">📌 Descrição (ação)</span><span class="evv-val" id="cv-desc">—</span></div>
+    <div class="evv-grid" style="flex:1;overflow-y:auto;padding:14px 22px">
+      <div class="evv-item"><span class="evv-lbl">📌 Descrição (ação)</span><span class="evv-val" id="cv-desc" style="white-space:pre-wrap;word-break:break-word">—</span></div>
       <div class="evv-item"><span class="evv-lbl">🏢 Empresa · Reunião</span><span class="evv-val" id="cv-empresa">—</span></div>
       <div class="evv-item"><span class="evv-lbl">👤 Responsável</span><span class="evv-val" id="cv-resp">—</span></div>
       <div class="evv-item"><span class="evv-lbl">🎓 Consultor da empresa</span><span class="evv-val" id="cv-consultor">—</span></div>
       <div class="evv-item"><span class="evv-lbl">📆 Data de criação</span><span class="evv-val" id="cv-criacao">—</span></div>
       <div class="evv-item"><span class="evv-lbl">⏰ Prazo</span><span class="evv-val" id="cv-prazo">—</span></div>
-      <div class="evv-item" id="cv-obs-wrap"><span class="evv-lbl">📝 Observação</span><span class="evv-val" id="cv-obs">—</span></div>
+      <div class="evv-item" id="cv-obs-wrap"><span class="evv-lbl">📝 Observação</span><span class="evv-val" id="cv-obs" style="white-space:pre-wrap;word-break:break-word">—</span></div>
     </div>
-    <div class="actions" style="justify-content:flex-end;gap:8px;margin-top:18px;flex-wrap:wrap">
+    <div class="actions" style="justify-content:flex-end;gap:8px;flex-wrap:wrap;flex-shrink:0;padding:14px 22px;border-top:1px solid var(--border);background:rgba(15,23,42,.6)">
       <button class="btn btn-secondary" onclick="fecharModalCompromisso()">Fechar</button>
       <button class="btn btn-secondary" id="cv-btn-zap-pessoal" onclick="cobrarPessoalDoModal()" style="background:rgba(34,197,94,.15);color:#22c55e;border-color:rgba(34,197,94,.4)">📱 WhatsApp pessoal</button>
       <button class="btn btn-secondary" id="cv-btn-zap-grupo" onclick="cobrarGrupoDoModal()" style="background:rgba(34,197,94,.15);color:#22c55e;border-color:rgba(34,197,94,.4)">👥 WhatsApp do grupo</button>
@@ -1222,6 +1267,22 @@
     </div>
     <p style="margin:0 0 14px;font-size:12px;color:var(--text-dim)">Histórico de empresas que cancelaram. Clique em <strong>🗑</strong> pra mover pra lixeira (apaga em 60 dias).</p>
     <div id="cancelados-lista" class="compromissos-lista"></div>
+  </div>
+</div>
+
+<!-- Modal: Configurar colunas do Kanban -->
+<div class="modal-bg" id="modal-config-colunas">
+  <div class="modal" style="max-width:520px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+      <h3 style="margin:0;font-size:16px">⚙ Configurar colunas do Kanban</h3>
+      <button class="btn btn-secondary" onclick="$('modal-config-colunas').classList.remove('show')">Fechar</button>
+    </div>
+    <p style="margin:0 0 14px;font-size:12px;color:var(--text-dim)">Marque/desmarque pra mostrar/ocultar e use as setas pra reordenar as colunas:</p>
+    <div id="config-colunas-lista" style="display:flex;flex-direction:column;gap:6px"></div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:14px">
+      <button class="btn btn-secondary" onclick="resetarConfigColunas()">↺ Padrão</button>
+      <button class="btn btn-primary" onclick="salvarConfigColunas()">Salvar</button>
+    </div>
   </div>
 </div>
 
@@ -1895,6 +1956,25 @@ function renderEmpresas(lista) {
       if (fDiag === 'pendente' && e.statusDiagnostico !== 'PENDENTE_FASE2') return false;
       if (fDiag === 'sem' && (!e.origemBase || e.statusDiagnostico === 'COMPLETO' || e.statusDiagnostico === 'PENDENTE_FASE2')) return false;
     }
+    // Filtro por Etapa do pipeline
+    const fEtapa = $('filtro-etapa')?.value || '';
+    if (fEtapa) {
+      const etapa = calcularEtapaEmpresa(e, crm);
+      if (etapa.id !== fEtapa) return false;
+    }
+    // Filtro por Tempo sem contato
+    const fContato = $('filtro-contato')?.value || '';
+    if (fContato) {
+      const dias = diasDesdeContato(crm);
+      if (fContato === 'recente' && (dias == null || dias > 7)) return false;
+      if (fContato === 'atencao' && (dias == null || dias <= 7 || dias > 14)) return false;
+      if (fContato === 'alerta' && (dias == null || dias <= 14)) return false;
+      if (fContato === 'nunca' && dias != null) return false;
+    }
+    // Filtro por Onboarding
+    const fOnb = $('filtro-onb')?.value || '';
+    if (fOnb === 'feito' && !crm.onboardingEm) return false;
+    if (fOnb === 'pendente' && crm.onboardingEm) return false;
     return true;
   });
 
@@ -1987,36 +2067,100 @@ function renderEmpresas(lista) {
       btnOnb = `<button onclick="event.stopPropagation();marcarOnboardingEmpresa('${(e.empresa||'').replace(/'/g,"\\'")}','${(e.cnpj||crm.cnpj||'').replace(/'/g,"\\'")}')" class="btn btn-secondary" style="padding:4px 10px;font-size:11px;background:rgba(34,197,94,.12);color:#22c55e;border-color:rgba(34,197,94,.4);margin-top:6px">✓ Marcar onboarding feito</button>`;
     }
 
+    // Etapa do pipeline + status de contato
+    const etapa = calcularEtapaEmpresa(e, crm);
+    const contato = statusContato(crm);
+    const cnpjEsc = (e.cnpj || crm.cnpj || '').replace(/'/g,"\\'");
+    const empEsc = (e.empresa||'').replace(/'/g,"\\'");
+
     return `
-    <div class="empresa-card ${temRasc ? 'tem-rascunho' : ''}" onclick="abrirHistorico('${(e.empresa||'').replace(/'/g,"\'")}')">
+    <div class="empresa-card ${temRasc ? 'tem-rascunho' : ''}" onclick="abrirHistorico('${empEsc}')">
       <div class="info">
         <h4>${e.empresa}</h4>
         <p>${telefLabel ? telefLabel + ' · ' : ''}${principal ? '👤 ' + principal + ' · ' : ''}${subInfo}</p>
         ${linhaBase ? '<p style="font-size:11.5px;color:var(--text-dim);margin-top:4px">' + linhaBase + '</p>' : ''}
         <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px">
+          <span class="status-badge" style="background:${etapa.cor}30;color:${etapa.cor};border:1px solid ${etapa.cor}50">${etapa.label}</span>
           <span class="status-badge ${statusClass}">${status}</span>
           ${crm.nivel ? '<span class="status-badge ativo" style="background:rgba(77,201,255,.15);color:var(--accent)">' + crm.nivel + '</span>' : ''}
           ${badgeDiag}
           ${badgeInad}
           ${badgeOnb}
+          <span class="status-badge" style="background:${contato.cor}25;color:${contato.cor};border:1px solid ${contato.cor}50" title="${crm.ultimoContato ? 'Último contato: ' + crm.ultimoContato + (crm.ultimoContatoPor ? ' por ' + crm.ultimoContatoPor : '') : 'Nunca conversou'}">${contato.label}</span>
           ${temRasc ? '<span class="badge-rascunho">📝 Rascunho</span>' : ''}
         </div>
-        ${btnOnb}
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px">
+          <button onclick="event.stopPropagation();marcarConversa('${empEsc}','${cnpjEsc}')" class="btn btn-secondary" style="padding:4px 10px;font-size:11px;background:rgba(77,201,255,.12);color:var(--accent);border-color:rgba(77,201,255,.4)">💬 Conversei hoje</button>
+          ${btnOnb}
+        </div>
       </div>
       <div class="count">${textoCount}</div>
     </div>`;
   }).join('');
 }
 
+// === Helpers de Etapa Pipeline e Tempo de Contato ===
+function calcularEtapaEmpresa(e, crm) {
+  // Retorna a etapa atual da empresa baseado nos dados
+  const status = (crm.status || 'Ativo').toLowerCase();
+  if (status === 'cancelado' || status === 'encerrado') return { id: 'cancelado', label: '🚫 Cancelado', cor: '#94a3b8' };
+  if (e.reunioes && e.reunioes >= 1) return { id: 'acompanhamento', label: '🚀 Em acompanhamento', cor: '#22c55e' };
+  if (e.statusDiagnostico === 'COMPLETO') return { id: 'diagnostico', label: '📋 Diagnóstico OK', cor: '#a78bfa' };
+  if (crm.onboardingEm) return { id: 'onboarding', label: '🎯 Onboarding feito', cor: '#fbbf24' };
+  return { id: 'posvenda', label: '🆕 Pós-venda', cor: '#60a5fa' };
+}
+
+function diasDesdeContato(crm) {
+  const ult = crm.ultimoContato || '';
+  if (!ult) return null;
+  const dt = new Date(ult.indexOf('T') >= 0 ? ult : ult.replace(' ', 'T'));
+  if (isNaN(dt)) return null;
+  return Math.floor((Date.now() - dt.getTime()) / (1000 * 60 * 60 * 24));
+}
+
+function statusContato(crm) {
+  const dias = diasDesdeContato(crm);
+  if (dias == null) return { cor: '#64748b', label: '⚪ Sem contato', dias: null };
+  if (dias <= 7) return { cor: '#22c55e', label: `🟢 ${dias}d`, dias };
+  if (dias <= 14) return { cor: '#fbbf24', label: `🟡 ${dias}d`, dias };
+  return { cor: '#f87171', label: `🔴 ${dias}d`, dias };
+}
+
+async function marcarConversa(empresa, cnpj) {
+  try {
+    await chamarAPI('marcar-contato', {
+      empresa, cnpj,
+      consultor: consultorLogado?.nome || ''
+    });
+    toast('💬 Contato registrado · ' + new Date().toLocaleString('pt-BR').slice(0,16), 2500, false, true);
+    await carregarCRM();
+    if (_empresasCache.length) renderEmpresas(_empresasCache);
+  } catch (err) {
+    toast('❌ ' + err.message, 4000, true);
+  }
+}
+
 async function marcarOnboardingEmpresa(empresa, cnpj) {
-  if (!confirm(`Marcar onboarding como concluído para "${empresa}"?\n\nVai registrar a data de hoje e seu nome (${consultorLogado?.nome || '—'}).`)) return;
+  // Pede a data com um prompt — pré-preenche com hoje
+  const hojeStr = new Date().toISOString().slice(0,10);
+  const dataInput = prompt(
+    `Em qual data o onboarding foi feito para "${empresa}"?\n\nFormato: AAAA-MM-DD\n(Pressione OK pra usar hoje: ${hojeStr})`,
+    hojeStr
+  );
+  if (dataInput === null) return; // cancelou
+  const dataLimpa = (dataInput || '').trim();
+  if (dataLimpa && !/^\d{4}-\d{2}-\d{2}$/.test(dataLimpa)) {
+    toast('❌ Data inválida. Use formato AAAA-MM-DD (ex: 2026-04-30)', 4500, true);
+    return;
+  }
   try {
     await chamarAPI('marcar-onboarding', {
       empresa,
       cnpj,
-      consultor: consultorLogado?.nome || ''
+      consultor: consultorLogado?.nome || '',
+      data: dataLimpa || hojeStr
     });
-    toast('✓ Onboarding marcado como concluído!', 3000, false, true);
+    toast('✓ Onboarding marcado como concluído em ' + (dataLimpa || hojeStr), 3000, false, true);
     await carregarCRM();
     if (_empresasCache.length) renderEmpresas(_empresasCache);
   } catch (err) {
@@ -2024,7 +2168,10 @@ async function marcarOnboardingEmpresa(empresa, cnpj) {
   }
 }
 
-function filtrarEmpresas() { renderEmpresas(_empresasCache); }
+function filtrarEmpresas() {
+  if (_visaoEmpresas === 'kanban') renderKanbanEmpresas();
+  else renderEmpresas(_empresasCache);
+}
 
 // =========== CRM — Card no histórico + modal de edição ===========
 // Acha empresa em _empresasCache (que tem statusDiagnostico, nivelDiagnostico, etc do diagnóstico)
@@ -2222,10 +2369,12 @@ function trocarAba(aba) {
   document.querySelectorAll('.nav-aba').forEach(b => b.classList.remove('ativa'));
   document.querySelectorAll('.nav-aba').forEach(b => {
     if ((aba === 'empresas' && b.textContent.includes('Empresas')) ||
+        (aba === 'pipeline' && b.textContent.includes('Pipeline')) ||
         (aba === 'agenda' && b.textContent.includes('Agenda')) ||
         (aba === 'compromissos' && b.textContent.includes('Compromissos'))) b.classList.add('ativa');
   });
   $('aba-empresas').style.display = aba === 'empresas' ? '' : 'none';
+  if ($('aba-pipeline')) $('aba-pipeline').style.display = aba === 'pipeline' ? '' : 'none';
   $('aba-agenda').style.display = aba === 'agenda' ? '' : 'none';
   $('aba-compromissos').style.display = aba === 'compromissos' ? '' : 'none';
   if (aba === 'agenda') {
@@ -2236,6 +2385,329 @@ function trocarAba(aba) {
   if (aba === 'compromissos') {
     carregarCompromissos();
   }
+  if (aba === 'pipeline') {
+    renderPipeline();
+  }
+}
+
+// === PIPELINE / KANBAN ===
+const PIPELINE_ETAPAS = [
+  { id: 'posvenda',       label: '🆕 Pós-venda',         cor: '#60a5fa', desc: 'Vendido, sem onboarding' },
+  { id: 'onboarding',     label: '🎯 Onboarding feito',  cor: '#fbbf24', desc: 'Onb feito · sem diagnóstico' },
+  { id: 'diagnostico',    label: '📋 Diagnóstico OK',    cor: '#a78bfa', desc: 'Aguardando 1ª reunião' },
+  { id: 'acompanhamento', label: '🚀 Em acompanhamento', cor: '#22c55e', desc: 'Em mentoria ativa' },
+  { id: 'cancelado',      label: '🚫 Cancelado',         cor: '#94a3b8', desc: 'Encerrado / Cancelado' }
+];
+
+// === Visão Lista/Kanban da aba Empresas + config das colunas ===
+let _visaoEmpresas = 'lista'; // 'lista' | 'kanban'
+const KANBAN_CFG_KEY = 'kanban_colunas_v1';
+
+function getConfigColunas() {
+  // Retorna config salva ou padrão (todas visíveis na ordem default)
+  try {
+    const raw = localStorage.getItem(KANBAN_CFG_KEY);
+    if (raw) {
+      const cfg = JSON.parse(raw);
+      if (Array.isArray(cfg) && cfg.length) {
+        // Valida cada item — descarta etapas que não existem mais
+        const validas = cfg.filter(c => PIPELINE_ETAPAS.some(p => p.id === c.id));
+        // Adiciona etapas que possa ter sido criada depois
+        PIPELINE_ETAPAS.forEach(p => { if (!validas.find(v => v.id === p.id)) validas.push({ id: p.id, visivel: true }); });
+        return validas;
+      }
+    }
+  } catch (e) {}
+  return PIPELINE_ETAPAS.map(p => ({ id: p.id, visivel: true }));
+}
+
+function trocarVisaoEmpresas(visao) {
+  _visaoEmpresas = visao;
+  ['lista','kanban'].forEach(v => {
+    const b = $('btn-vis-' + v);
+    if (!b) return;
+    if (v === visao) {
+      b.style.background = 'rgba(77,201,255,.18)';
+      b.style.color = 'var(--accent)';
+    } else {
+      b.style.background = 'transparent';
+      b.style.color = 'var(--text-dim)';
+    }
+  });
+  const lista = $('empresas-root');
+  const kanban = $('empresas-kanban-root');
+  const cfgBtn = $('btn-config-colunas');
+  if (visao === 'lista') {
+    if (lista) lista.style.display = '';
+    if (kanban) kanban.style.display = 'none';
+    if (cfgBtn) cfgBtn.style.display = 'none';
+    if (_empresasCache.length) renderEmpresas(_empresasCache);
+  } else {
+    if (lista) lista.style.display = 'none';
+    if (kanban) { kanban.style.display = 'flex'; }
+    if (cfgBtn) cfgBtn.style.display = '';
+    renderKanbanEmpresas();
+  }
+}
+
+function renderKanbanEmpresas() {
+  // Reusa a lógica do filtro da lista (mesmas variáveis: termo, filtros, etc)
+  const root = $('empresas-kanban-root');
+  if (!root) return;
+  const cfg = getConfigColunas().filter(c => c.visivel !== false);
+  const cache = (_empresasCache || []).slice();
+  const termo = ($('busca')?.value || '').trim().toLowerCase();
+  const fStatus = $('filtro-status')?.value || '';
+  const fNivel = $('filtro-nivel')?.value || '';
+  const fConsultor = $('filtro-consultor')?.value || '';
+  const fSegmento = $('filtro-segmento')?.value || '';
+  const fOnb = $('filtro-onb')?.value || '';
+  const fContato = $('filtro-contato')?.value || '';
+  const fEtapa = $('filtro-etapa')?.value || '';
+  const fDiag = $('filtro-diag')?.value || '';
+  const meuNome = consultorLogado?.nome || '';
+
+  const empresasFiltradas = cache.filter(e => {
+    const crm = getCRMByEmpresa(e.empresa) || {};
+    const base = getBaseByEmpresa(e.empresa, e.cnpj || crm.cnpj);
+    const statusEmpresa = crm.status || (base && base.status) || 'Ativo';
+    if (termo && !(e.empresa||'').toLowerCase().includes(termo) && !(e.cnpj||'').includes(termo) && !(crm.cnpj||'').includes(termo)) return false;
+    if (fStatus && statusEmpresa !== fStatus) return false;
+    if (fSegmento && (!base || base.segmento !== fSegmento)) return false;
+    if (fOnb === 'feito' && !crm.onboardingEm) return false;
+    if (fOnb === 'pendente' && crm.onboardingEm) return false;
+    if (fContato) {
+      const dias = diasDesdeContato(crm);
+      if (fContato === 'recente' && (dias == null || dias > 7)) return false;
+      if (fContato === 'atencao' && (dias == null || dias <= 7 || dias > 14)) return false;
+      if (fContato === 'alerta' && (dias == null || dias <= 14)) return false;
+      if (fContato === 'nunca' && dias != null) return false;
+    }
+    if (fConsultor) {
+      const alvo = fConsultor.trim().toLowerCase();
+      const principal = (crm.consultorPrincipal || '').trim().toLowerCase();
+      const apoio = (Array.isArray(crm.consultoresApoio) ? crm.consultoresApoio.join(',') : (crm.consultoresApoio || '')).toLowerCase();
+      const especialistaBase = (base && base.especialista || '').trim().toLowerCase();
+      const bate = principal === alvo || apoio.includes(alvo) || especialistaBase === alvo || especialistaBase.includes(alvo) || alvo.includes(especialistaBase);
+      if (!bate) return false;
+    }
+    if (_filtroMinhasAtivo && meuNome) {
+      const alvo = meuNome.trim().toLowerCase();
+      const principal = (crm.consultorPrincipal || '').trim().toLowerCase();
+      const apoio = (Array.isArray(crm.consultoresApoio) ? crm.consultoresApoio.join(',') : (crm.consultoresApoio || '')).toLowerCase();
+      const especialistaBase = (base && base.especialista || '').trim().toLowerCase();
+      const bate = principal === alvo || apoio.includes(alvo) || especialistaBase === alvo || especialistaBase.includes(alvo) || alvo.includes(especialistaBase);
+      if (!bate) return false;
+    }
+    if (fEtapa) {
+      const etapa = calcularEtapaEmpresa(e, crm);
+      if (etapa.id !== fEtapa) return false;
+    }
+    if (fDiag) {
+      if (fDiag === 'completo' && e.statusDiagnostico !== 'COMPLETO') return false;
+      if (fDiag === 'pendente' && e.statusDiagnostico !== 'PENDENTE_FASE2') return false;
+      if (fDiag === 'sem' && (!e.origemBase || e.statusDiagnostico === 'COMPLETO' || e.statusDiagnostico === 'PENDENTE_FASE2')) return false;
+    }
+    // Cancelado é mostrado se o filtro Status for Cancelado OU se a coluna Cancelado estiver visível no kanban
+    if (!fStatus && (statusEmpresa === 'Cancelado' || statusEmpresa === 'Encerrado')) {
+      const colunaCancelVisivel = cfg.some(c => c.id === 'cancelado');
+      if (!colunaCancelVisivel) return false;
+    }
+    return true;
+  });
+
+  // Distribui por etapa
+  const porEtapa = {};
+  PIPELINE_ETAPAS.forEach(p => { porEtapa[p.id] = []; });
+  empresasFiltradas.forEach(e => {
+    const crm = getCRMByEmpresa(e.empresa) || {};
+    const etapa = calcularEtapaEmpresa(e, crm);
+    if (porEtapa[etapa.id]) porEtapa[etapa.id].push({ e, crm });
+  });
+
+  // Renderiza só as colunas visíveis e na ordem configurada
+  root.innerHTML = cfg.map(item => {
+    const et = PIPELINE_ETAPAS.find(p => p.id === item.id);
+    if (!et) return '';
+    const lista = porEtapa[et.id] || [];
+    const cards = lista.map(({ e, crm }) => {
+      const base = getBaseByEmpresa(e.empresa, e.cnpj || crm.cnpj) || {};
+      const principal = crm.consultorPrincipal || base.especialista || '';
+      const contato = statusContato(crm);
+      const tel = crm.telefone || base.telefone || '';
+      const empEsc = (e.empresa||'').replace(/'/g,"\\'");
+      const cnpjEsc = (e.cnpj || crm.cnpj || '').replace(/'/g,"\\'");
+      return `
+        <div onclick="abrirHistorico('${empEsc}')" style="background:rgba(15,23,42,.7);border:1px solid var(--border);border-left:3px solid ${et.cor};border-radius:8px;padding:10px 12px;cursor:pointer;transition:all .15s" onmouseover="this.style.background='rgba(15,23,42,.9)'" onmouseout="this.style.background='rgba(15,23,42,.7)'">
+          <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:4px;line-height:1.3">${e.empresa.replace(/</g,'&lt;')}</div>
+          <div style="font-size:11px;color:var(--text-dim);margin-bottom:6px">${principal ? '👤 ' + principal : '— sem consultor'}</div>
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:6px;font-size:10.5px">
+            <span style="color:${contato.cor};font-weight:600">${contato.label}</span>
+            <span style="color:var(--text-dim)">${e.reunioes ? e.reunioes + ' R.' : 'sem reun.'}</span>
+          </div>
+          <div style="display:flex;gap:4px;margin-top:6px">
+            <button onclick="event.stopPropagation();marcarConversa('${empEsc}','${cnpjEsc}')" title="Conversei hoje" style="flex:1;background:rgba(77,201,255,.1);border:1px solid rgba(77,201,255,.3);color:var(--accent);border-radius:5px;padding:3px 6px;cursor:pointer;font-size:10.5px">💬</button>
+            ${tel ? `<a onclick="event.stopPropagation()" href="${gerarLinkWhatsApp(tel)}" target="_blank" style="flex:1;background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.3);color:#22c55e;border-radius:5px;padding:3px 6px;cursor:pointer;font-size:10.5px;text-align:center;text-decoration:none" title="WhatsApp">📱</a>` : ''}
+          </div>
+        </div>
+      `;
+    }).join('');
+    return `
+      <div style="flex:1;min-width:260px;max-width:300px;background:rgba(15,23,42,.4);border:1px solid var(--border);border-radius:10px;padding:12px;display:flex;flex-direction:column;gap:8px">
+        <div style="border-bottom:2px solid ${et.cor};padding-bottom:8px;margin-bottom:4px">
+          <div style="font-size:13px;font-weight:800;color:${et.cor}">${et.label}</div>
+          <div style="font-size:10.5px;color:var(--text-dim);margin-top:2px">${et.desc} · <strong>${lista.length}</strong></div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:8px;max-height:65vh;overflow-y:auto;padding-right:4px">
+          ${cards || `<div style="text-align:center;padding:14px 6px;color:var(--text-dim);font-size:11px;font-style:italic">— vazia —</div>`}
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+// Modal de configuração das colunas
+let _cfgColunasTemp = null;
+
+function abrirConfigColunas() {
+  _cfgColunasTemp = getConfigColunas().slice();
+  renderConfigColunas();
+  $('modal-config-colunas').classList.add('show');
+}
+
+function renderConfigColunas() {
+  const root = $('config-colunas-lista');
+  if (!root) return;
+  root.innerHTML = _cfgColunasTemp.map((c, idx) => {
+    const et = PIPELINE_ETAPAS.find(p => p.id === c.id);
+    if (!et) return '';
+    return `
+      <div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:rgba(15,23,42,.4);border:1px solid var(--border);border-left:3px solid ${et.cor};border-radius:8px">
+        <input type="checkbox" ${c.visivel !== false ? 'checked' : ''} onchange="toggleColunaVisivel(${idx})" style="cursor:pointer;width:18px;height:18px">
+        <div style="flex:1;font-size:13px;font-weight:600">${et.label}</div>
+        <button onclick="moverColuna(${idx}, -1)" ${idx === 0 ? 'disabled' : ''} style="background:rgba(77,201,255,.1);border:1px solid var(--border);color:var(--text);padding:4px 8px;border-radius:5px;cursor:pointer;font-size:13px">↑</button>
+        <button onclick="moverColuna(${idx}, 1)" ${idx === _cfgColunasTemp.length - 1 ? 'disabled' : ''} style="background:rgba(77,201,255,.1);border:1px solid var(--border);color:var(--text);padding:4px 8px;border-radius:5px;cursor:pointer;font-size:13px">↓</button>
+      </div>
+    `;
+  }).join('');
+}
+
+function toggleColunaVisivel(idx) {
+  if (!_cfgColunasTemp[idx]) return;
+  _cfgColunasTemp[idx].visivel = !(_cfgColunasTemp[idx].visivel !== false);
+  renderConfigColunas();
+}
+
+function moverColuna(idx, delta) {
+  const novoIdx = idx + delta;
+  if (novoIdx < 0 || novoIdx >= _cfgColunasTemp.length) return;
+  const item = _cfgColunasTemp.splice(idx, 1)[0];
+  _cfgColunasTemp.splice(novoIdx, 0, item);
+  renderConfigColunas();
+}
+
+function salvarConfigColunas() {
+  try {
+    localStorage.setItem(KANBAN_CFG_KEY, JSON.stringify(_cfgColunasTemp));
+  } catch (e) {}
+  $('modal-config-colunas').classList.remove('show');
+  toast('✓ Colunas salvas', 2000, false, true);
+  if (_visaoEmpresas === 'kanban') renderKanbanEmpresas();
+}
+
+function resetarConfigColunas() {
+  if (!confirm('Voltar pra configuração padrão de colunas?')) return;
+  try { localStorage.removeItem(KANBAN_CFG_KEY); } catch (e) {}
+  _cfgColunasTemp = getConfigColunas().slice();
+  renderConfigColunas();
+}
+
+function renderPipeline() {
+  const root = $('pipeline-root');
+  if (!root) return;
+  // Aplica os mesmos filtros da aba empresas (busca, especialista, segmento, status, etc.)
+  const cache = (_empresasCache || []).slice();
+  const termo = ($('busca').value || '').trim().toLowerCase();
+  const fStatus = $('filtro-status')?.value || '';
+  const fNivel = $('filtro-nivel')?.value || '';
+  const fConsultor = $('filtro-consultor')?.value || '';
+  const fSegmento = $('filtro-segmento')?.value || '';
+  const fOnb = $('filtro-onb')?.value || '';
+  const fContato = $('filtro-contato')?.value || '';
+  const meuNome = consultorLogado?.nome || '';
+
+  const empresasFiltradas = cache.filter(e => {
+    const crm = getCRMByEmpresa(e.empresa) || {};
+    const base = getBaseByEmpresa(e.empresa, e.cnpj || crm.cnpj);
+    const statusEmpresa = crm.status || (base && base.status) || 'Ativo';
+    if (termo && !(e.empresa||'').toLowerCase().includes(termo) && !(e.cnpj||'').includes(termo) && !(crm.cnpj||'').includes(termo)) return false;
+    if (fStatus && statusEmpresa !== fStatus) return false;
+    if (fSegmento && (!base || base.segmento !== fSegmento)) return false;
+    if (fOnb === 'feito' && !crm.onboardingEm) return false;
+    if (fOnb === 'pendente' && crm.onboardingEm) return false;
+    if (fContato) {
+      const dias = diasDesdeContato(crm);
+      if (fContato === 'recente' && (dias == null || dias > 7)) return false;
+      if (fContato === 'atencao' && (dias == null || dias <= 7 || dias > 14)) return false;
+      if (fContato === 'alerta' && (dias == null || dias <= 14)) return false;
+      if (fContato === 'nunca' && dias != null) return false;
+    }
+    if (fConsultor) {
+      const alvo = fConsultor.trim().toLowerCase();
+      const principal = (crm.consultorPrincipal || '').trim().toLowerCase();
+      const apoio = (Array.isArray(crm.consultoresApoio) ? crm.consultoresApoio.join(',') : (crm.consultoresApoio || '')).toLowerCase();
+      const especialistaBase = (base && base.especialista || '').trim().toLowerCase();
+      const bate = principal === alvo || apoio.includes(alvo) || especialistaBase === alvo || especialistaBase.includes(alvo) || alvo.includes(especialistaBase);
+      if (!bate) return false;
+    }
+    return true;
+  });
+
+  // Distribui por etapa
+  const porEtapa = { posvenda: [], onboarding: [], diagnostico: [], acompanhamento: [], cancelado: [] };
+  empresasFiltradas.forEach(e => {
+    const crm = getCRMByEmpresa(e.empresa) || {};
+    const etapa = calcularEtapaEmpresa(e, crm);
+    if (porEtapa[etapa.id]) porEtapa[etapa.id].push({ e, crm });
+  });
+
+  // Renderiza colunas
+  root.innerHTML = PIPELINE_ETAPAS.map(et => {
+    const lista = porEtapa[et.id] || [];
+    const cards = lista.map(({ e, crm }) => {
+      const base = getBaseByEmpresa(e.empresa, e.cnpj || crm.cnpj) || {};
+      const principal = crm.consultorPrincipal || base.especialista || '';
+      const contato = statusContato(crm);
+      const tel = crm.telefone || base.telefone || '';
+      const empEsc = (e.empresa||'').replace(/'/g,"\\'");
+      const cnpjEsc = (e.cnpj || crm.cnpj || '').replace(/'/g,"\\'");
+      return `
+        <div onclick="abrirHistorico('${empEsc}')" style="background:rgba(15,23,42,.7);border:1px solid var(--border);border-left:3px solid ${et.cor};border-radius:8px;padding:10px 12px;cursor:pointer;transition:all .15s" onmouseover="this.style.background='rgba(15,23,42,.9)'" onmouseout="this.style.background='rgba(15,23,42,.7)'">
+          <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:4px;line-height:1.3">${e.empresa.replace(/</g,'&lt;')}</div>
+          <div style="font-size:11px;color:var(--text-dim);margin-bottom:6px">${principal ? '👤 ' + principal : '— sem consultor'}</div>
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:6px;font-size:10.5px">
+            <span style="color:${contato.cor};font-weight:600">${contato.label}</span>
+            <span style="color:var(--text-dim)">${e.reunioes ? e.reunioes + ' R.' : 'sem reun.'}</span>
+          </div>
+          <div style="display:flex;gap:4px;margin-top:6px">
+            <button onclick="event.stopPropagation();marcarConversa('${empEsc}','${cnpjEsc}')" title="Conversei hoje" style="flex:1;background:rgba(77,201,255,.1);border:1px solid rgba(77,201,255,.3);color:var(--accent);border-radius:5px;padding:3px 6px;cursor:pointer;font-size:10.5px">💬</button>
+            ${tel ? `<a onclick="event.stopPropagation()" href="${gerarLinkWhatsApp(tel)}" target="_blank" style="flex:1;background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.3);color:#22c55e;border-radius:5px;padding:3px 6px;cursor:pointer;font-size:10.5px;text-align:center;text-decoration:none" title="WhatsApp">📱</a>` : ''}
+          </div>
+        </div>
+      `;
+    }).join('');
+    return `
+      <div style="flex:1;min-width:240px;max-width:280px;background:rgba(15,23,42,.4);border:1px solid var(--border);border-radius:10px;padding:12px;display:flex;flex-direction:column;gap:8px">
+        <div style="border-bottom:2px solid ${et.cor};padding-bottom:8px;margin-bottom:4px">
+          <div style="font-size:13px;font-weight:800;color:${et.cor}">${et.label}</div>
+          <div style="font-size:10.5px;color:var(--text-dim);margin-top:2px">${et.desc} · <strong>${lista.length}</strong></div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:8px;max-height:65vh;overflow-y:auto;padding-right:4px">
+          ${cards || `<div style="text-align:center;padding:14px 6px;color:var(--text-dim);font-size:11px;font-style:italic">— vazia —</div>`}
+        </div>
+      </div>
+    `;
+  }).join('');
 }
 
 // === VISÕES DA AGENDA: Mês / Semana / Dia ===
@@ -3565,6 +4037,12 @@ async function abrirHistorico(empresa) {
   setTimeout(() => carregarPainelDiagnosticoInline(empresa), 50);
   // Renderiza o skeleton colapsado do Quadro de Execução
   renderQuadroHistoricoSkeleton(empresa, '');
+  // Carrega anotações e tarefas
+  const _crmHist = getCRMByEmpresa(empresa) || {};
+  const _baseHist = getBaseByEmpresa(empresa, _crmHist.cnpj) || {};
+  const _cnpjHist = _crmHist.cnpj || _baseHist.cnpj || '';
+  carregarAnotacoesEmpresa(empresa, _cnpjHist);
+  carregarTarefasCliente(empresa, _cnpjHist);
   $('timeline-root').innerHTML = '<div class="loading"><span class="spinner"></span>Carregando reuniões...</div>';
   try {
     const r = await chamarAPI('listar-planos', { empresa });
@@ -3757,6 +4235,217 @@ async function confirmarBuscaEmpresa() {
       $('buscar-msg').style.color = '#f87171';
       $('btn-buscar-confirmar').innerHTML = 'Tentar mais uma vez';
     }
+  }
+}
+
+// =========== ANOTAÇÕES e TAREFAS DO CLIENTE (na página da empresa) ===========
+let _anotacoesCache = []; // anotações da empresa atual
+
+async function carregarAnotacoesEmpresa(empresa, cnpj) {
+  const wrap = $('anotacoes-wrap');
+  if (!wrap) return;
+  wrap.innerHTML = `
+    <div style="background:rgba(15,23,42,.5);border:1px solid var(--border);border-radius:10px;padding:14px 18px;text-align:center;color:var(--text-dim);font-size:13px">
+      <span class="spinner" style="display:inline-block;margin-right:8px"></span>Carregando anotações...
+    </div>
+  `;
+  try {
+    const r = await chamarAPI('listar-anotacoes', { empresa, cnpj });
+    _anotacoesCache = r.anotacoes || [];
+    renderAnotacoes(empresa, cnpj);
+  } catch (err) {
+    wrap.innerHTML = `<div style="background:rgba(248,113,113,.06);border:1px solid rgba(248,113,113,.3);border-radius:10px;padding:12px 16px;color:#fca5a5;font-size:12px">⚠️ ${err.message || 'Erro ao buscar anotações'}</div>`;
+  }
+}
+
+function renderAnotacoes(empresa, cnpj) {
+  const wrap = $('anotacoes-wrap');
+  if (!wrap) return;
+  const fmtData = (iso) => {
+    if (!iso) return '—';
+    const d = new Date(iso);
+    if (isNaN(d)) return iso;
+    return d.toLocaleDateString('pt-BR', { day:'2-digit', month:'2-digit', year:'2-digit' }) + ' ' + d.toLocaleTimeString('pt-BR').slice(0,5);
+  };
+  const empEsc = (empresa||'').replace(/'/g,"\\'");
+  const cnpjEsc = (cnpj||'').replace(/'/g,"\\'");
+  let html = `
+    <div style="background:rgba(15,23,42,.5);border:1px solid var(--border);border-radius:10px;padding:16px 18px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px">
+        <div style="font-size:11px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.4px;font-weight:700">📝 Anotações & Conversas (${_anotacoesCache.length})</div>
+        <button onclick="abrirModalNovaAnotacao('${empEsc}','${cnpjEsc}')" class="btn btn-secondary" style="padding:5px 12px;font-size:12px;background:rgba(77,201,255,.12);color:var(--accent);border-color:rgba(77,201,255,.4)">+ Nova anotação</button>
+      </div>
+  `;
+  if (!_anotacoesCache.length) {
+    html += `<div style="text-align:center;padding:18px 6px;color:var(--text-dim);font-size:12px;font-style:italic">Nenhuma anotação registrada ainda. Clique em <strong>+ Nova anotação</strong> pra registrar uma conversa, follow-up ou observação importante.</div>`;
+  } else {
+    html += `<div style="display:flex;flex-direction:column;gap:8px;max-height:340px;overflow-y:auto">`;
+    _anotacoesCache.forEach(a => {
+      const dt = fmtData(a.criadoEm);
+      const ehTel = (a.tipo === 'whatsapp');
+      const ehLigacao = (a.tipo === 'ligacao');
+      const ehReuniao = (a.tipo === 'reuniao');
+      const icone = ehTel ? '📱' : (ehLigacao ? '☎️' : (ehReuniao ? '🤝' : '📝'));
+      const corBorda = ehTel ? 'rgba(34,197,94,.4)' : (ehLigacao ? 'rgba(168,85,247,.4)' : (ehReuniao ? 'rgba(251,191,36,.4)' : 'rgba(77,201,255,.3)'));
+      html += `
+        <div style="background:rgba(15,23,42,.4);border-left:3px solid ${corBorda};border-radius:6px;padding:10px 12px;font-size:13px">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:6px">
+            <div style="font-size:11px;color:var(--text-dim);font-weight:600">
+              ${icone} ${dt}${a.autor ? ' · ' + a.autor : ''}
+            </div>
+            <button onclick="apagarAnotacao('${a.id}','${empEsc}','${cnpjEsc}')" title="Apagar" style="background:transparent;border:none;color:var(--text-dim);cursor:pointer;font-size:14px;padding:0 4px">×</button>
+          </div>
+          <div style="white-space:pre-wrap;word-break:break-word;line-height:1.5">${(a.texto||'').replace(/</g,'&lt;')}</div>
+        </div>
+      `;
+    });
+    html += `</div>`;
+  }
+  html += `</div>`;
+  wrap.innerHTML = html;
+}
+
+function abrirModalNovaAnotacao(empresa, cnpj) {
+  // Modal simples via prompt
+  const tipo = prompt('Tipo da anotação?\n\n1 = 📝 Nota geral\n2 = 📱 WhatsApp\n3 = ☎️ Ligação\n4 = 🤝 Reunião\n\nDigite o número:', '1');
+  if (tipo === null) return;
+  const tipos = { '1': 'nota', '2': 'whatsapp', '3': 'ligacao', '4': 'reuniao' };
+  const tipoStr = tipos[tipo] || 'nota';
+  const texto = prompt(`O que você quer registrar?\n\nEx: "Liguei pro Carlos, ele pediu pra mandar proposta de novo"`);
+  if (!texto || !texto.trim()) return;
+  salvarAnotacaoCliente(empresa, cnpj, texto.trim(), tipoStr);
+}
+
+async function salvarAnotacaoCliente(empresa, cnpj, texto, tipo) {
+  try {
+    await chamarAPI('salvar-anotacao', {
+      empresa, cnpj, texto,
+      autor: consultorLogado?.nome || '',
+      tipo: tipo || 'nota'
+    });
+    toast('✓ Anotação registrada · contato atualizado', 2500, false, true);
+    await carregarCRM();
+    carregarAnotacoesEmpresa(empresa, cnpj);
+  } catch (err) {
+    toast('❌ ' + err.message, 4000, true);
+  }
+}
+
+async function apagarAnotacao(id, empresa, cnpj) {
+  if (!confirm('Apagar esta anotação?')) return;
+  try {
+    await chamarAPI('apagar-anotacao', { id });
+    toast('Anotação apagada', 2000);
+    carregarAnotacoesEmpresa(empresa, cnpj);
+  } catch (err) {
+    toast('❌ ' + err.message, 4000, true);
+  }
+}
+
+// === TAREFAS CLIENTE ===
+let _tarefasClienteCache = [];
+
+async function carregarTarefasCliente(empresa, cnpj) {
+  const wrap = $('tarefas-cliente-wrap');
+  if (!wrap) return;
+  wrap.innerHTML = '';
+  try {
+    const r = await chamarAPI('listar-tarefas-cliente', { empresa, cnpj });
+    _tarefasClienteCache = r.tarefas || [];
+    renderTarefasCliente(empresa, cnpj);
+  } catch (err) {
+    wrap.innerHTML = `<div style="background:rgba(248,113,113,.06);border:1px solid rgba(248,113,113,.3);border-radius:10px;padding:12px 16px;color:#fca5a5;font-size:12px">⚠️ ${err.message || 'Erro ao buscar tarefas'}</div>`;
+  }
+}
+
+function renderTarefasCliente(empresa, cnpj) {
+  const wrap = $('tarefas-cliente-wrap');
+  if (!wrap) return;
+  const empEsc = (empresa||'').replace(/'/g,"\\'");
+  const cnpjEsc = (cnpj||'').replace(/'/g,"\\'");
+  const abertas = _tarefasClienteCache.filter(t => t.status !== 'Concluído');
+  const concluidas = _tarefasClienteCache.filter(t => t.status === 'Concluído');
+  let html = `
+    <div style="background:rgba(15,23,42,.5);border:1px solid var(--border);border-radius:10px;padding:16px 18px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px">
+        <div style="font-size:11px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.4px;font-weight:700">✅ Tarefas (${abertas.length} abertas${concluidas.length ? ' · ' + concluidas.length + ' concluídas' : ''})</div>
+        <button onclick="abrirModalNovaTarefa('${empEsc}','${cnpjEsc}')" class="btn btn-secondary" style="padding:5px 12px;font-size:12px;background:rgba(34,197,94,.12);color:#22c55e;border-color:rgba(34,197,94,.4)">+ Nova tarefa</button>
+      </div>
+  `;
+  if (!_tarefasClienteCache.length) {
+    html += `<div style="text-align:center;padding:18px 6px;color:var(--text-dim);font-size:12px;font-style:italic">Nenhuma tarefa cadastrada. Use pra "Mandar proposta", "Ligar dia X", "Enviar contrato"...</div>`;
+  } else {
+    html += `<div style="display:flex;flex-direction:column;gap:6px;max-height:300px;overflow-y:auto">`;
+    [...abertas, ...concluidas].forEach(t => {
+      const concluida = t.status === 'Concluído';
+      const prazoDt = t.prazo ? new Date(t.prazo + 'T12:00:00') : null;
+      const hoje = new Date(); hoje.setHours(0,0,0,0);
+      const atrasada = !concluida && prazoDt && prazoDt < hoje;
+      const corBorda = concluida ? 'rgba(34,197,94,.3)' : (atrasada ? 'rgba(248,113,113,.5)' : 'rgba(77,201,255,.3)');
+      const corFundo = concluida ? 'rgba(34,197,94,.05)' : (atrasada ? 'rgba(248,113,113,.05)' : 'rgba(15,23,42,.4)');
+      html += `
+        <div style="background:${corFundo};border-left:3px solid ${corBorda};border-radius:6px;padding:8px 12px;font-size:13px;display:flex;align-items:center;gap:10px">
+          <input type="checkbox" ${concluida ? 'checked' : ''} onchange="toggleTarefaConcluida('${t.id}','${empEsc}','${cnpjEsc}',this.checked)" style="cursor:pointer;width:18px;height:18px;flex-shrink:0">
+          <div style="flex:1;min-width:0">
+            <div style="${concluida ? 'text-decoration:line-through;color:var(--text-dim)' : ''};word-break:break-word">${(t.descricao||'').replace(/</g,'&lt;')}</div>
+            <div style="font-size:10.5px;color:${atrasada ? '#f87171' : 'var(--text-dim)'};margin-top:2px">
+              ${prazoDt ? '📅 ' + prazoDt.toLocaleDateString('pt-BR') + (atrasada ? ' · ATRASADA' : '') : 'sem prazo'}
+              ${t.responsavel ? ' · 👤 ' + t.responsavel : ''}
+            </div>
+          </div>
+          <button onclick="apagarTarefaCliente('${t.id}','${empEsc}','${cnpjEsc}')" title="Apagar" style="background:transparent;border:none;color:var(--text-dim);cursor:pointer;font-size:14px;padding:0 4px;flex-shrink:0">×</button>
+        </div>
+      `;
+    });
+    html += `</div>`;
+  }
+  html += `</div>`;
+  wrap.innerHTML = html;
+}
+
+function abrirModalNovaTarefa(empresa, cnpj) {
+  const desc = prompt('Descrição da tarefa:\n\nEx: "Mandar proposta de retomada"');
+  if (!desc || !desc.trim()) return;
+  const hoje = new Date();
+  const sugestao = new Date(hoje.getTime() + 7*24*60*60*1000).toISOString().slice(0,10);
+  const prazo = prompt('Prazo (formato AAAA-MM-DD):', sugestao);
+  if (prazo === null) return;
+  if (prazo && !/^\d{4}-\d{2}-\d{2}$/.test(prazo.trim())) {
+    toast('Data inválida. Use AAAA-MM-DD', 3500, true); return;
+  }
+  salvarTarefaClienteAPI(empresa, cnpj, desc.trim(), prazo.trim());
+}
+
+async function salvarTarefaClienteAPI(empresa, cnpj, descricao, prazo) {
+  try {
+    await chamarAPI('salvar-tarefa-cliente', {
+      empresa, cnpj, descricao, prazo,
+      responsavel: consultorLogado?.nome || ''
+    });
+    toast('✓ Tarefa criada', 2500, false, true);
+    carregarTarefasCliente(empresa, cnpj);
+  } catch (err) {
+    toast('❌ ' + err.message, 4000, true);
+  }
+}
+
+async function toggleTarefaConcluida(id, empresa, cnpj, marcar) {
+  try {
+    await chamarAPI('atualizar-tarefa-cliente', { id, status: marcar ? 'Concluído' : 'Aberto' });
+    carregarTarefasCliente(empresa, cnpj);
+  } catch (err) {
+    toast('❌ ' + err.message, 4000, true);
+  }
+}
+
+async function apagarTarefaCliente(id, empresa, cnpj) {
+  if (!confirm('Apagar esta tarefa?')) return;
+  try {
+    // Reusa a estrutura: status especial pra "apagado" não é o ideal — vou usar update + flag
+    await chamarAPI('atualizar-tarefa-cliente', { id, status: 'Apagado' });
+    carregarTarefasCliente(empresa, cnpj);
+  } catch (err) {
+    toast('❌ ' + err.message, 4000, true);
   }
 }
 
