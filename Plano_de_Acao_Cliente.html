@@ -80,6 +80,16 @@
   .field-group { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; }
 
   .dash-header { display: flex; justify-content: space-between; align-items: center; padding-bottom: 20px; border-bottom: 1px solid var(--border); margin-bottom: 24px; flex-wrap: wrap; gap: 12px; }
+  /* Layout 2 colunas no view-historico */
+  .hist-layout { display: grid; grid-template-columns: minmax(0, 1fr) 280px; gap: 18px; align-items: start; }
+  .hist-sidebar { position: sticky; top: 16px; display: flex; flex-direction: column; gap: 14px; }
+  .hist-card-side { background: rgba(15,23,42,.5); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; }
+  .hist-card-side h4 { margin: 0 0 8px; font-size: 12px; color: var(--text-dim); text-transform: uppercase; letter-spacing: .5px; font-weight: 700; }
+  [data-theme="light"] .hist-card-side { background: rgba(15,23,42,.04); }
+  @media (max-width: 900px) {
+    .hist-layout { grid-template-columns: 1fr; }
+    .hist-sidebar { position: static; }
+  }
   .dash-user { font-size: 13px; color: var(--text-dim); }
   .dash-user strong { color: var(--accent); }
   .btn-logout { background: transparent; border: 1px solid var(--border); color: var(--text-dim); padding: 6px 14px; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer; }
@@ -875,15 +885,23 @@
       <h1 style="text-transform:none;font-size:26px">Histórico de <span class="hl">reuniões</span></h1>
       <p id="hist-empresa-info">—</p>
     </header>
-    <div id="crm-card-empresa"></div>
-    <div id="anotacoes-wrap" style="margin-top:18px"></div>
-    <div id="tarefas-cliente-wrap" style="margin-top:18px"></div>
-    <div id="qe-historico-wrap" style="margin-top:18px"></div>
-    <div id="painel-diag-inline" style="margin-top:18px"></div>
-    <div id="timeline-root" class="timeline" style="margin-top:18px"></div>
-    <div class="actions" style="flex-direction:column;gap:10px">
-      <button class="btn btn-primary btn-big" onclick="novaReuniaoEmpresaAtual()">+ Nova reunião desta empresa</button>
-      <button class="btn btn-secondary" onclick="cancelarEmpresaAtual()" style="background:rgba(248,113,113,.12);color:#f87171;border-color:rgba(248,113,113,.4)">🚫 Marcar empresa como cancelada</button>
+
+    <div class="hist-layout">
+      <div class="hist-main">
+        <div id="crm-card-empresa"></div>
+        <div id="anotacoes-wrap" style="margin-top:18px"></div>
+        <div id="tarefas-cliente-wrap" style="margin-top:18px"></div>
+        <div id="qe-historico-wrap" style="margin-top:18px"></div>
+        <div id="painel-diag-inline" style="margin-top:18px"></div>
+        <div id="timeline-root" class="timeline" style="margin-top:18px"></div>
+        <div class="actions" style="flex-direction:column;gap:10px">
+          <button class="btn btn-primary btn-big" onclick="novaReuniaoEmpresaAtual()">+ Nova reunião desta empresa</button>
+          <button class="btn btn-secondary" onclick="cancelarEmpresaAtual()" style="background:rgba(248,113,113,.12);color:#f87171;border-color:rgba(248,113,113,.4)">🚫 Marcar empresa como cancelada</button>
+        </div>
+      </div>
+      <aside class="hist-sidebar" id="hist-sidebar">
+        <!-- Painel de contato/conversas — preenchido por renderSidebarHistorico() -->
+      </aside>
     </div>
   </div>
 
@@ -1173,7 +1191,7 @@
     </div>
   </div>
 
-  <footer>Método Gestão Life · Gestão PRO<br><small>Ferramenta interna · Planos de Ação v3.3 · build 30/04 lista-kanban-tema-claro</small></footer>
+  <footer>Método Gestão Life · Gestão PRO<br><small>Ferramenta interna · Planos de Ação v3.4 · build 30/04 sidebar-contato</small></footer>
 </div>
 
 <!-- Modal: VISUALIZAR compromisso (read-only) com botões de cobrança -->
@@ -4200,6 +4218,92 @@ async function salvarCRM() {
 }
 
 // =========== HISTÓRICO ===========
+// === Sidebar do histórico: contato, próxima reunião, ações rápidas ===
+function renderSidebarHistorico(empresa) {
+  const root = $('hist-sidebar');
+  if (!root) return;
+  const crm = getCRMByEmpresa(empresa) || {};
+  const base = getBaseByEmpresa(empresa, crm.cnpj) || {};
+  const cnpj = crm.cnpj || base.cnpj || '';
+  const empEsc = (empresa || '').replace(/'/g, "\\'");
+  const cnpjEsc = (cnpj || '').replace(/'/g, "\\'");
+
+  // Status de contato
+  const dias = diasDesdeContato(crm);
+  let txtContato, corContato, txtUlt = '';
+  if (dias == null) { txtContato = '⚪ Nunca conversou'; corContato = '#94a3b8'; }
+  else if (dias === 0) { txtContato = '🟢 Falou hoje'; corContato = '#22c55e'; txtUlt = 'há poucas horas'; }
+  else if (dias <= 7) { txtContato = `🟢 ${dias} dia${dias>1?'s':''}`; corContato = '#22c55e'; txtUlt = `há ${dias} dia${dias>1?'s':''}`; }
+  else if (dias <= 14) { txtContato = `🟡 ${dias} dias`; corContato = '#fbbf24'; txtUlt = `há ${dias} dias`; }
+  else { txtContato = `🔴 ${dias} dias`; corContato = '#f87171'; txtUlt = `há ${dias} dias`; }
+
+  const ultRaw = crm.ultimoContato || '';
+  let ultFmt = '';
+  if (ultRaw) {
+    try {
+      const dt = new Date(ultRaw.indexOf('T') >= 0 ? ultRaw : ultRaw.replace(' ', 'T'));
+      if (!isNaN(dt)) ultFmt = dt.toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+    } catch(e) {}
+  }
+
+  // Próxima reunião (busca em _agendaEventos por título que contenha o nome da empresa)
+  const nomeNorm = String(empresa).toLowerCase();
+  const agora = Date.now();
+  const proxima = (_agendaEventos || []).filter(ev => {
+    const t = String(ev.titulo || '').toLowerCase();
+    return t.includes(nomeNorm.slice(0, 14)) && new Date(ev.inicio).getTime() > agora;
+  }).sort((a,b) => new Date(a.inicio) - new Date(b.inicio))[0];
+
+  let blocoProx = '';
+  if (proxima) {
+    const ini = new Date(proxima.inicio);
+    const dStr = ini.toLocaleDateString('pt-BR', { weekday: 'short', day: '2-digit', month: 'short' });
+    const hStr = `${String(ini.getHours()).padStart(2,'0')}:${String(ini.getMinutes()).padStart(2,'0')}`;
+    blocoProx = `
+      <div class="hist-card-side">
+        <h4>📅 Próxima reunião</h4>
+        <div style="font-size:13px;font-weight:700;color:var(--accent);margin-bottom:2px">${dStr}</div>
+        <div style="font-size:12.5px;color:var(--text-dim);margin-bottom:4px">${hStr} · ${(proxima.titulo || '').replace(/</g,'&lt;')}</div>
+        <button onclick="verEvento('${proxima.id}')" class="btn btn-secondary" style="width:100%;padding:6px;font-size:11.5px;margin-top:6px">Ver detalhes →</button>
+      </div>
+    `;
+  } else {
+    blocoProx = `
+      <div class="hist-card-side">
+        <h4>📅 Próxima reunião</h4>
+        <div style="font-size:12.5px;color:var(--text-dim);font-style:italic">Sem reunião agendada</div>
+        <button onclick="novaReuniaoEmpresaAtual()" class="btn btn-secondary" style="width:100%;padding:6px;font-size:11.5px;margin-top:8px">+ Agendar reunião</button>
+      </div>
+    `;
+  }
+
+  // Telefone WhatsApp pra link rápido
+  const tel = crm.telefone || base.telefone || '';
+  const wa = tel ? gerarLinkWhatsApp(tel) : '';
+  const linkGrupo = crm.linkGrupo || '';
+
+  root.innerHTML = `
+    <div class="hist-card-side" style="border-left:3px solid ${corContato}">
+      <h4>📞 Contato</h4>
+      <div style="font-size:18px;font-weight:800;color:${corContato};margin-bottom:2px">${txtContato}</div>
+      <div style="font-size:11px;color:var(--text-dim);margin-bottom:10px">${ultFmt ? 'Última: ' + ultFmt : 'Sem registro de contato'}</div>
+      <button onclick="marcarConversa('${empEsc}','${cnpjEsc}'); setTimeout(()=>renderSidebarHistorico('${empEsc}'),400)" class="btn btn-primary" style="width:100%;padding:8px;font-size:12.5px;font-weight:700">💬 Conversei agora</button>
+      ${wa || linkGrupo ? `
+        <div style="display:flex;gap:6px;margin-top:8px">
+          ${wa ? `<a href="${wa}" target="_blank" class="btn btn-secondary" style="flex:1;padding:6px;font-size:11.5px;text-align:center;text-decoration:none;background:rgba(34,197,94,.15);color:#22c55e;border-color:rgba(34,197,94,.4)">📱 Pessoal</a>` : ''}
+          ${linkGrupo ? `<a href="${linkGrupo}" target="_blank" class="btn btn-secondary" style="flex:1;padding:6px;font-size:11.5px;text-align:center;text-decoration:none;background:rgba(34,197,94,.15);color:#22c55e;border-color:rgba(34,197,94,.4)">👥 Grupo</a>` : ''}
+        </div>
+      ` : ''}
+    </div>
+    ${blocoProx}
+    <div class="hist-card-side">
+      <h4>⚡ Ações rápidas</h4>
+      <button onclick="abrirModalCRM('${empEsc}')" class="btn btn-secondary" style="width:100%;padding:6px;font-size:11.5px;margin-bottom:6px">✏️ Editar empresa</button>
+      <button onclick="baixarPdfDiagnostico('${empEsc}')" class="btn btn-secondary" style="width:100%;padding:6px;font-size:11.5px;background:rgba(34,197,94,.12);color:#22c55e;border-color:rgba(34,197,94,.4)">📥 PDF Diagnóstico</button>
+    </div>
+  `;
+}
+
 async function abrirHistorico(empresa) {
   empresaAtual = empresa;
   $('hist-nome').textContent = consultorLogado.nome;
@@ -4227,6 +4331,7 @@ async function abrirHistorico(empresa) {
   const _cnpjHist = _crmHist.cnpj || _baseHist.cnpj || '';
   carregarAnotacoesEmpresa(empresa, _cnpjHist);
   carregarTarefasCliente(empresa, _cnpjHist);
+  renderSidebarHistorico(empresa);
   $('timeline-root').innerHTML = '<div class="loading"><span class="spinner"></span>Carregando reuniões...</div>';
   try {
     const r = await chamarAPI('listar-planos', { empresa });
