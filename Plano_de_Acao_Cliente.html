@@ -1074,7 +1074,7 @@
     </div>
   </div>
 
-  <footer>Método Gestão Life · Gestão PRO<br><small>Ferramenta interna · Planos de Ação v2.3 · build 30/04 quadro-historico</small></footer>
+  <footer>Método Gestão Life · Gestão PRO<br><small>Ferramenta interna · Planos de Ação v2.4 · build 30/04 autocomplete-empresa</small></footer>
 </div>
 
 <!-- Modal: VISUALIZAR compromisso (read-only) com botões de cobrança -->
@@ -1137,9 +1137,15 @@
     <p style="font-size:12px;color:var(--text-dim);margin:6px 0 14px">Cria um evento na agenda compartilhada · convite por email · link do Meet auto-gerado</p>
 
     <div class="field-group">
-      <div class="field"><label>Empresa</label>
-        <input type="text" id="ev-empresa" list="ev-empresa-list" placeholder="Digite pra buscar..." oninput="onEmpresaEventoChange()" autocomplete="off">
-        <datalist id="ev-empresa-list"></datalist>
+      <div class="field" style="position:relative">
+        <label>Empresa</label>
+        <input type="text" id="ev-empresa" placeholder="Digite pra buscar (ex: lif → Lifebox)..."
+          oninput="onEmpresaEventoInput()"
+          onfocus="mostrarSugestoesEmpresaEv()"
+          onblur="setTimeout(esconderSugestoesEmpresaEv, 200)"
+          onkeydown="navegarSugestoesEmpresaEv(event)"
+          autocomplete="off">
+        <div id="ev-empresa-sugestoes" style="display:none;position:absolute;top:100%;left:0;right:0;z-index:9999;background:#0a0e2c;border:1px solid var(--border);border-radius:8px;margin-top:2px;max-height:240px;overflow-y:auto;box-shadow:0 8px 20px rgba(0,0,0,.4)"></div>
       </div>
       <div class="field"><label>Mentor</label>
         <select id="ev-mentor" onchange="onMentorEventoChange()">
@@ -2601,11 +2607,13 @@ function renderCalendario() {
   grid.innerHTML = html;
 }
 
+// === AUTOCOMPLETE CUSTOM da empresa no modal Nova Reunião ===
+let _evEmpresasTodas = [];     // lista completa de empresas (BASE + CRM + planos)
+let _evEmpresasSugestaoIdx = -1; // índice destacado pela seta do teclado
+
 function popularSelectEmpresasEvento() {
-  const list = $('ev-empresa-list');
-  if (!list) return;
-  // Junta empresas da BASE + CRM + planos (cache já mesclado em _empresasCache)
-  const set = new Map(); // chave normalizada -> nome original
+  // Compatibilidade: junta empresas da BASE + CRM + planos
+  const set = new Map();
   const addNome = (n) => {
     const nome = String(n || '').trim();
     if (!nome) return;
@@ -2615,8 +2623,113 @@ function popularSelectEmpresasEvento() {
   (_baseCache || []).forEach(b => { addNome(b.razaoSocial || b.nomeFantasia); });
   (_crmCache || []).forEach(c => { addNome(c.empresa); });
   (_empresasCache || []).forEach(e => { addNome(e.empresa); });
-  const todas = [...set.values()].sort((a,b) => a.localeCompare(b, 'pt-BR'));
-  list.innerHTML = todas.map(n => `<option value="${n.replace(/"/g,'&quot;')}"></option>`).join('');
+  _evEmpresasTodas = [...set.values()].sort((a,b) => a.localeCompare(b, 'pt-BR'));
+}
+
+function _normalizeEmp(s) {
+  return String(s || '')
+    .normalize('NFD').replace(/[̀-ͯ]/g, '')
+    .toLowerCase().trim();
+}
+
+function mostrarSugestoesEmpresaEv() {
+  const input = $('ev-empresa');
+  const drop = $('ev-empresa-sugestoes');
+  if (!input || !drop) return;
+  const termo = _normalizeEmp(input.value);
+  let lista = _evEmpresasTodas;
+  if (termo) {
+    // Prioriza match no INÍCIO do nome, depois match em qualquer lugar
+    const inicio = [], qualquer = [];
+    lista.forEach(n => {
+      const k = _normalizeEmp(n);
+      if (k.startsWith(termo)) inicio.push(n);
+      else if (k.indexOf(termo) >= 0) qualquer.push(n);
+    });
+    lista = [...inicio, ...qualquer].slice(0, 30);
+  } else {
+    lista = lista.slice(0, 30);
+  }
+  if (!lista.length) {
+    drop.innerHTML = `<div style="padding:14px;font-size:12px;color:var(--text-dim);text-align:center">Nenhuma empresa encontrada</div>`;
+    drop.style.display = 'block';
+    return;
+  }
+  _evEmpresasSugestaoIdx = -1;
+  drop.innerHTML = lista.map((n, i) => `
+    <div data-idx="${i}" data-nome="${n.replace(/"/g,'&quot;')}"
+      onmousedown="event.preventDefault();selecionarSugestaoEmpresaEv('${n.replace(/'/g,"\\'")}')"
+      onmouseenter="destacarSugestaoEmpresaEv(${i})"
+      style="padding:10px 14px;font-size:13.5px;cursor:pointer;border-bottom:1px solid rgba(255,255,255,.04);color:var(--text)">
+      ${highlightTermo(n, termo)}
+    </div>
+  `).join('');
+  drop.style.display = 'block';
+}
+
+function highlightTermo(texto, termo) {
+  if (!termo) return texto.replace(/</g,'&lt;');
+  const k = _normalizeEmp(texto);
+  const i = k.indexOf(termo);
+  if (i < 0) return texto.replace(/</g,'&lt;');
+  // Reflete o índice no texto original (não normalizado) — aproximação simples
+  const antes = texto.slice(0, i).replace(/</g,'&lt;');
+  const meio = texto.slice(i, i + termo.length).replace(/</g,'&lt;');
+  const depois = texto.slice(i + termo.length).replace(/</g,'&lt;');
+  return `${antes}<strong style="color:var(--accent)">${meio}</strong>${depois}`;
+}
+
+function esconderSugestoesEmpresaEv() {
+  const drop = $('ev-empresa-sugestoes');
+  if (drop) drop.style.display = 'none';
+}
+
+function destacarSugestaoEmpresaEv(idx) {
+  _evEmpresasSugestaoIdx = idx;
+  const drop = $('ev-empresa-sugestoes');
+  if (!drop) return;
+  drop.querySelectorAll('[data-idx]').forEach(el => {
+    if (Number(el.dataset.idx) === idx) {
+      el.style.background = 'rgba(77,201,255,.15)';
+    } else {
+      el.style.background = '';
+    }
+  });
+}
+
+function selecionarSugestaoEmpresaEv(nome) {
+  $('ev-empresa').value = nome;
+  esconderSugestoesEmpresaEv();
+  onEmpresaEventoChange();
+}
+
+function navegarSugestoesEmpresaEv(e) {
+  const drop = $('ev-empresa-sugestoes');
+  if (!drop || drop.style.display === 'none') return;
+  const items = drop.querySelectorAll('[data-idx]');
+  if (!items.length) return;
+  if (e.key === 'ArrowDown') {
+    e.preventDefault();
+    _evEmpresasSugestaoIdx = Math.min(items.length - 1, _evEmpresasSugestaoIdx + 1);
+    destacarSugestaoEmpresaEv(_evEmpresasSugestaoIdx);
+    items[_evEmpresasSugestaoIdx].scrollIntoView({ block: 'nearest' });
+  } else if (e.key === 'ArrowUp') {
+    e.preventDefault();
+    _evEmpresasSugestaoIdx = Math.max(0, _evEmpresasSugestaoIdx - 1);
+    destacarSugestaoEmpresaEv(_evEmpresasSugestaoIdx);
+    items[_evEmpresasSugestaoIdx].scrollIntoView({ block: 'nearest' });
+  } else if (e.key === 'Enter' && _evEmpresasSugestaoIdx >= 0) {
+    e.preventDefault();
+    selecionarSugestaoEmpresaEv(items[_evEmpresasSugestaoIdx].dataset.nome);
+  } else if (e.key === 'Escape') {
+    esconderSugestoesEmpresaEv();
+  }
+}
+
+function onEmpresaEventoInput() {
+  // chamado a cada digitação — atualiza dropdown E dispara fluxo de change normal
+  mostrarSugestoesEmpresaEv();
+  onEmpresaEventoChange();
 }
 
 function popularSelectMentorEvento() {
