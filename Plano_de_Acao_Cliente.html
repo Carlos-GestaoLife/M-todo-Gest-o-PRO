@@ -680,23 +680,32 @@
       </div>
 
       <div class="cal-toolbar">
-        <button class="cal-nav" onclick="navegarMesAgenda(-1)" title="Mês anterior">←</button>
+        <button class="cal-nav" onclick="navegarAgenda(-1)" title="Anterior">←</button>
         <div class="cal-mes-atual" id="cal-mes-atual">—</div>
-        <button class="cal-nav" onclick="navegarMesAgenda(1)" title="Próximo mês">→</button>
+        <button class="cal-nav" onclick="navegarAgenda(1)" title="Próximo">→</button>
         <div style="flex:1"></div>
+        <div style="display:flex;gap:0;background:rgba(255,255,255,.05);border-radius:8px;padding:3px;margin-right:8px">
+          <button id="ag-view-mes" onclick="trocarVisaoAgenda('mes')" style="padding:6px 14px;border:none;background:rgba(77,201,255,.18);color:var(--accent);border-radius:6px;cursor:pointer;font-size:12px;font-weight:600">Mês</button>
+          <button id="ag-view-semana" onclick="trocarVisaoAgenda('semana')" style="padding:6px 14px;border:none;background:transparent;color:var(--text-dim);border-radius:6px;cursor:pointer;font-size:12px;font-weight:600">Semana</button>
+          <button id="ag-view-dia" onclick="trocarVisaoAgenda('dia')" style="padding:6px 14px;border:none;background:transparent;color:var(--text-dim);border-radius:6px;cursor:pointer;font-size:12px;font-weight:600">Dia</button>
+        </div>
         <button class="btn btn-secondary" onclick="recarregarAgenda()">↻ Atualizar</button>
       </div>
 
-      <div class="cal-grid">
-        <div class="cal-dow">DOM</div>
-        <div class="cal-dow">SEG</div>
-        <div class="cal-dow">TER</div>
-        <div class="cal-dow">QUA</div>
-        <div class="cal-dow">QUI</div>
-        <div class="cal-dow">SEX</div>
-        <div class="cal-dow">SAB</div>
+      <div id="cal-mes-wrap">
+        <div class="cal-grid">
+          <div class="cal-dow">DOM</div>
+          <div class="cal-dow">SEG</div>
+          <div class="cal-dow">TER</div>
+          <div class="cal-dow">QUA</div>
+          <div class="cal-dow">QUI</div>
+          <div class="cal-dow">SEX</div>
+          <div class="cal-dow">SAB</div>
+        </div>
+        <div id="cal-grid-dias" class="cal-grid"></div>
       </div>
-      <div id="cal-grid-dias" class="cal-grid"></div>
+      <div id="cal-semana-wrap" style="display:none"></div>
+      <div id="cal-dia-wrap" style="display:none"></div>
     </div>
 
     <div id="aba-compromissos" style="display:none">
@@ -1074,7 +1083,7 @@
     </div>
   </div>
 
-  <footer>Método Gestão Life · Gestão PRO<br><small>Ferramenta interna · Planos de Ação v2.4 · build 30/04 autocomplete-empresa</small></footer>
+  <footer>Método Gestão Life · Gestão PRO<br><small>Ferramenta interna · Planos de Ação v2.5 · build 30/04 onboarding-agenda-views</small></footer>
 </div>
 
 <!-- Modal: VISUALIZAR compromisso (read-only) com botões de cobrança -->
@@ -1954,6 +1963,30 @@ function renderEmpresas(lista) {
       }
     }
 
+    // Status de Onboarding
+    const onbEm = crm.onboardingEm || '';
+    const onbPor = crm.onboardingPor || '';
+    let badgeOnb = '';
+    let textoCount = '';
+    let btnOnb = '';
+    if (e.reunioes) {
+      // Tem reuniões
+      textoCount = e.reunioes + ' reuniã' + (e.reunioes > 1 ? 'ões' : 'o');
+      if (onbEm) {
+        const onbDt = formatarDataComDia(onbEm);
+        badgeOnb = `<span class="status-badge" style="background:rgba(34,197,94,.18);color:#22c55e">✓ Onb ${onbDt}${onbPor ? ' · ' + onbPor : ''}</span>`;
+      }
+    } else if (onbEm) {
+      // Sem reuniões mas onboarding feito
+      const onbDt = formatarDataComDia(onbEm);
+      textoCount = `✓ Onboarding`;
+      badgeOnb = `<span class="status-badge" style="background:rgba(34,197,94,.18);color:#22c55e">✓ Onb ${onbDt}${onbPor ? ' · ' + onbPor : ''}</span>`;
+    } else {
+      // Sem reunião e sem onboarding
+      textoCount = `🆕 Sem onboarding`;
+      btnOnb = `<button onclick="event.stopPropagation();marcarOnboardingEmpresa('${(e.empresa||'').replace(/'/g,"\\'")}','${(e.cnpj||crm.cnpj||'').replace(/'/g,"\\'")}')" class="btn btn-secondary" style="padding:4px 10px;font-size:11px;background:rgba(34,197,94,.12);color:#22c55e;border-color:rgba(34,197,94,.4);margin-top:6px">✓ Marcar onboarding feito</button>`;
+    }
+
     return `
     <div class="empresa-card ${temRasc ? 'tem-rascunho' : ''}" onclick="abrirHistorico('${(e.empresa||'').replace(/'/g,"\'")}')">
       <div class="info">
@@ -1965,12 +1998,30 @@ function renderEmpresas(lista) {
           ${crm.nivel ? '<span class="status-badge ativo" style="background:rgba(77,201,255,.15);color:var(--accent)">' + crm.nivel + '</span>' : ''}
           ${badgeDiag}
           ${badgeInad}
+          ${badgeOnb}
           ${temRasc ? '<span class="badge-rascunho">📝 Rascunho</span>' : ''}
         </div>
+        ${btnOnb}
       </div>
-      <div class="count">${e.reunioes ? e.reunioes + ' reuniã' + (e.reunioes > 1 ? 'ões' : 'o') : '🆕 Sem reuniões'}</div>
+      <div class="count">${textoCount}</div>
     </div>`;
   }).join('');
+}
+
+async function marcarOnboardingEmpresa(empresa, cnpj) {
+  if (!confirm(`Marcar onboarding como concluído para "${empresa}"?\n\nVai registrar a data de hoje e seu nome (${consultorLogado?.nome || '—'}).`)) return;
+  try {
+    await chamarAPI('marcar-onboarding', {
+      empresa,
+      cnpj,
+      consultor: consultorLogado?.nome || ''
+    });
+    toast('✓ Onboarding marcado como concluído!', 3000, false, true);
+    await carregarCRM();
+    if (_empresasCache.length) renderEmpresas(_empresasCache);
+  } catch (err) {
+    toast('❌ ' + err.message, 4500, true);
+  }
 }
 
 function filtrarEmpresas() { renderEmpresas(_empresasCache); }
@@ -2187,12 +2238,171 @@ function trocarAba(aba) {
   }
 }
 
-function navegarMesAgenda(delta) {
-  if (!_agendaMes) _agendaMes = new Date();
-  _agendaMes = new Date(_agendaMes.getFullYear(), _agendaMes.getMonth() + delta, 1);
-  renderCalendario();
+// === VISÕES DA AGENDA: Mês / Semana / Dia ===
+let _agendaVisao = 'mes'; // 'mes' | 'semana' | 'dia'
+
+function trocarVisaoAgenda(visao) {
+  _agendaVisao = visao;
+  // Atualiza botões visualmente
+  ['mes','semana','dia'].forEach(v => {
+    const b = $('ag-view-' + v);
+    if (!b) return;
+    if (v === visao) {
+      b.style.background = 'rgba(77,201,255,.18)';
+      b.style.color = 'var(--accent)';
+    } else {
+      b.style.background = 'transparent';
+      b.style.color = 'var(--text-dim)';
+    }
+  });
+  // Mostra/esconde wraps
+  $('cal-mes-wrap').style.display = visao === 'mes' ? '' : 'none';
+  $('cal-semana-wrap').style.display = visao === 'semana' ? '' : 'none';
+  $('cal-dia-wrap').style.display = visao === 'dia' ? '' : 'none';
+  renderCalendarioConformeVisao();
   carregarEventos();
 }
+
+function renderCalendarioConformeVisao() {
+  if (_agendaVisao === 'mes') renderCalendario();
+  else if (_agendaVisao === 'semana') renderSemanaAgenda();
+  else if (_agendaVisao === 'dia') renderDiaAgenda();
+}
+
+// Navega 1 unidade da visão atual (mês/semana/dia)
+function navegarAgenda(delta) {
+  if (!_agendaMes) _agendaMes = new Date();
+  if (_agendaVisao === 'mes') {
+    _agendaMes = new Date(_agendaMes.getFullYear(), _agendaMes.getMonth() + delta, 1);
+  } else if (_agendaVisao === 'semana') {
+    _agendaMes = new Date(_agendaMes.getFullYear(), _agendaMes.getMonth(), _agendaMes.getDate() + delta * 7);
+  } else if (_agendaVisao === 'dia') {
+    _agendaMes = new Date(_agendaMes.getFullYear(), _agendaMes.getMonth(), _agendaMes.getDate() + delta);
+  }
+  renderCalendarioConformeVisao();
+  carregarEventos();
+}
+
+// Mantém função antiga pra compat (caso seja chamada em outros lugares)
+function navegarMesAgenda(delta) { navegarAgenda(delta); }
+
+function _eventosPorDia(eventos, dataAlvo) {
+  // Retorna eventos que ocorrem em dataAlvo (Date), incluindo multi-dia
+  const alvo = new Date(dataAlvo); alvo.setHours(0,0,0,0);
+  return (eventos || []).filter(ev => {
+    const ini = new Date(ev.inicio); ini.setHours(0,0,0,0);
+    const fim = new Date(ev.fim);
+    if (ev.diaTodo) {
+      // all-day: end exclusivo, retira 1ms
+      const fimEx = new Date(fim); fimEx.setMilliseconds(fimEx.getMilliseconds() - 1); fimEx.setHours(0,0,0,0);
+      return alvo >= ini && alvo <= fimEx;
+    }
+    fim.setHours(0,0,0,0);
+    return alvo >= ini && alvo <= fim;
+  });
+}
+
+function renderSemanaAgenda() {
+  const wrap = $('cal-semana-wrap');
+  if (!wrap || !_agendaMes) return;
+  // Acha domingo da semana de _agendaMes
+  const ref = new Date(_agendaMes);
+  const dow = ref.getDay();
+  const inicio = new Date(ref.getFullYear(), ref.getMonth(), ref.getDate() - dow);
+  const fim = new Date(inicio); fim.setDate(fim.getDate() + 6);
+  // Atualiza header com range da semana
+  const fmtCurto = (d) => `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}`;
+  $('cal-mes-atual').textContent = `Semana ${fmtCurto(inicio)} – ${fmtCurto(fim)}`;
+  const DIAS = ['DOM','SEG','TER','QUA','QUI','SEX','SAB'];
+  let html = `<div style="display:grid;grid-template-columns:60px repeat(7, 1fr);gap:1px;background:var(--border);border-radius:8px;overflow:hidden;border:1px solid var(--border)">`;
+  // Header com dias da semana
+  html += `<div style="background:rgba(15,23,42,.7);padding:8px 4px;font-size:10px;color:var(--text-dim);text-align:center;font-weight:700">Hora</div>`;
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(inicio); d.setDate(d.getDate() + i);
+    const hoje = new Date(); hoje.setHours(0,0,0,0);
+    const ehHoje = d.toDateString() === hoje.toDateString();
+    html += `<div style="background:${ehHoje ? 'rgba(77,201,255,.15)' : 'rgba(15,23,42,.7)'};padding:8px 4px;text-align:center;font-size:11px;font-weight:700;color:${ehHoje ? 'var(--accent)' : 'var(--text)'};border-bottom:1px solid var(--border)">
+      <div style="opacity:.6;font-size:10px">${DIAS[i]}</div>
+      <div style="margin-top:2px">${d.getDate()}</div>
+    </div>`;
+  }
+  // Linha de all-day
+  html += `<div style="background:rgba(15,23,42,.5);padding:6px 4px;font-size:10px;color:var(--text-dim);text-align:center;border-top:1px solid var(--border)">Dia<br>todo</div>`;
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(inicio); d.setDate(d.getDate() + i);
+    const evs = _eventosPorDia(_agendaEventos || [], d).filter(e => e.diaTodo);
+    html += `<div style="background:rgba(15,23,42,.3);padding:4px;border-top:1px solid var(--border);min-height:32px;display:flex;flex-direction:column;gap:2px">
+      ${evs.map(e => `<div onclick="event.stopPropagation();verEvento('${e.id}')" style="background:rgba(168,85,247,.25);color:#c084fc;padding:3px 6px;border-radius:4px;font-size:10.5px;cursor:pointer;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${(e.titulo||'').replace(/"/g,'&quot;')}">${(e.titulo || '').slice(0,18)}</div>`).join('')}
+    </div>`;
+  }
+  // Horas (8h às 20h)
+  for (let h = 8; h <= 20; h++) {
+    html += `<div style="background:rgba(15,23,42,.5);padding:6px 4px;font-size:10px;color:var(--text-dim);text-align:center;border-top:1px solid var(--border);min-height:50px">${String(h).padStart(2,'0')}:00</div>`;
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(inicio); d.setDate(d.getDate() + i);
+      const evs = _eventosPorDia(_agendaEventos || [], d).filter(e => !e.diaTodo).filter(e => {
+        const ini = new Date(e.inicio);
+        return ini.getHours() === h;
+      });
+      html += `<div style="background:rgba(15,23,42,.25);padding:3px;border-top:1px solid var(--border);min-height:50px;display:flex;flex-direction:column;gap:2px">
+        ${evs.map(e => {
+          const ini = new Date(e.inicio);
+          const fim2 = new Date(e.fim);
+          const horario = `${String(ini.getHours()).padStart(2,'0')}:${String(ini.getMinutes()).padStart(2,'0')}-${String(fim2.getHours()).padStart(2,'0')}:${String(fim2.getMinutes()).padStart(2,'0')}`;
+          return `<div onclick="event.stopPropagation();verEvento('${e.id}')" style="background:rgba(77,201,255,.2);color:var(--accent);padding:3px 5px;border-radius:4px;font-size:10px;cursor:pointer;overflow:hidden;text-overflow:ellipsis" title="${(e.titulo||'').replace(/"/g,'&quot;')}">
+            <div style="font-weight:700;opacity:.85">${horario}</div>
+            <div style="font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${(e.titulo || '').slice(0,18)}</div>
+          </div>`;
+        }).join('')}
+      </div>`;
+    }
+  }
+  html += `</div>`;
+  wrap.innerHTML = html;
+}
+
+function renderDiaAgenda() {
+  const wrap = $('cal-dia-wrap');
+  if (!wrap || !_agendaMes) return;
+  const d = new Date(_agendaMes);
+  const DIAS = ['DOMINGO','SEGUNDA-FEIRA','TERÇA-FEIRA','QUARTA-FEIRA','QUINTA-FEIRA','SEXTA-FEIRA','SÁBADO'];
+  const MESES_FULL = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+  $('cal-mes-atual').textContent = `${DIAS[d.getDay()]}, ${d.getDate()} de ${MESES_FULL[d.getMonth()]}`;
+  const evs = _eventosPorDia(_agendaEventos || [], d);
+  const allDay = evs.filter(e => e.diaTodo);
+  let html = `<div style="background:rgba(15,23,42,.4);border:1px solid var(--border);border-radius:10px;padding:14px 18px">`;
+  if (allDay.length) {
+    html += `<div style="margin-bottom:14px;padding-bottom:14px;border-bottom:1px solid var(--border)">
+      <div style="font-size:10px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.5px;font-weight:700;margin-bottom:6px">📅 Dia inteiro</div>
+      ${allDay.map(e => `<div onclick="verEvento('${e.id}')" style="background:rgba(168,85,247,.18);color:#c084fc;padding:8px 12px;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;margin-bottom:4px">${e.titulo || '—'}</div>`).join('')}
+    </div>`;
+  }
+  // Lista cronológica do dia
+  const cronologico = evs.filter(e => !e.diaTodo).sort((a,b) => new Date(a.inicio) - new Date(b.inicio));
+  if (!cronologico.length && !allDay.length) {
+    html += `<div style="text-align:center;padding:40px 20px;color:var(--text-dim);font-size:13px">📭 Nenhum evento neste dia</div>`;
+  } else if (cronologico.length) {
+    html += `<div style="display:flex;flex-direction:column;gap:8px">`;
+    cronologico.forEach(e => {
+      const ini = new Date(e.inicio);
+      const fim2 = new Date(e.fim);
+      const horario = `${String(ini.getHours()).padStart(2,'0')}:${String(ini.getMinutes()).padStart(2,'0')} – ${String(fim2.getHours()).padStart(2,'0')}:${String(fim2.getMinutes()).padStart(2,'0')}`;
+      html += `<div onclick="verEvento('${e.id}')" style="display:grid;grid-template-columns:110px 1fr;gap:12px;align-items:center;background:rgba(77,201,255,.06);border:1px solid rgba(77,201,255,.25);border-radius:8px;padding:10px 14px;cursor:pointer">
+        <div>
+          <div style="font-size:13px;font-weight:800;color:var(--accent)">${horario}</div>
+        </div>
+        <div>
+          <div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:2px">${e.titulo || '—'}</div>
+          ${e.local ? `<div style="font-size:11.5px;color:var(--text-dim)">📍 ${(e.local||'').slice(0,80)}</div>` : ''}
+        </div>
+      </div>`;
+    });
+    html += `</div>`;
+  }
+  html += `</div>`;
+  wrap.innerHTML = html;
+}
+
 
 function recarregarAgenda() { carregarEventos(); }
 
@@ -2492,16 +2702,28 @@ function renderReunioesSemana(eventos) {
 async function carregarEventos() {
   if (_agendaCarregando) return;
   _agendaCarregando = true;
-  const inicio = new Date(_agendaMes.getFullYear(), _agendaMes.getMonth(), 1);
-  const fim = new Date(_agendaMes.getFullYear(), _agendaMes.getMonth() + 1, 1);
+  // Range conforme visão atual
+  let inicio, fim;
+  if (_agendaVisao === 'semana') {
+    const ref = new Date(_agendaMes);
+    const dow = ref.getDay();
+    inicio = new Date(ref.getFullYear(), ref.getMonth(), ref.getDate() - dow);
+    fim = new Date(inicio); fim.setDate(fim.getDate() + 7);
+  } else if (_agendaVisao === 'dia') {
+    inicio = new Date(_agendaMes.getFullYear(), _agendaMes.getMonth(), _agendaMes.getDate());
+    fim = new Date(inicio); fim.setDate(fim.getDate() + 1);
+  } else {
+    inicio = new Date(_agendaMes.getFullYear(), _agendaMes.getMonth(), 1);
+    fim = new Date(_agendaMes.getFullYear(), _agendaMes.getMonth() + 1, 1);
+  }
   try {
     const r = await chamarAPI('listar-eventos', { de: inicio.toISOString(), ate: fim.toISOString() });
     _agendaEventos = r.eventos || [];
-    renderCalendario();
+    renderCalendarioConformeVisao();
   } catch (err) {
     toast('❌ Agenda: ' + err.message, 5000, true);
     _agendaEventos = [];
-    renderCalendario();
+    renderCalendarioConformeVisao();
   } finally {
     _agendaCarregando = false;
   }
