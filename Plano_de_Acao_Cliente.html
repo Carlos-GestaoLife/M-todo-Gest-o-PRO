@@ -98,8 +98,16 @@
   .search-bar { display:flex; gap: 10px; margin-bottom: 16px; }
   .search-bar input { flex: 1; background: var(--bg-2); border: 1px solid var(--border); color: var(--text); padding: 12px 16px; border-radius: 8px; font-size: 14px; font-family: inherit; }
 
-  .empresa-grid { display: grid; gap: 10px; }
-  .empresa-card { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 16px 20px; display:flex; justify-content: space-between; align-items: center; cursor: pointer; transition: all .15s; }
+  /* Loader com logo Gestão (pulsa) */
+  @keyframes logo-pulse { 0%,100% { opacity:.45; transform: scale(.95); } 50% { opacity:1; transform: scale(1.05); } }
+  .logo-loader { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:14px; padding: 40px 20px; }
+  .logo-loader .logo-svg { width: 78px; height: 78px; animation: logo-pulse 1.4s ease-in-out infinite; filter: drop-shadow(0 0 22px rgba(77,201,255,.5)); }
+  .logo-loader .logo-txt { font-size: 12.5px; color: var(--text-dim); letter-spacing: 1px; text-transform: uppercase; font-weight: 700; }
+  .empresa-grid { display: grid; gap: 10px; padding: 0 16px; }
+  @media (min-width: 1100px) { .empresa-grid { padding: 0 24px; } }
+  .empresa-card { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 16px 20px; display:flex; justify-content: space-between; align-items: center; cursor: pointer; transition: all .15s; gap: 12px; }
+  .empresa-card .info { min-width: 0; flex: 1; }
+  .empresa-card .info h4, .empresa-card .info p { overflow-wrap: break-word; word-break: break-word; }
   .empresa-card:hover { background: var(--card-hover); border-color: var(--accent); transform: translateX(4px); }
   .empresa-card .info h4 { margin: 0 0 4px; font-size: 16px; font-weight: 800; }
   .empresa-card .info p { margin: 0; color: var(--text-dim); font-size: 12px; }
@@ -632,8 +640,8 @@
         </div>
         <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
           <div style="display:flex;gap:0;background:rgba(255,255,255,.05);border-radius:8px;padding:3px">
-            <button id="btn-vis-lista" onclick="trocarVisaoEmpresas('lista')" style="padding:6px 14px;border:none;background:transparent;color:var(--text-dim);border-radius:6px;cursor:pointer;font-size:12px;font-weight:600">📋 Lista</button>
-            <button id="btn-vis-kanban" onclick="trocarVisaoEmpresas('kanban')" style="padding:6px 14px;border:none;background:rgba(77,201,255,.18);color:var(--accent);border-radius:6px;cursor:pointer;font-size:12px;font-weight:600">📊 Kanban</button>
+            <button id="btn-vis-lista" onclick="trocarVisaoEmpresas('lista')" style="padding:6px 14px;border:none;background:rgba(77,201,255,.18);color:var(--accent);border-radius:6px;cursor:pointer;font-size:12px;font-weight:600">📋 Lista</button>
+            <button id="btn-vis-kanban" onclick="trocarVisaoEmpresas('kanban')" style="padding:6px 14px;border:none;background:transparent;color:var(--text-dim);border-radius:6px;cursor:pointer;font-size:12px;font-weight:600">📊 Kanban</button>
           </div>
           <button class="btn btn-secondary" id="btn-config-colunas" onclick="abrirConfigColunas()" title="Personalizar colunas do kanban">⚙ Colunas</button>
           <button class="btn btn-secondary" onclick="sincronizarBaseClientesManual()" title="Atualizar lista da Base Clientes">🔄 Sincronizar base</button>
@@ -1191,7 +1199,7 @@
     </div>
   </div>
 
-  <footer>Método Gestão Life · Gestão PRO<br><small>Ferramenta interna · Planos de Ação v3.4 · build 30/04 sidebar-contato</small></footer>
+  <footer>Método Gestão Life · Gestão PRO<br><small>Ferramenta interna · Planos de Ação v3.5 · build 30/04 ux-ajustes-logo</small></footer>
 </div>
 
 <!-- Modal: VISUALIZAR compromisso (read-only) com botões de cobrança -->
@@ -1476,6 +1484,29 @@ let contextoImportado = null;
 
 function $(id){return document.getElementById(id);}
 
+// === Overlay global de carregamento (para navegações pesadas) ===
+function abrirOverlayCarregando(msg) {
+  let o = $('overlay-carregando');
+  if (!o) {
+    o = document.createElement('div');
+    o.id = 'overlay-carregando';
+    o.style.cssText = 'position:fixed;inset:0;z-index:99999;background:rgba(6,10,31,.92);display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px)';
+    document.body.appendChild(o);
+  }
+  o.innerHTML = logoLoader(msg || 'Carregando...');
+  o.style.display = 'flex';
+}
+function fecharOverlayCarregando() {
+  const o = $('overlay-carregando');
+  if (o) o.style.display = 'none';
+}
+
+// === Logo loader (substitui spinner em pontos críticos) ===
+const LOGO_GESTAO_SVG = '<svg class="logo-svg" viewBox="0 0 670 677" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path fill-rule="evenodd" clip-rule="evenodd" d="M398.477 381.945C405.378 390.229 415.046 395.282 425.714 396.184C426.233 396.229 426.759 396.259 427.285 396.281C427.405 396.296 427.533 396.297 427.653 396.297C428.067 396.312 428.473 396.32 428.886 396.32H429.262C429.735 396.32 430.209 396.312 430.683 396.289C430.765 396.282 430.841 396.281 430.924 396.281C432.051 396.229 433.171 396.123 434.291 395.981C434.381 395.966 434.472 395.959 434.563 395.944C435.029 395.883 435.502 395.807 435.968 395.725C436.065 395.71 436.163 395.688 436.261 395.673C437.351 395.47 438.434 395.229 439.509 394.944C439.614 394.913 439.719 394.883 439.824 394.853C440.238 394.74 440.652 394.62 441.066 394.492C441.216 394.447 441.366 394.395 441.516 394.35C441.914 394.222 442.313 394.086 442.704 393.944C442.824 393.898 442.944 393.861 443.065 393.816C443.561 393.628 444.05 393.439 444.538 393.237C444.666 393.176 444.801 393.116 444.929 393.064C445.282 392.906 445.636 392.755 445.989 392.59L445.982 392.628C446.169 392.545 446.35 392.462 446.53 392.372C446.658 392.305 446.794 392.245 446.922 392.185V392.26C446.914 392.365 446.899 392.478 446.892 392.583C446.854 392.996 446.816 393.402 446.764 393.816C446.741 393.989 446.719 394.154 446.696 394.327C446.644 394.695 446.583 395.064 446.516 395.432C446.493 395.59 446.463 395.748 446.433 395.905C446.335 396.424 446.223 396.936 446.095 397.454L397.957 589.604C395.115 600.925 386.207 609.18 374.705 611.143C363.203 613.112 352.061 608.278 345.626 598.542L300.947 530.927L386.591 468.852C390.876 465.747 394.402 461.973 397.108 457.605H397.281L398.8 454.606C408.34 435.773 401.536 412.678 383.305 402.026L336.8 374.841L357.872 371.239L385.613 366.503L398.477 381.945ZM478.137 352.101L507.179 411.74L542.979 485.25C548.083 495.745 546.572 507.796 539.025 516.697C531.477 525.598 519.839 529.072 508.652 525.749L430.984 502.714L456.696 400.088L477.025 349.816L478.137 352.101ZM208.983 419.31C209.561 419.866 210.155 420.415 210.764 420.934C215.004 424.587 219.83 427.241 225.138 428.842L274.185 404.424L292.784 354.032L318.901 426.685C319.555 428.496 320.014 430.331 320.292 432.165C321.209 446.374 314.954 457.463 304.241 462.643L173.505 457.327L91.9893 451.637C80.3442 450.825 70.6609 443.502 66.714 432.519C62.7671 421.535 65.5711 409.716 74.0362 401.68L132.894 345.778L208.983 419.31ZM184.595 324.469C185.271 330.806 187.324 336.678 190.707 341.91L240.799 356.623L290.643 328.266L263.932 400.625L263.916 400.662C260.593 409.661 253.234 416.074 244.596 418.54L228.267 418.404C223.884 417.081 219.937 414.751 216.546 411.473L74.1046 273.821C65.7147 265.71 63.0084 253.869 67.0528 242.915C71.0974 231.969 80.8412 224.729 92.4864 224.015L173.416 219.069L184.595 324.469ZM587.009 312.081C597.677 316.833 604.27 327.035 604.218 338.702C604.165 350.37 597.489 360.512 586.783 365.173L512.432 397.523L483.18 337.454L501.674 300.293L512.357 278.838L587.009 312.081ZM517.593 149.986C526.02 149.986 534.034 153.685 539.688 160.466C547.16 169.435 548.573 181.501 543.371 191.95L489.408 300.388L477.139 325.039L455.134 369.289C453.36 372.853 450.976 375.928 448.029 378.439L406.877 374.928L369.212 329.7L325.179 276.825L316.726 266.678L304.732 252.274C295.499 238.937 296.522 224.134 305.498 214.226L319.008 205.836L430.919 173.69L509.398 151.151C512.127 150.369 514.879 149.986 517.593 149.986ZM377.509 356.77L358.061 360.093L368.33 347.974L369.27 346.868L377.509 356.77ZM203.484 94.1711C209.506 94.1711 215.498 96.0958 220.655 99.9074L285.993 148.127L226.843 236.003C223.309 241.258 221.114 247.04 220.324 253.182C217.603 274.33 231.918 293.845 252.915 297.619V297.612L305.6 307.077L245.096 341.75L238.751 345.381C235.398 347.306 231.819 348.486 228.203 348.975L224.136 349.237C216.453 349.192 208.943 346.095 203.44 340.397C202.146 339.059 200.959 337.577 199.914 335.953L195.485 323.285L174.601 126.302C173.368 114.702 178.894 103.884 189.021 98.0803C193.584 95.4642 198.545 94.1711 203.484 94.1711ZM370.412 64.9543C372.164 64.9543 373.938 65.1122 375.72 65.4279C387.207 67.4953 396.049 75.8247 398.785 87.1691L417.835 166.07L315.998 195.321C309.886 197.081 304.466 200.118 299.902 204.343C294.527 209.305 290.821 215.409 288.814 221.957L287.31 229.235L287.303 229.227C286.138 239.692 289.085 250.578 296.324 259.269L330.62 300.459L254.848 286.852L252.044 286.205C236.647 279.649 229.505 267.538 231.174 254.577C231.745 250.127 233.34 245.932 235.918 242.106L297.993 149.891L299.264 148.004L300.917 145.546L346.528 77.7795C352.039 69.6002 360.872 64.9544 370.412 64.9543Z" fill="currentColor"/></svg>';
+function logoLoader(msg) {
+  return `<div class="logo-loader" style="color:var(--accent)">${LOGO_GESTAO_SVG}<div class="logo-txt">${msg || 'Carregando...'}</div></div>`;
+}
+
 // === TEMA CLARO/ESCURO ===
 (function aplicarTemaSalvo(){
   try {
@@ -1623,7 +1654,7 @@ function sair() {
 async function irDashboard() {
   $('dash-nome').textContent = consultorLogado.nome;
   mostrarView('view-dashboard');
-  $('empresas-root').innerHTML = '<div class="loading"><span class="spinner"></span>Carregando empresas...</div>';
+  $('empresas-root').innerHTML = logoLoader('Carregando empresas...');
   try {
     const [rEmp] = await Promise.all([
       chamarAPI('listar-empresas'),
@@ -2108,13 +2139,14 @@ function renderEmpresas(lista) {
     const principal = crm.consultorPrincipal || '';
     const semReuniao = !e.reunioes;
 
-    // Determina situação do diagnóstico
+    // Determina situação do diagnóstico — só mostra badge se algo está FALTANDO
     let badgeDiag = '';
-    if (semReuniao) {
-      if (e.statusDiagnostico === 'COMPLETO') badgeDiag = '<span class="status-badge" style="background:rgba(34,197,94,.15);color:#22c55e">✅ Diagnóstico OK</span>';
-      else if (e.statusDiagnostico === 'PENDENTE_FASE2') badgeDiag = '<span class="status-badge" style="background:rgba(251,191,36,.15);color:#fbbf24">⏳ Fase 1 só</span>';
-      else if (e.origemBase) badgeDiag = '<span class="status-badge" style="background:rgba(248,113,113,.15);color:#f87171">🔴 Sem diagnóstico</span>';
+    if (e.statusDiagnostico === 'PENDENTE_FASE2') {
+      badgeDiag = '<span class="status-badge" style="background:rgba(251,191,36,.15);color:#fbbf24">⏳ Fase 1 só</span>';
+    } else if (semReuniao && e.origemBase && e.statusDiagnostico !== 'COMPLETO') {
+      badgeDiag = '<span class="status-badge" style="background:rgba(248,113,113,.15);color:#f87171">🔴 Sem diagnóstico</span>';
     }
+    // Diagnóstico COMPLETO → não mostra badge (limpa visual)
 
     let subInfo;
     if (e.origemBase && semReuniao) {
@@ -2156,27 +2188,23 @@ function renderEmpresas(lista) {
       }
     }
 
-    // Status de Onboarding
+    // Status de Onboarding — badge SÓ aparece se está faltando (vermelho).
+    // Quando feito, esconde pra não poluir.
     const onbEm = crm.onboardingEm || '';
     const onbPor = crm.onboardingPor || '';
     let badgeOnb = '';
     let textoCount = '';
     let btnOnb = '';
     if (e.reunioes) {
-      // Tem reuniões
       textoCount = e.reunioes + ' reuniã' + (e.reunioes > 1 ? 'ões' : 'o');
-      if (onbEm) {
-        const onbDt = formatarDataComDia(onbEm);
-        badgeOnb = `<span class="status-badge" style="background:rgba(34,197,94,.18);color:#22c55e">✓ Onb ${onbDt}${onbPor ? ' · ' + onbPor : ''}</span>`;
-      }
+      // Sem badge verde, mantém limpo
     } else if (onbEm) {
-      // Sem reuniões mas onboarding feito
-      const onbDt = formatarDataComDia(onbEm);
+      // Onboarding feito mas sem reuniões — ainda discreto, sem badge verde
       textoCount = `✓ Onboarding`;
-      badgeOnb = `<span class="status-badge" style="background:rgba(34,197,94,.18);color:#22c55e">✓ Onb ${onbDt}${onbPor ? ' · ' + onbPor : ''}</span>`;
     } else {
-      // Sem reunião e sem onboarding
+      // Sem reunião e sem onboarding — alerta vermelho
       textoCount = `🆕 Sem onboarding`;
+      badgeOnb = `<span class="status-badge" style="background:rgba(248,113,113,.15);color:#f87171">🆕 Sem onboarding</span>`;
       btnOnb = `<button onclick="event.stopPropagation();marcarOnboardingEmpresa('${(e.empresa||'').replace(/'/g,"\\'")}','${(e.cnpj||crm.cnpj||'').replace(/'/g,"\\'")}')" class="btn btn-secondary" style="padding:4px 10px;font-size:11px;background:rgba(34,197,94,.12);color:#22c55e;border-color:rgba(34,197,94,.4);margin-top:6px">✓ Marcar onboarding feito</button>`;
     }
 
@@ -2185,6 +2213,29 @@ function renderEmpresas(lista) {
     const contato = statusContato(crm);
     const cnpjEsc = (e.cnpj || crm.cnpj || '').replace(/'/g,"\\'");
     const empEsc = (e.empresa||'').replace(/'/g,"\\'");
+
+    // Detecta se conversou hoje (pra esconder badge + mudar botão)
+    const conversouHoje = (function() {
+      const ult = crm.ultimoContato || '';
+      if (!ult) return false;
+      try {
+        const dt = new Date(ult.indexOf('T') >= 0 ? ult : ult.replace(' ', 'T'));
+        if (isNaN(dt)) return false;
+        const hoje = new Date();
+        return dt.toDateString() === hoje.toDateString();
+      } catch(e) { return false; }
+    })();
+    const ultPor = crm.ultimoContatoPor || '';
+
+    // Badge de contato: só mostra se NÃO conversou hoje (limpa visual)
+    const badgeContato = conversouHoje
+      ? ''
+      : `<span class="status-badge" style="background:${contato.cor}25;color:${contato.cor};border:1px solid ${contato.cor}50" title="${crm.ultimoContato ? 'Último contato: ' + crm.ultimoContato + (ultPor ? ' por ' + ultPor : '') : 'Nunca conversou'}">${contato.label}</span>`;
+
+    // Botão Conversei hoje muda visual após clique (já conversou)
+    const btnConversa = conversouHoje
+      ? `<button onclick="event.stopPropagation()" class="btn btn-secondary" style="padding:4px 10px;font-size:11px;background:rgba(34,197,94,.08);color:#22c55e;border-color:rgba(34,197,94,.25);opacity:.65;cursor:default" title="Você já conversou com este cliente hoje">💬 Conversei hoje${ultPor ? ' (' + ultPor + ')' : ''}</button>`
+      : `<button onclick="event.stopPropagation();marcarConversa('${empEsc}','${cnpjEsc}')" class="btn btn-secondary" style="padding:4px 10px;font-size:11px;background:rgba(77,201,255,.12);color:var(--accent);border-color:rgba(77,201,255,.4)">💬 Conversei agora</button>`;
 
     return `
     <div class="empresa-card ${temRasc ? 'tem-rascunho' : ''}" onclick="abrirHistorico('${empEsc}')">
@@ -2199,11 +2250,11 @@ function renderEmpresas(lista) {
           ${badgeDiag}
           ${badgeInad}
           ${badgeOnb}
-          <span class="status-badge" style="background:${contato.cor}25;color:${contato.cor};border:1px solid ${contato.cor}50" title="${crm.ultimoContato ? 'Último contato: ' + crm.ultimoContato + (crm.ultimoContatoPor ? ' por ' + crm.ultimoContatoPor : '') : 'Nunca conversou'}">${contato.label}</span>
+          ${badgeContato}
           ${temRasc ? '<span class="badge-rascunho">📝 Rascunho</span>' : ''}
         </div>
         <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px">
-          <button onclick="event.stopPropagation();marcarConversa('${empEsc}','${cnpjEsc}')" class="btn btn-secondary" style="padding:4px 10px;font-size:11px;background:rgba(77,201,255,.12);color:var(--accent);border-color:rgba(77,201,255,.4)">💬 Conversei hoje</button>
+          ${btnConversa}
           ${btnOnb}
         </div>
       </div>
@@ -2518,7 +2569,7 @@ const PIPELINE_ETAPAS = [
 // === Visão Empresas: Lista OU Kanban (preferência salva no localStorage) ===
 let _visaoEmpresas = (function() {
   try { const v = localStorage.getItem('visao_empresas_v1'); if (v === 'lista' || v === 'kanban') return v; } catch(e) {}
-  return 'kanban';
+  return 'lista'; // padrão: lista (mais leve, menos requisições)
 })();
 const KANBAN_CFG_KEY = 'kanban_colunas_v1';
 
@@ -4332,7 +4383,7 @@ async function abrirHistorico(empresa) {
   carregarAnotacoesEmpresa(empresa, _cnpjHist);
   carregarTarefasCliente(empresa, _cnpjHist);
   renderSidebarHistorico(empresa);
-  $('timeline-root').innerHTML = '<div class="loading"><span class="spinner"></span>Carregando reuniões...</div>';
+  $('timeline-root').innerHTML = logoLoader('Carregando reuniões...');
   try {
     const r = await chamarAPI('listar-planos', { empresa });
     renderTimeline(r.planos || []);
@@ -5387,6 +5438,7 @@ function fecharModalLixeira() { $('modal-lixeira').classList.remove('show'); }
 
 async function novaReuniaoEmpresaAtual() {
   if (!empresaAtual) return;
+  abrirOverlayCarregando('Preparando nova reunião...');
   const planos = window._planosEmpresa || [];
   const ultimaReuniao = planos.reduce((max, p) => Math.max(max, p.reuniao || 0), 0);
   idPlanoAtual = null;
@@ -5432,9 +5484,11 @@ async function novaReuniaoEmpresaAtual() {
   mostrarView('view-form');
   bindAutoSave();
   checarRascunho();
+  fecharOverlayCarregando();
 }
 
 async function editarPlano(idPlano) {
+  abrirOverlayCarregando('Abrindo plano de ação...');
   try {
     const r = await chamarAPI('carregar-plano', { idPlano });
     const p = r.plano;
@@ -5505,7 +5559,8 @@ async function editarPlano(idPlano) {
     mostrarView('view-form');
     bindAutoSave();
     checarRascunho();
-  } catch(err) { toast('❌ ' + err.message, 4000, true); }
+    fecharOverlayCarregando();
+  } catch(err) { fecharOverlayCarregando(); toast('❌ ' + err.message, 4000, true); }
 }
 
 // =========== IMPORTAR DIAGNÓSTICO ===========
