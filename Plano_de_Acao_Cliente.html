@@ -1205,7 +1205,7 @@
     </div>
   </div>
 
-  <footer>Método Gestão Life · Gestão PRO<br><small>Ferramenta interna · Planos de Ação v4.0 · build 04/05 kanban-pipeline-removidos</small></footer>
+  <footer>Método Gestão Life · Gestão PRO<br><small>Ferramenta interna · Planos de Ação v4.1 · build 04/05 fix-diagnostico-dedup</small></footer>
 </div>
 
 <!-- Modal: VISUALIZAR compromisso (read-only) com botões de cobrança -->
@@ -2205,15 +2205,48 @@ function renderListaEmpresas() {
 }
 
 function renderEmpresas(lista) {
-  // Atualiza _empresasCache + mescla Base, e renderiza conforme a visão escolhida (lista | kanban)
+  // Atualiza _empresasCache + mescla Base com DEDUPLICAÇÃO permissiva
   const cache = lista.slice();
-  const chavesExistentes = new Set(cache.map(e => (e.empresa || '').trim().toLowerCase()));
+  // Indexa cache atual por (1) CNPJ normalizado e (2) nome normalizado (sem LTDA/ME/acento)
+  const indexCnpj = new Map();
+  const indexNome = new Map();
+  cache.forEach((e, idx) => {
+    const cn = String(e.cnpj || '').replace(/\D/g, '');
+    if (cn) indexCnpj.set(cn, idx);
+    const nm = _normalizeEmpresaNome(e.empresa);
+    if (nm) indexNome.set(nm, idx);
+  });
+
   (_baseCache || []).forEach(b => {
     const nome = b.nomeFantasia || b.razaoSocial;
     if (!nome) return;
-    const k = nome.trim().toLowerCase();
-    // Se a empresa já tá na lista (por reunião/diagnóstico), skip — só pra adicionar as que faltam
-    if (chavesExistentes.has(k)) return;
+    const cnB = String(b.cnpj || '').replace(/\D/g, '');
+    const nmB = _normalizeEmpresaNome(nome);
+    // Tenta achar duplicata: 1) por CNPJ, 2) por nome normalizado, 3) por substring
+    let idxExistente = -1;
+    if (cnB && indexCnpj.has(cnB)) idxExistente = indexCnpj.get(cnB);
+    if (idxExistente < 0 && nmB && indexNome.has(nmB)) idxExistente = indexNome.get(nmB);
+    if (idxExistente < 0 && nmB) {
+      // Substring: cache contém nmB OU nmB contém cache (cobre "Flor di Gis" vs "Flor di Gis Restaurante LTDA")
+      for (const [k, v] of indexNome.entries()) {
+        if (!k) continue;
+        if (k.indexOf(nmB) >= 0 || nmB.indexOf(k) >= 0) {
+          // Match parcial só se tiver >= 5 caracteres em comum (evita falsos positivos curtos)
+          const menor = Math.min(k.length, nmB.length);
+          if (menor >= 5) { idxExistente = v; break; }
+        }
+      }
+    }
+
+    if (idxExistente >= 0) {
+      // Mescla: preenche campos faltantes no item já existente
+      const e = cache[idxExistente];
+      if (!e.cnpj && b.cnpj) e.cnpj = b.cnpj;
+      if (!e.origemBaseTambem) e.origemBaseTambem = true; // marca que também veio da Base
+      return; // não duplica
+    }
+
+    // Não achou duplicata — adiciona como novo (vindo só da Base)
     cache.push({
       empresa: nome,
       cnpj: b.cnpj || '',
@@ -2224,7 +2257,8 @@ function renderEmpresas(lista) {
       origemBase: true,
       statusContrato: b.status || ''
     });
-    chavesExistentes.add(k);
+    if (cnB) indexCnpj.set(cnB, cache.length - 1);
+    if (nmB) indexNome.set(nmB, cache.length - 1);
   });
   _empresasCache = cache;
   popularFiltroConsultor();
@@ -2330,13 +2364,18 @@ function renderEmpresas(lista) {
     const semReuniao = !e.reunioes;
 
     // Determina situação do diagnóstico — só mostra badge se algo está FALTANDO
+    // REGRA: se a empresa TEM nível cadastrado (CRM ou diagnóstico), JÁ TEM diagnóstico
+    // — então NÃO mostra badge vermelho, mesmo que o statusDiagnostico esteja desatualizado.
+    const _temNivel = !!(crm.nivel || e.nivelDiagnostico);
     let badgeDiag = '';
-    if (e.statusDiagnostico === 'PENDENTE_FASE2') {
+    if (e.statusDiagnostico === 'PENDENTE_FASE2' && !_temNivel) {
+      // Só Fase 1 mesmo (não tem nível ainda)
       badgeDiag = '<span class="status-badge" style="background:rgba(251,191,36,.15);color:#fbbf24">⏳ Fase 1 só</span>';
-    } else if (semReuniao && e.origemBase && e.statusDiagnostico !== 'COMPLETO') {
+    } else if (!_temNivel && semReuniao && e.origemBase && e.statusDiagnostico !== 'COMPLETO') {
+      // Sem nível, sem reunião, veio da Base e status não é COMPLETO → realmente sem diagnóstico
       badgeDiag = '<span class="status-badge" style="background:rgba(248,113,113,.15);color:#f87171">🔴 Sem diagnóstico</span>';
     }
-    // Diagnóstico COMPLETO → não mostra badge (limpa visual)
+    // Diagnóstico COMPLETO ou tem nível → não mostra badge (limpa visual)
 
     let subInfo;
     if (e.origemBase && semReuniao) {
