@@ -48,8 +48,6 @@
   [data-theme="light"] body { color: var(--text) !important; }
   [data-theme="light"] .btn-primary { color: #fff !important; }
   /* Cards do kanban com background mais claro */
-  [data-theme="light"] [data-coluna-etapa] { background: rgba(15,23,42,0.04) !important; }
-  [data-theme="light"] [data-coluna-etapa] > div > div[draggable="true"] { background: #ffffff !important; }
   * { box-sizing: border-box; }
   html, body { background: var(--body-bg-1); }
   body { margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif; background: linear-gradient(180deg,var(--body-bg-1) 0%,var(--body-bg-2) 100%); color: var(--text); line-height: 1.55; min-height: 100vh; }
@@ -756,19 +754,8 @@
         <!-- preenchido por renderSidebarEmpresas() -->
       </aside>
     </div>
-    <div id="empresas-kanban-root" style="display:none"></div>
     </div><!-- /aba-empresas -->
 
-    <div id="aba-pipeline" style="display:none">
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; flex-wrap:wrap; gap: 10px">
-        <div>
-          <h1 style="text-transform:none;font-size:22px;margin:0">Pipeline · Funil de Mentoria</h1>
-          <p style="margin:4px 0 0;font-size:12px;color:var(--text-dim)">Distribuição automática das empresas pelas etapas do funil. Filtros da aba Empresas se aplicam aqui também.</p>
-        </div>
-        <button class="btn btn-secondary" onclick="renderPipeline()">↻ Atualizar</button>
-      </div>
-      <div id="pipeline-root" style="display:flex;gap:10px;overflow-x:auto;padding-bottom:10px"></div>
-    </div>
 
     <div id="aba-agenda" style="display:none">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; flex-wrap:wrap; gap: 10px">
@@ -1218,7 +1205,7 @@
     </div>
   </div>
 
-  <footer>Método Gestão Life · Gestão PRO<br><small>Ferramenta interna · Planos de Ação v3.9 · build 04/05 alinhamento-fix</small></footer>
+  <footer>Método Gestão Life · Gestão PRO<br><small>Ferramenta interna · Planos de Ação v4.0 · build 04/05 kanban-pipeline-removidos</small></footer>
 </div>
 
 <!-- Modal: VISUALIZAR compromisso (read-only) com botões de cobrança -->
@@ -2214,10 +2201,7 @@ function descartarRascunhoKey(key) {
 
 // Wrapper pra render a Lista usando o cache atual (mesmas regras de filtro)
 function renderListaEmpresas() {
-  const visAtual = _visaoEmpresas;
-  _visaoEmpresas = 'lista';
   renderEmpresas(_empresasCache);
-  _visaoEmpresas = visAtual;
 }
 
 function renderEmpresas(lista) {
@@ -2246,22 +2230,8 @@ function renderEmpresas(lista) {
   popularFiltroConsultor();
   // Atualiza card de rascunhos novos no topo
   renderRascunhosNovos();
-  // Roteia conforme visão atual
-  const _vis = _visaoEmpresas || 'kanban';
   const _lista = $('empresas-root');
-  const _kanban = $('empresas-kanban-root');
-  const _btnCfg = $('btn-config-colunas');
-  if (_vis === 'kanban') {
-    if (_lista) _lista.style.display = 'none';
-    if (_kanban) _kanban.style.display = 'flex';
-    if (_btnCfg) _btnCfg.style.display = '';
-    renderKanbanEmpresas();
-    return;
-  }
-  // visão lista
   if (_lista) _lista.style.display = '';
-  if (_kanban) _kanban.style.display = 'none';
-  if (_btnCfg) _btnCfg.style.display = 'none';
   if (!cache.length) {
     $('empresas-root').innerHTML = `<div class="empty-state"><div class="icon">📂</div><p>Nenhuma empresa cadastrada ainda.</p><p>Clique em <strong>"+ Criar nova reunião"</strong> para começar.</p></div>`;
     return;
@@ -2583,8 +2553,7 @@ async function marcarOnboardingEmpresa(empresa, cnpj) {
 }
 
 function filtrarEmpresas() {
-  if (_visaoEmpresas === 'kanban') renderKanbanEmpresas();
-  else renderEmpresas(_empresasCache);
+  renderEmpresas(_empresasCache);
 }
 
 // =========== CRM — Card no histórico + modal de edição ===========
@@ -2788,7 +2757,6 @@ function trocarAba(aba) {
         (aba === 'compromissos' && b.textContent.includes('Compromissos'))) b.classList.add('ativa');
   });
   $('aba-empresas').style.display = aba === 'empresas' ? '' : 'none';
-  if ($('aba-pipeline')) $('aba-pipeline').style.display = aba === 'pipeline' ? '' : 'none';
   $('aba-agenda').style.display = aba === 'agenda' ? '' : 'none';
   $('aba-compromissos').style.display = aba === 'compromissos' ? '' : 'none';
   if (aba === 'empresas') {
@@ -2802,9 +2770,6 @@ function trocarAba(aba) {
   if (aba === 'compromissos') {
     carregarCompromissos();
   }
-  if (aba === 'pipeline') {
-    renderPipeline();
-  }
 }
 
 // === PIPELINE / KANBAN ===
@@ -2817,399 +2782,8 @@ const PIPELINE_ETAPAS = [
   { id: 'cancelado',      label: '🚫 Cancelado',         cor: '#94a3b8', desc: 'Encerrado / Cancelado' }
 ];
 
-// === Visão Empresas: agora apenas Lista (kanban removido) ===
-let _visaoEmpresas = 'lista';
-const KANBAN_CFG_KEY = 'kanban_colunas_v1';
+// === [REMOVIDO: Kanban + Pipeline] — só Lista agora ===
 
-function getConfigColunas() {
-  // Retorna config salva ou padrão (todas visíveis na ordem default)
-  try {
-    const raw = localStorage.getItem(KANBAN_CFG_KEY);
-    if (raw) {
-      const cfg = JSON.parse(raw);
-      if (Array.isArray(cfg) && cfg.length) {
-        // Valida cada item — descarta etapas que não existem mais
-        const validas = cfg.filter(c => PIPELINE_ETAPAS.some(p => p.id === c.id));
-        // Adiciona etapas que possa ter sido criada depois
-        PIPELINE_ETAPAS.forEach(p => { if (!validas.find(v => v.id === p.id)) validas.push({ id: p.id, visivel: true }); });
-        return validas;
-      }
-    }
-  } catch (e) {}
-  return PIPELINE_ETAPAS.map(p => ({ id: p.id, visivel: true }));
-}
-
-function trocarVisaoEmpresas(visao) {
-  if (visao !== 'lista' && visao !== 'kanban') visao = 'kanban';
-  _visaoEmpresas = visao;
-  try { localStorage.setItem('visao_empresas_v1', visao); } catch(e) {}
-  // Atualiza visual dos botões
-  ['lista','kanban'].forEach(v => {
-    const b = $('btn-vis-' + v);
-    if (!b) return;
-    if (v === visao) { b.style.background = 'rgba(77,201,255,.18)'; b.style.color = 'var(--accent)'; }
-    else { b.style.background = 'transparent'; b.style.color = 'var(--text-dim)'; }
-  });
-  const lista = $('empresas-root');
-  const kanban = $('empresas-kanban-root');
-  const btnCfg = $('btn-config-colunas');
-  if (visao === 'lista') {
-    if (lista) lista.style.display = '';
-    if (kanban) kanban.style.display = 'none';
-    if (btnCfg) btnCfg.style.display = 'none';
-    renderListaEmpresas();
-  } else {
-    if (lista) lista.style.display = 'none';
-    if (kanban) kanban.style.display = 'flex';
-    if (btnCfg) btnCfg.style.display = '';
-    renderKanbanEmpresas();
-  }
-}
-
-function renderKanbanEmpresas() {
-  // Reusa a lógica do filtro da lista (mesmas variáveis: termo, filtros, etc)
-  const root = $('empresas-kanban-root');
-  if (!root) return;
-  const cfg = getConfigColunas().filter(c => c.visivel !== false);
-  const cache = (_empresasCache || []).slice();
-  const termo = ($('busca')?.value || '').trim().toLowerCase();
-  const fStatus = $('filtro-status')?.value || '';
-  const fNivel = $('filtro-nivel')?.value || '';
-  const fConsultor = $('filtro-consultor')?.value || '';
-  const fSegmento = $('filtro-segmento')?.value || '';
-  const fOnb = $('filtro-onb')?.value || '';
-  const fContato = $('filtro-contato')?.value || '';
-  const fEtapa = $('filtro-etapa')?.value || '';
-  const fDiag = $('filtro-diag')?.value || '';
-  const meuNome = consultorLogado?.nome || '';
-
-  const empresasFiltradas = cache.filter(e => {
-    const crm = getCRMByEmpresa(e.empresa) || {};
-    const base = getBaseByEmpresa(e.empresa, e.cnpj || crm.cnpj);
-    const statusEmpresa = crm.status || (base && base.status) || 'Ativo';
-    if (termo && !(e.empresa||'').toLowerCase().includes(termo) && !(e.cnpj||'').includes(termo) && !(crm.cnpj||'').includes(termo)) return false;
-    if (fStatus && statusEmpresa !== fStatus) return false;
-    if (fSegmento && (!base || base.segmento !== fSegmento)) return false;
-    if (fOnb === 'feito' && !crm.onboardingEm) return false;
-    if (fOnb === 'pendente' && crm.onboardingEm) return false;
-    if (fContato) {
-      const dias = diasDesdeContato(crm);
-      if (fContato === 'recente' && (dias == null || dias > 7)) return false;
-      if (fContato === 'atencao' && (dias == null || dias <= 7 || dias > 14)) return false;
-      if (fContato === 'alerta' && (dias == null || dias <= 14)) return false;
-      if (fContato === 'nunca' && dias != null) return false;
-    }
-    if (fConsultor) {
-      const alvo = fConsultor.trim().toLowerCase();
-      const principal = (crm.consultorPrincipal || '').trim().toLowerCase();
-      const apoio = (Array.isArray(crm.consultoresApoio) ? crm.consultoresApoio.join(',') : (crm.consultoresApoio || '')).toLowerCase();
-      const especialistaBase = (base && base.especialista || '').trim().toLowerCase();
-      const bate = principal === alvo || apoio.includes(alvo) || especialistaBase === alvo || especialistaBase.includes(alvo) || alvo.includes(especialistaBase);
-      if (!bate) return false;
-    }
-    if (_filtroMinhasAtivo && meuNome) {
-      const alvo = meuNome.trim().toLowerCase();
-      const principal = (crm.consultorPrincipal || '').trim().toLowerCase();
-      const apoio = (Array.isArray(crm.consultoresApoio) ? crm.consultoresApoio.join(',') : (crm.consultoresApoio || '')).toLowerCase();
-      const especialistaBase = (base && base.especialista || '').trim().toLowerCase();
-      const bate = principal === alvo || apoio.includes(alvo) || especialistaBase === alvo || especialistaBase.includes(alvo) || alvo.includes(especialistaBase);
-      if (!bate) return false;
-    }
-    if (fEtapa) {
-      const etapa = calcularEtapaEmpresa(e, crm);
-      if (etapa.id !== fEtapa) return false;
-    }
-    if (fDiag) {
-      if (fDiag === 'completo' && e.statusDiagnostico !== 'COMPLETO') return false;
-      if (fDiag === 'pendente' && e.statusDiagnostico !== 'PENDENTE_FASE2') return false;
-      if (fDiag === 'sem' && (!e.origemBase || e.statusDiagnostico === 'COMPLETO' || e.statusDiagnostico === 'PENDENTE_FASE2')) return false;
-    }
-    // Cancelado é mostrado se o filtro Status for Cancelado OU se a coluna Cancelado estiver visível no kanban
-    if (!fStatus && (statusEmpresa === 'Cancelado' || statusEmpresa === 'Encerrado')) {
-      const colunaCancelVisivel = cfg.some(c => c.id === 'cancelado');
-      if (!colunaCancelVisivel) return false;
-    }
-    return true;
-  });
-
-  // Distribui por etapa
-  const porEtapa = {};
-  PIPELINE_ETAPAS.forEach(p => { porEtapa[p.id] = []; });
-  empresasFiltradas.forEach(e => {
-    const crm = getCRMByEmpresa(e.empresa) || {};
-    const etapa = calcularEtapaEmpresa(e, crm);
-    if (porEtapa[etapa.id]) porEtapa[etapa.id].push({ e, crm });
-  });
-
-  // Renderiza só as colunas visíveis e na ordem configurada
-  root.innerHTML = cfg.map(item => {
-    const et = PIPELINE_ETAPAS.find(p => p.id === item.id);
-    if (!et) return '';
-    const lista = porEtapa[et.id] || [];
-    const cards = lista.map(({ e, crm }) => {
-      const base = getBaseByEmpresa(e.empresa, e.cnpj || crm.cnpj) || {};
-      const principal = crm.consultorPrincipal || base.especialista || '';
-      const contato = statusContato(crm);
-      const tel = crm.telefone || base.telefone || '';
-      const empEsc = (e.empresa||'').replace(/'/g,"\\'");
-      const cnpjEsc = (e.cnpj || crm.cnpj || '').replace(/'/g,"\\'");
-      return `
-        <div draggable="true"
-          ondragstart="kanbanDragStart(event, '${empEsc}', '${cnpjEsc}', '${et.id}')"
-          ondragend="kanbanDragEnd(event)"
-          onclick="abrirHistorico('${empEsc}')"
-          style="background:rgba(15,23,42,.7);border:1px solid var(--border);border-left:3px solid ${et.cor};border-radius:8px;padding:10px 12px;cursor:grab;transition:all .15s"
-          onmouseover="this.style.background='rgba(15,23,42,.9)'"
-          onmouseout="this.style.background='rgba(15,23,42,.7)'">
-          <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:4px;line-height:1.3">${e.empresa.replace(/</g,'&lt;')}</div>
-          <div style="font-size:11px;color:var(--text-dim);margin-bottom:6px">${principal ? '👤 ' + principal : '— sem consultor'}</div>
-          <div style="display:flex;justify-content:space-between;align-items:center;gap:6px;font-size:10.5px">
-            <span style="color:${contato.cor};font-weight:600">${contato.label}</span>
-            <span style="color:var(--text-dim)">${e.reunioes ? e.reunioes + ' R.' : 'sem reun.'}</span>
-          </div>
-          <div style="display:flex;gap:4px;margin-top:6px">
-            <button onclick="event.stopPropagation();marcarConversa('${empEsc}','${cnpjEsc}')" title="Conversei hoje" style="flex:1;background:rgba(77,201,255,.1);border:1px solid rgba(77,201,255,.3);color:var(--accent);border-radius:5px;padding:3px 6px;cursor:pointer;font-size:10.5px">💬</button>
-            ${tel ? `<a onclick="event.stopPropagation()" href="${gerarLinkWhatsApp(tel)}" target="_blank" style="flex:1;background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.3);color:#22c55e;border-radius:5px;padding:3px 6px;cursor:pointer;font-size:10.5px;text-align:center;text-decoration:none" title="WhatsApp">📱</a>` : ''}
-          </div>
-        </div>
-      `;
-    }).join('');
-    return `
-      <div data-coluna-etapa="${et.id}"
-        ondragover="kanbanDragOver(event, this)"
-        ondragleave="kanbanDragLeave(this)"
-        ondrop="kanbanDrop(event, '${et.id}', this)"
-        style="flex:0 0 290px;background:rgba(15,23,42,.4);border:1px solid var(--border);border-radius:10px;padding:12px;display:flex;flex-direction:column;gap:8px;transition:background .15s">
-        <div style="border-bottom:2px solid ${et.cor};padding-bottom:8px;margin-bottom:4px">
-          <div style="font-size:13px;font-weight:800;color:${et.cor}">${et.label}</div>
-          <div style="font-size:10.5px;color:var(--text-dim);margin-top:2px">${et.desc} · <strong>${lista.length}</strong></div>
-        </div>
-        <div style="display:flex;flex-direction:column;gap:8px;max-height:75vh;overflow-y:auto;padding-right:4px;min-height:60px">
-          ${cards || `<div style="text-align:center;padding:14px 6px;color:var(--text-dim);font-size:11px;font-style:italic">— vazia —</div>`}
-        </div>
-      </div>
-    `;
-  }).join('');
-}
-
-// === DRAG-AND-DROP do Kanban ===
-let _kanbanDragData = null;
-
-function kanbanDragStart(ev, empresa, cnpj, etapaOrigem) {
-  _kanbanDragData = { empresa, cnpj, etapaOrigem };
-  try { ev.dataTransfer.effectAllowed = 'move'; ev.dataTransfer.setData('text/plain', empresa); } catch(e) {}
-  ev.currentTarget.style.opacity = '0.4';
-}
-function kanbanDragEnd(ev) {
-  ev.currentTarget.style.opacity = '1';
-  // Reseta highlights
-  document.querySelectorAll('[data-coluna-etapa]').forEach(c => c.style.background = 'rgba(15,23,42,.4)');
-}
-function kanbanDragOver(ev, col) {
-  ev.preventDefault();
-  try { ev.dataTransfer.dropEffect = 'move'; } catch(e) {}
-  col.style.background = 'rgba(77,201,255,.10)';
-}
-function kanbanDragLeave(col) {
-  col.style.background = 'rgba(15,23,42,.4)';
-}
-async function kanbanDrop(ev, etapaDestino, col) {
-  ev.preventDefault();
-  col.style.background = 'rgba(15,23,42,.4)';
-  if (!_kanbanDragData) return;
-  const { empresa, cnpj, etapaOrigem } = _kanbanDragData;
-  _kanbanDragData = null;
-  if (etapaOrigem === etapaDestino) return; // mesmo lugar
-
-  // Decide ação conforme destino
-  if (etapaDestino === 'onboarding') {
-    // Marca onboarding (com data de hoje)
-    if (!confirm(`Marcar onboarding como concluído para "${empresa}"?`)) return;
-    try {
-      await chamarAPI('marcar-onboarding', {
-        empresa, cnpj,
-        consultor: consultorLogado?.nome || ''
-      });
-      toast('✓ Onboarding marcado', 2500, false, true);
-      await carregarCRM();
-      renderKanbanEmpresas();
-    } catch (err) { toast('❌ ' + err.message, 4000, true); }
-    return;
-  }
-
-  if (etapaDestino === 'sem_onboarding') {
-    toast('⚠ Pra desfazer onboarding, edite a empresa manualmente no CRM', 4000, true);
-    return;
-  }
-
-  if (etapaDestino === 'cancelado') {
-    if (!confirm(`Cancelar empresa "${empresa}"?\n\nIsso muda o status pra Cancelado e move pra aba de cancelados.`)) return;
-    const motivo = prompt('Motivo do cancelamento (opcional):') || '';
-    try {
-      await chamarAPI('cancelar-empresa', { empresa, cnpj, motivo });
-      toast('✓ Empresa cancelada', 2500, false, true);
-      await carregarCRM();
-      renderKanbanEmpresas();
-    } catch (err) { toast('❌ ' + err.message, 4000, true); }
-    return;
-  }
-
-  // r1_r3, r4_r6, avancado: precisa criar reuniões — não dá pra arrastar
-  if (['r1_r3','r4_r6','avancado'].includes(etapaDestino)) {
-    toast('ℹ️ Pra avançar de fase, crie uma nova reunião pelo histórico da empresa', 4500);
-    return;
-  }
-}
-
-// Modal de configuração das colunas
-let _cfgColunasTemp = null;
-
-function abrirConfigColunas() {
-  _cfgColunasTemp = getConfigColunas().slice();
-  renderConfigColunas();
-  $('modal-config-colunas').classList.add('show');
-}
-
-function renderConfigColunas() {
-  const root = $('config-colunas-lista');
-  if (!root) return;
-  root.innerHTML = _cfgColunasTemp.map((c, idx) => {
-    const et = PIPELINE_ETAPAS.find(p => p.id === c.id);
-    if (!et) return '';
-    return `
-      <div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:rgba(15,23,42,.4);border:1px solid var(--border);border-left:3px solid ${et.cor};border-radius:8px">
-        <input type="checkbox" ${c.visivel !== false ? 'checked' : ''} onchange="toggleColunaVisivel(${idx})" style="cursor:pointer;width:18px;height:18px">
-        <div style="flex:1;font-size:13px;font-weight:600">${et.label}</div>
-        <button onclick="moverColuna(${idx}, -1)" ${idx === 0 ? 'disabled' : ''} style="background:rgba(77,201,255,.1);border:1px solid var(--border);color:var(--text);padding:4px 8px;border-radius:5px;cursor:pointer;font-size:13px">↑</button>
-        <button onclick="moverColuna(${idx}, 1)" ${idx === _cfgColunasTemp.length - 1 ? 'disabled' : ''} style="background:rgba(77,201,255,.1);border:1px solid var(--border);color:var(--text);padding:4px 8px;border-radius:5px;cursor:pointer;font-size:13px">↓</button>
-      </div>
-    `;
-  }).join('');
-}
-
-function toggleColunaVisivel(idx) {
-  if (!_cfgColunasTemp[idx]) return;
-  _cfgColunasTemp[idx].visivel = !(_cfgColunasTemp[idx].visivel !== false);
-  renderConfigColunas();
-}
-
-function moverColuna(idx, delta) {
-  const novoIdx = idx + delta;
-  if (novoIdx < 0 || novoIdx >= _cfgColunasTemp.length) return;
-  const item = _cfgColunasTemp.splice(idx, 1)[0];
-  _cfgColunasTemp.splice(novoIdx, 0, item);
-  renderConfigColunas();
-}
-
-function salvarConfigColunas() {
-  try {
-    localStorage.setItem(KANBAN_CFG_KEY, JSON.stringify(_cfgColunasTemp));
-  } catch (e) {}
-  $('modal-config-colunas').classList.remove('show');
-  toast('✓ Colunas salvas', 2000, false, true);
-  if (_visaoEmpresas === 'kanban') renderKanbanEmpresas();
-}
-
-function resetarConfigColunas() {
-  if (!confirm('Voltar pra configuração padrão de colunas?')) return;
-  try { localStorage.removeItem(KANBAN_CFG_KEY); } catch (e) {}
-  _cfgColunasTemp = getConfigColunas().slice();
-  renderConfigColunas();
-}
-
-function renderPipeline() {
-  const root = $('pipeline-root');
-  if (!root) return;
-  // Aplica os mesmos filtros da aba empresas (busca, especialista, segmento, status, etc.)
-  const cache = (_empresasCache || []).slice();
-  const termo = ($('busca').value || '').trim().toLowerCase();
-  const fStatus = $('filtro-status')?.value || '';
-  const fNivel = $('filtro-nivel')?.value || '';
-  const fConsultor = $('filtro-consultor')?.value || '';
-  const fSegmento = $('filtro-segmento')?.value || '';
-  const fOnb = $('filtro-onb')?.value || '';
-  const fContato = $('filtro-contato')?.value || '';
-  const meuNome = consultorLogado?.nome || '';
-
-  const empresasFiltradas = cache.filter(e => {
-    const crm = getCRMByEmpresa(e.empresa) || {};
-    const base = getBaseByEmpresa(e.empresa, e.cnpj || crm.cnpj);
-    const statusEmpresa = crm.status || (base && base.status) || 'Ativo';
-    if (termo && !(e.empresa||'').toLowerCase().includes(termo) && !(e.cnpj||'').includes(termo) && !(crm.cnpj||'').includes(termo)) return false;
-    if (fStatus && statusEmpresa !== fStatus) return false;
-    if (fSegmento && (!base || base.segmento !== fSegmento)) return false;
-    if (fOnb === 'feito' && !crm.onboardingEm) return false;
-    if (fOnb === 'pendente' && crm.onboardingEm) return false;
-    if (fContato) {
-      const dias = diasDesdeContato(crm);
-      if (fContato === 'recente' && (dias == null || dias > 7)) return false;
-      if (fContato === 'atencao' && (dias == null || dias <= 7 || dias > 14)) return false;
-      if (fContato === 'alerta' && (dias == null || dias <= 14)) return false;
-      if (fContato === 'nunca' && dias != null) return false;
-    }
-    if (fConsultor) {
-      const alvo = fConsultor.trim().toLowerCase();
-      const principal = (crm.consultorPrincipal || '').trim().toLowerCase();
-      const apoio = (Array.isArray(crm.consultoresApoio) ? crm.consultoresApoio.join(',') : (crm.consultoresApoio || '')).toLowerCase();
-      const especialistaBase = (base && base.especialista || '').trim().toLowerCase();
-      const bate = principal === alvo || apoio.includes(alvo) || especialistaBase === alvo || especialistaBase.includes(alvo) || alvo.includes(especialistaBase);
-      if (!bate) return false;
-    }
-    return true;
-  });
-
-  // Distribui por etapa
-  const porEtapa = { posvenda: [], onboarding: [], diagnostico: [], acompanhamento: [], cancelado: [] };
-  empresasFiltradas.forEach(e => {
-    const crm = getCRMByEmpresa(e.empresa) || {};
-    const etapa = calcularEtapaEmpresa(e, crm);
-    if (porEtapa[etapa.id]) porEtapa[etapa.id].push({ e, crm });
-  });
-
-  // Renderiza colunas
-  root.innerHTML = PIPELINE_ETAPAS.map(et => {
-    const lista = porEtapa[et.id] || [];
-    const cards = lista.map(({ e, crm }) => {
-      const base = getBaseByEmpresa(e.empresa, e.cnpj || crm.cnpj) || {};
-      const principal = crm.consultorPrincipal || base.especialista || '';
-      const contato = statusContato(crm);
-      const tel = crm.telefone || base.telefone || '';
-      const empEsc = (e.empresa||'').replace(/'/g,"\\'");
-      const cnpjEsc = (e.cnpj || crm.cnpj || '').replace(/'/g,"\\'");
-      return `
-        <div draggable="true"
-          ondragstart="kanbanDragStart(event, '${empEsc}', '${cnpjEsc}', '${et.id}')"
-          ondragend="kanbanDragEnd(event)"
-          onclick="abrirHistorico('${empEsc}')"
-          style="background:rgba(15,23,42,.7);border:1px solid var(--border);border-left:3px solid ${et.cor};border-radius:8px;padding:10px 12px;cursor:grab;transition:all .15s"
-          onmouseover="this.style.background='rgba(15,23,42,.9)'"
-          onmouseout="this.style.background='rgba(15,23,42,.7)'">
-          <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:4px;line-height:1.3">${e.empresa.replace(/</g,'&lt;')}</div>
-          <div style="font-size:11px;color:var(--text-dim);margin-bottom:6px">${principal ? '👤 ' + principal : '— sem consultor'}</div>
-          <div style="display:flex;justify-content:space-between;align-items:center;gap:6px;font-size:10.5px">
-            <span style="color:${contato.cor};font-weight:600">${contato.label}</span>
-            <span style="color:var(--text-dim)">${e.reunioes ? e.reunioes + ' R.' : 'sem reun.'}</span>
-          </div>
-          <div style="display:flex;gap:4px;margin-top:6px">
-            <button onclick="event.stopPropagation();marcarConversa('${empEsc}','${cnpjEsc}')" title="Conversei hoje" style="flex:1;background:rgba(77,201,255,.1);border:1px solid rgba(77,201,255,.3);color:var(--accent);border-radius:5px;padding:3px 6px;cursor:pointer;font-size:10.5px">💬</button>
-            ${tel ? `<a onclick="event.stopPropagation()" href="${gerarLinkWhatsApp(tel)}" target="_blank" style="flex:1;background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.3);color:#22c55e;border-radius:5px;padding:3px 6px;cursor:pointer;font-size:10.5px;text-align:center;text-decoration:none" title="WhatsApp">📱</a>` : ''}
-          </div>
-        </div>
-      `;
-    }).join('');
-    return `
-      <div style="flex:1;min-width:240px;max-width:280px;background:rgba(15,23,42,.4);border:1px solid var(--border);border-radius:10px;padding:12px;display:flex;flex-direction:column;gap:8px">
-        <div style="border-bottom:2px solid ${et.cor};padding-bottom:8px;margin-bottom:4px">
-          <div style="font-size:13px;font-weight:800;color:${et.cor}">${et.label}</div>
-          <div style="font-size:10.5px;color:var(--text-dim);margin-top:2px">${et.desc} · <strong>${lista.length}</strong></div>
-        </div>
-        <div style="display:flex;flex-direction:column;gap:8px;max-height:65vh;overflow-y:auto;padding-right:4px">
-          ${cards || `<div style="text-align:center;padding:14px 6px;color:var(--text-dim);font-size:11px;font-style:italic">— vazia —</div>`}
-        </div>
-      </div>
-    `;
-  }).join('');
-}
 
 // === VISÕES DA AGENDA: Mês / Semana / Dia ===
 let _agendaVisao = 'mes'; // 'mes' | 'semana' | 'dia'
