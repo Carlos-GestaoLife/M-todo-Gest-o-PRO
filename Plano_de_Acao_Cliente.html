@@ -53,7 +53,7 @@
   * { box-sizing: border-box; }
   html, body { background: var(--body-bg-1); }
   body { margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif; background: linear-gradient(180deg,var(--body-bg-1) 0%,var(--body-bg-2) 100%); color: var(--text); line-height: 1.55; min-height: 100vh; }
-  .container { max-width: 1000px; margin: 0 auto; padding: 32px 24px 80px; }
+  .container { max-width: 1400px; margin: 0 auto; padding: 32px 24px 80px; }
   .site-logo { display:flex; align-items:center; justify-content:center; padding: 20px 16px 10px; }
   .site-logo svg { width: 160px; height: auto; }
 
@@ -91,28 +91,29 @@
     .hist-sidebar { position: static; }
   }
   /* Layout 2 colunas na aba Empresas (lista + sidebar) */
-  .empresas-layout { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 18px; align-items: start; }
+  .empresas-layout { display: grid; grid-template-columns: minmax(0, 1fr) 380px; gap: 20px; align-items: start; }
   .empresas-main { min-width: 0; }
   .empresas-sidebar { position: sticky; top: 16px; display: flex; flex-direction: column; gap: 14px; }
-  .empresas-sidebar .side-card { background: rgba(15,23,42,.5); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; }
-  .empresas-sidebar .side-card h4 { margin: 0 0 10px; font-size: 12px; color: var(--text-dim); text-transform: uppercase; letter-spacing: .5px; font-weight: 700; }
+  .empresas-sidebar .side-card { background: rgba(15,23,42,.5); border: 1px solid var(--border); border-radius: 10px; padding: 16px 18px; }
+  .empresas-sidebar .side-card h4 { margin: 0 0 12px; font-size: 12.5px; color: var(--text-dim); text-transform: uppercase; letter-spacing: .5px; font-weight: 700; }
   [data-theme="light"] .empresas-sidebar .side-card { background: rgba(15,23,42,.04); }
-  @media (max-width: 1000px) {
+  @media (max-width: 1100px) {
     .empresas-layout { grid-template-columns: 1fr; }
     .empresas-sidebar { position: static; order: -1; }
   }
-  /* Mini calendário */
-  .mini-cal { display:grid; grid-template-columns: repeat(7, 1fr); gap: 2px; font-size: 10.5px; }
-  .mini-cal-dow { text-align: center; color: var(--text-dim); font-weight: 700; padding: 4px 0; font-size: 9.5px; text-transform: uppercase; }
-  .mini-cal-dia { aspect-ratio: 1 / 1; display: flex; align-items: center; justify-content: center; border-radius: 5px; cursor: pointer; transition: all .15s; position: relative; }
+  /* Mini calendário (sidebar maior) */
+  .mini-cal { display:grid; grid-template-columns: repeat(7, 1fr); gap: 3px; font-size: 12px; }
+  .mini-cal-dow { text-align: center; color: var(--text-dim); font-weight: 700; padding: 6px 0; font-size: 10.5px; text-transform: uppercase; letter-spacing: .5px; }
+  .mini-cal-dia { aspect-ratio: 1 / 1; display: flex; align-items: center; justify-content: center; border-radius: 6px; cursor: pointer; transition: all .15s; position: relative; font-weight: 500; }
   .mini-cal-dia:hover { background: rgba(77,201,255,.15); color: var(--accent); }
-  .mini-cal-dia.outro-mes { color: var(--text-dim); opacity: .35; }
+  .mini-cal-dia.outro-mes { color: var(--text-dim); opacity: .3; }
   .mini-cal-dia.hoje { background: rgba(77,201,255,.25); color: var(--accent); font-weight: 800; border: 1px solid var(--accent); }
-  .mini-cal-dia.tem-evento::after { content: ''; position: absolute; bottom: 3px; left: 50%; transform: translateX(-50%); width: 4px; height: 4px; background: var(--warning); border-radius: 50%; }
+  .mini-cal-dia.tem-evento::after { content: ''; position: absolute; bottom: 4px; left: 50%; transform: translateX(-50%); width: 5px; height: 5px; background: var(--warning); border-radius: 50%; }
   .mini-cal-dia.hoje.tem-evento::after { background: #fff; }
-  .mini-cal-nav { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
-  .mini-cal-nav button { background: transparent; border: 1px solid var(--border); color: var(--text); padding: 3px 8px; border-radius: 5px; cursor: pointer; font-size: 12px; }
-  .mini-cal-mes { font-size: 12px; font-weight: 700; color: var(--accent); }
+  .mini-cal-nav { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+  .mini-cal-nav button { background: transparent; border: 1px solid var(--border); color: var(--text); padding: 4px 10px; border-radius: 6px; cursor: pointer; font-size: 14px; }
+  .mini-cal-nav button:hover { background: rgba(77,201,255,.1); color: var(--accent); border-color: var(--accent); }
+  .mini-cal-mes { font-size: 14px; font-weight: 700; color: var(--accent); }
   .dash-user { font-size: 13px; color: var(--text-dim); }
   .dash-user strong { color: var(--accent); }
   .btn-logout { background: transparent; border: 1px solid var(--border); color: var(--text-dim); padding: 6px 14px; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer; }
@@ -1217,7 +1218,7 @@
     </div>
   </div>
 
-  <footer>Método Gestão Life · Gestão PRO<br><small>Ferramenta interna · Planos de Ação v3.6 · build 04/05 sidebar-empresas-mini-cal</small></footer>
+  <footer>Método Gestão Life · Gestão PRO<br><small>Ferramenta interna · Planos de Ação v3.7 · build 04/05 limpa-badges-sidebar-maior</small></footer>
 </div>
 
 <!-- Modal: VISUALIZAR compromisso (read-only) com botões de cobrança -->
@@ -2045,12 +2046,12 @@ async function renderSidebarEmpresas() {
       const h = `${String(dt.getHours()).padStart(2,'0')}:${String(dt.getMinutes()).padStart(2,'0')}`;
       const tit = (ev.titulo || '—').replace(/</g,'&lt;');
       return `
-        <div onclick="verEvento('${ev.id}')" style="display:flex;gap:8px;padding:7px 8px;border-radius:6px;cursor:pointer;background:rgba(77,201,255,.06);border:1px solid rgba(77,201,255,.2);margin-bottom:5px">
-          <div style="flex-shrink:0;text-align:center;min-width:42px">
-            <div style="font-size:9px;color:var(--accent);font-weight:700;text-transform:uppercase">${dia.replace('.','')}</div>
-            <div style="font-size:11px;font-weight:800">${h}</div>
+        <div onclick="verEvento('${ev.id}')" style="display:flex;gap:10px;padding:9px 10px;border-radius:8px;cursor:pointer;background:rgba(77,201,255,.06);border:1px solid rgba(77,201,255,.2);margin-bottom:6px;align-items:center">
+          <div style="flex-shrink:0;text-align:center;min-width:54px;padding:4px 6px;background:rgba(77,201,255,.1);border-radius:6px">
+            <div style="font-size:10px;color:var(--accent);font-weight:700;text-transform:uppercase">${dia.replace('.','')}</div>
+            <div style="font-size:13px;font-weight:800;color:var(--accent)">${h}</div>
           </div>
-          <div style="flex:1;min-width:0;font-size:11.5px;font-weight:600;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${tit}</div>
+          <div style="flex:1;min-width:0;font-size:13px;font-weight:600;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${tit}</div>
         </div>
       `;
     }).join('');
@@ -2080,13 +2081,13 @@ async function renderSidebarEmpresas() {
         const dia = dt.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' });
         const empEsc = (c.empresa || '').replace(/'/g,"\\'");
         return `
-          <div onclick="abrirHistorico('${empEsc}')" style="display:flex;gap:8px;padding:7px 8px;border-radius:6px;cursor:pointer;background:rgba(251,191,36,.06);border:1px solid rgba(251,191,36,.2);margin-bottom:5px">
-            <div style="flex-shrink:0;text-align:center;min-width:42px">
-              <div style="font-size:9px;color:var(--warning);font-weight:700;text-transform:uppercase">${dia.replace('.','')}</div>
+          <div onclick="abrirHistorico('${empEsc}')" style="display:flex;gap:10px;padding:9px 10px;border-radius:8px;cursor:pointer;background:rgba(251,191,36,.06);border:1px solid rgba(251,191,36,.2);margin-bottom:6px;align-items:center">
+            <div style="flex-shrink:0;text-align:center;min-width:54px;padding:6px 6px;background:rgba(251,191,36,.1);border-radius:6px">
+              <div style="font-size:10px;color:var(--warning);font-weight:700;text-transform:uppercase">${dia.replace('.','')}</div>
             </div>
-            <div style="flex:1;min-width:0;font-size:11.5px;color:var(--text)">
+            <div style="flex:1;min-width:0;font-size:13px;color:var(--text)">
               <div style="font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${(c.empresa || '—').replace(/</g,'&lt;')}</div>
-              <div style="color:var(--text-dim);font-size:10.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${(c.descricao || '—').replace(/</g,'&lt;')}</div>
+              <div style="color:var(--text-dim);font-size:11.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-top:2px">${(c.descricao || '—').replace(/</g,'&lt;')}</div>
             </div>
           </div>
         `;
@@ -2384,28 +2385,29 @@ function renderEmpresas(lista) {
       }
     }
 
-    // Status de Onboarding — badge SÓ aparece se está faltando (vermelho).
-    // Quando feito, esconde pra não poluir.
+    // Status de Onboarding — só botão de marcar quando não tem onb e não tem reunião
     const onbEm = crm.onboardingEm || '';
     const onbPor = crm.onboardingPor || '';
-    let badgeOnb = '';
     let textoCount = '';
     let btnOnb = '';
     if (e.reunioes) {
       textoCount = e.reunioes + ' reuniã' + (e.reunioes > 1 ? 'ões' : 'o');
-      // Sem badge verde, mantém limpo
     } else if (onbEm) {
-      // Onboarding feito mas sem reuniões — ainda discreto, sem badge verde
       textoCount = `✓ Onboarding`;
     } else {
-      // Sem reunião e sem onboarding — alerta vermelho
-      textoCount = `🆕 Sem onboarding`;
-      badgeOnb = `<span class="status-badge" style="background:rgba(248,113,113,.15);color:#f87171">🆕 Sem onboarding</span>`;
+      // Sem reunião e sem onboarding — mostra botão pra marcar
+      textoCount = '';
       btnOnb = `<button onclick="event.stopPropagation();marcarOnboardingEmpresa('${(e.empresa||'').replace(/'/g,"\\'")}','${(e.cnpj||crm.cnpj||'').replace(/'/g,"\\'")}')" class="btn btn-secondary" style="padding:4px 10px;font-size:11px;background:rgba(34,197,94,.12);color:#22c55e;border-color:rgba(34,197,94,.4);margin-top:6px">✓ Marcar onboarding feito</button>`;
     }
 
     // Etapa do pipeline + status de contato
     const etapa = calcularEtapaEmpresa(e, crm);
+    // Override do label: mostra reunião EXATA (R1, R2, R3...) em vez do range
+    const _nReun = Number(e.reunioes) || 0;
+    let etapaLabel = etapa.label;
+    if (etapa.id === 'r1_r3' || etapa.id === 'r4_r6' || etapa.id === 'avancado') {
+      etapaLabel = `🚀 R${_nReun}`;
+    }
     const contato = statusContato(crm);
     const cnpjEsc = (e.cnpj || crm.cnpj || '').replace(/'/g,"\\'");
     const empEsc = (e.empresa||'').replace(/'/g,"\\'");
@@ -2440,12 +2442,11 @@ function renderEmpresas(lista) {
         <p>${telefLabel ? telefLabel + ' · ' : ''}${principal ? '👤 ' + principal + ' · ' : ''}${subInfo}</p>
         ${linhaBase ? '<p style="font-size:11.5px;color:var(--text-dim);margin-top:4px">' + linhaBase + '</p>' : ''}
         <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px">
-          <span class="status-badge" style="background:${etapa.cor}30;color:${etapa.cor};border:1px solid ${etapa.cor}50">${etapa.label}</span>
+          <span class="status-badge" style="background:${etapa.cor}30;color:${etapa.cor};border:1px solid ${etapa.cor}50">${etapaLabel}</span>
           <span class="status-badge ${statusClass}">${status}</span>
           ${crm.nivel ? '<span class="status-badge ativo" style="background:rgba(77,201,255,.15);color:var(--accent)">' + crm.nivel + '</span>' : ''}
           ${badgeDiag}
           ${badgeInad}
-          ${badgeOnb}
           ${badgeContato}
           ${temRasc ? '<span class="badge-rascunho">📝 Rascunho</span>' : ''}
         </div>
@@ -2454,7 +2455,7 @@ function renderEmpresas(lista) {
           ${btnOnb}
         </div>
       </div>
-      <div class="count">${textoCount}</div>
+      ${textoCount ? '<div class="count">' + textoCount + '</div>' : ''}
     </div>`;
   }).join('');
 }
