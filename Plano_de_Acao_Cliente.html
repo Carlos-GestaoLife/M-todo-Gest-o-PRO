@@ -52,13 +52,13 @@
   html, body { background: var(--body-bg-1); }
   body { margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif; background: linear-gradient(180deg,var(--body-bg-1) 0%,var(--body-bg-2) 100%); color: var(--text); line-height: 1.55; min-height: 100vh; }
   .container { max-width: 1400px; margin: 0 auto; padding: 32px 24px 80px; }
-  .site-logo { display:flex; align-items:center; justify-content:center; gap: 14px; padding: 22px 16px 14px; }
-  .site-logo .symbol-svg { width: 46px; height: 46px; color: var(--accent); flex-shrink: 0; filter: drop-shadow(0 0 10px rgba(77,201,255,.35)); }
-  .site-logo .word { display: flex; flex-direction: column; line-height: 1; gap: 3px; }
-  .site-logo .word .gl { font-size: 12px; letter-spacing: 4px; color: var(--text-dim); font-weight: 600; text-transform: uppercase; }
-  .site-logo .word .pro { font-size: 30px; letter-spacing: 3px; color: var(--text); font-weight: 900; background: linear-gradient(135deg, var(--accent), #7aa2ff); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
-  /* Logo SVG antigo escondido (mantemos só pra LOGO_PRO_SVG_STR não quebrar) */
-  .site-logo-legacy { display: none; }
+  /* Logo Gestão PRO oficial (versão completa com "Metodologia Guiada de Execução") */
+  .site-logo { display:flex; align-items:center; justify-content:center; padding: 26px 16px 18px; }
+  .site-logo .symbol-svg,
+  .site-logo .word { display: none; } /* esconde versão textual interna — usa a SVG oficial abaixo */
+  .site-logo-legacy { display: inline-block; }
+  .site-logo-legacy svg { width: 100%; max-width: 320px; height: auto; display: block; filter: drop-shadow(0 6px 24px rgba(77,201,255,.25)); }
+  @media (max-width: 600px) { .site-logo-legacy svg { max-width: 240px; } }
 
   .view { display: none; animation: fade .3s ease; }
   .view.show { display: block; }
@@ -1219,7 +1219,7 @@
     </div>
   </div>
 
-  <footer>Método Gestão Life · Gestão PRO<br><small>Ferramenta interna · Planos de Ação v4.4 · build 05/05 logo-pro-oficial + vincular-cnpj-manual</small></footer>
+  <footer>Método Gestão Life · Gestão PRO<br><small>Ferramenta interna · Planos de Ação v4.5 · build 05/05 logo-topo-restaurada</small></footer>
 </div>
 
 <!-- Modal: VISUALIZAR compromisso (read-only) com botões de cobrança -->
