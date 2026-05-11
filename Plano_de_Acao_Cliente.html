@@ -90,6 +90,29 @@
     .hist-layout { grid-template-columns: 1fr; }
     .hist-sidebar { position: static; }
   }
+  /* Layout 2 colunas na aba Empresas (lista + sidebar) */
+  .empresas-layout { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 18px; align-items: start; }
+  .empresas-main { min-width: 0; }
+  .empresas-sidebar { position: sticky; top: 16px; display: flex; flex-direction: column; gap: 14px; }
+  .empresas-sidebar .side-card { background: rgba(15,23,42,.5); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; }
+  .empresas-sidebar .side-card h4 { margin: 0 0 10px; font-size: 12px; color: var(--text-dim); text-transform: uppercase; letter-spacing: .5px; font-weight: 700; }
+  [data-theme="light"] .empresas-sidebar .side-card { background: rgba(15,23,42,.04); }
+  @media (max-width: 1000px) {
+    .empresas-layout { grid-template-columns: 1fr; }
+    .empresas-sidebar { position: static; order: -1; }
+  }
+  /* Mini calendário */
+  .mini-cal { display:grid; grid-template-columns: repeat(7, 1fr); gap: 2px; font-size: 10.5px; }
+  .mini-cal-dow { text-align: center; color: var(--text-dim); font-weight: 700; padding: 4px 0; font-size: 9.5px; text-transform: uppercase; }
+  .mini-cal-dia { aspect-ratio: 1 / 1; display: flex; align-items: center; justify-content: center; border-radius: 5px; cursor: pointer; transition: all .15s; position: relative; }
+  .mini-cal-dia:hover { background: rgba(77,201,255,.15); color: var(--accent); }
+  .mini-cal-dia.outro-mes { color: var(--text-dim); opacity: .35; }
+  .mini-cal-dia.hoje { background: rgba(77,201,255,.25); color: var(--accent); font-weight: 800; border: 1px solid var(--accent); }
+  .mini-cal-dia.tem-evento::after { content: ''; position: absolute; bottom: 3px; left: 50%; transform: translateX(-50%); width: 4px; height: 4px; background: var(--warning); border-radius: 50%; }
+  .mini-cal-dia.hoje.tem-evento::after { background: #fff; }
+  .mini-cal-nav { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+  .mini-cal-nav button { background: transparent; border: 1px solid var(--border); color: var(--text); padding: 3px 8px; border-radius: 5px; cursor: pointer; font-size: 12px; }
+  .mini-cal-mes { font-size: 12px; font-weight: 700; color: var(--accent); }
   .dash-user { font-size: 13px; color: var(--text-dim); }
   .dash-user strong { color: var(--accent); }
   .btn-logout { background: transparent; border: 1px solid var(--border); color: var(--text-dim); padding: 6px 14px; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer; }
@@ -639,11 +662,6 @@
           <p id="base-sync-info" style="margin:0;font-size:11px;color:var(--text-dim)">—</p>
         </div>
         <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
-          <div style="display:flex;gap:0;background:rgba(255,255,255,.05);border-radius:8px;padding:3px">
-            <button id="btn-vis-lista" onclick="trocarVisaoEmpresas('lista')" style="padding:6px 14px;border:none;background:rgba(77,201,255,.18);color:var(--accent);border-radius:6px;cursor:pointer;font-size:12px;font-weight:600">📋 Lista</button>
-            <button id="btn-vis-kanban" onclick="trocarVisaoEmpresas('kanban')" style="padding:6px 14px;border:none;background:transparent;color:var(--text-dim);border-radius:6px;cursor:pointer;font-size:12px;font-weight:600">📊 Kanban</button>
-          </div>
-          <button class="btn btn-secondary" id="btn-config-colunas" onclick="abrirConfigColunas()" title="Personalizar colunas do kanban">⚙ Colunas</button>
           <button class="btn btn-secondary" onclick="sincronizarBaseClientesManual()" title="Atualizar lista da Base Clientes">🔄 Sincronizar base</button>
           <button class="btn btn-secondary" onclick="gerarPDFBranco()" title="PDF em branco pra reunião presencial">📄 PDF em branco</button>
           <button class="btn btn-primary" onclick="novaEmpresa()">+ Criar nova reunião</button>
@@ -729,15 +747,15 @@
     </div>
 
     <div id="rascunhos-novos-root"></div>
-    <div id="empresas-root" class="empresa-grid" style="display:none"></div>
-    <div id="empresas-kanban-root" style="display:flex;gap:10px;overflow-x:auto;padding:8px 0 16px;
-      width:calc(100vw - 48px);
-      position:relative;
-      left:50%;
-      right:50%;
-      margin-left:calc(-50vw + 24px);
-      margin-right:calc(-50vw + 24px);
-      box-sizing:border-box"></div>
+    <div class="empresas-layout">
+      <div class="empresas-main">
+        <div id="empresas-root" class="empresa-grid"></div>
+      </div>
+      <aside class="empresas-sidebar" id="empresas-sidebar">
+        <!-- preenchido por renderSidebarEmpresas() -->
+      </aside>
+    </div>
+    <div id="empresas-kanban-root" style="display:none"></div>
     </div><!-- /aba-empresas -->
 
     <div id="aba-pipeline" style="display:none">
@@ -1199,7 +1217,7 @@
     </div>
   </div>
 
-  <footer>Método Gestão Life · Gestão PRO<br><small>Ferramenta interna · Planos de Ação v3.5 · build 30/04 ux-ajustes-logo</small></footer>
+  <footer>Método Gestão Life · Gestão PRO<br><small>Ferramenta interna · Planos de Ação v3.6 · build 04/05 sidebar-empresas-mini-cal</small></footer>
 </div>
 
 <!-- Modal: VISUALIZAR compromisso (read-only) com botões de cobrança -->
@@ -1665,6 +1683,7 @@ async function irDashboard() {
     ]);
     renderEmpresas(rEmp.empresas || []);
     carregarReunioesSemana();
+    renderSidebarEmpresas();
   } catch(err) { $('empresas-root').innerHTML = `<div class="empty-state"><div class="icon">⚠</div>${err.message}</div>`; }
 }
 
@@ -1938,6 +1957,183 @@ function tempoAtras(ts) {
   if (ago < 60) return `há ${ago} min`;
   if (ago < 1440) return `há ${Math.round(ago/60)}h`;
   return `em ${new Date(ts).toLocaleDateString('pt-BR')}`;
+}
+
+// === Sidebar da aba Empresas: mini calendário + reuniões + tarefas da semana ===
+let _miniCalMes = null; // primeiro dia do mês visível
+
+async function renderSidebarEmpresas() {
+  const root = $('empresas-sidebar');
+  if (!root) return;
+  if (!_miniCalMes) _miniCalMes = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
+
+  // Garante que os eventos do mês estão carregados
+  let eventosMes = _agendaEventos || [];
+  if (!eventosMes.length) {
+    try {
+      const ini = new Date(_miniCalMes);
+      const fim = new Date(_miniCalMes.getFullYear(), _miniCalMes.getMonth() + 1, 1);
+      const r = await chamarAPI('listar-eventos', { de: ini.toISOString(), ate: fim.toISOString() });
+      _agendaEventos = r.eventos || [];
+      eventosMes = _agendaEventos;
+    } catch (e) { console.warn('Sidebar: erro ao buscar eventos', e); }
+  }
+
+  // ----- Mini calendário -----
+  const MESES = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+  const DIAS_LBL = ['D','S','T','Q','Q','S','S'];
+  const mes = _miniCalMes.getMonth();
+  const ano = _miniCalMes.getFullYear();
+  const primeiroDia = new Date(ano, mes, 1);
+  const dowInicio = primeiroDia.getDay();
+  const inicioGrid = new Date(ano, mes, 1 - dowInicio);
+  const hoje = new Date(); hoje.setHours(0,0,0,0);
+  // Mapa: yyyy-mm-dd -> [eventos do dia]
+  const eventosPorDia = {};
+  (eventosMes || []).forEach(ev => {
+    try {
+      const ini = new Date(ev.inicio); const fim = new Date(ev.fim);
+      const cursor = new Date(ini); cursor.setHours(0,0,0,0);
+      const limite = new Date(fim); limite.setHours(0,0,0,0);
+      while (cursor <= limite) {
+        const k = cursor.toISOString().slice(0,10);
+        (eventosPorDia[k] = eventosPorDia[k] || []).push(ev);
+        cursor.setDate(cursor.getDate() + 1);
+      }
+    } catch(e) {}
+  });
+  let calHtml = `
+    <div class="mini-cal-nav">
+      <button onclick="navegarMiniCal(-1)" title="Mês anterior">←</button>
+      <div class="mini-cal-mes">${MESES[mes]} ${ano}</div>
+      <button onclick="navegarMiniCal(1)" title="Próximo mês">→</button>
+    </div>
+    <div class="mini-cal">
+      ${DIAS_LBL.map(d => `<div class="mini-cal-dow">${d}</div>`).join('')}
+  `;
+  const cursor = new Date(inicioGrid);
+  for (let i = 0; i < 42; i++) {
+    const ehHoje = cursor.getTime() === hoje.getTime();
+    const outroMes = cursor.getMonth() !== mes;
+    const k = cursor.toISOString().slice(0,10);
+    const temEv = !!(eventosPorDia[k] && eventosPorDia[k].length);
+    const classes = ['mini-cal-dia'];
+    if (outroMes) classes.push('outro-mes');
+    if (ehHoje) classes.push('hoje');
+    if (temEv) classes.push('tem-evento');
+    calHtml += `<div class="${classes.join(' ')}" title="${k}${temEv ? ' · ' + eventosPorDia[k].length + ' evento(s)' : ''}" onclick="abrirDiaNaAgenda('${k}')">${cursor.getDate()}</div>`;
+    cursor.setDate(cursor.getDate() + 1);
+    if (i >= 34 && cursor.getMonth() !== mes && cursor.getDay() === 0) break; // economiza linhas se mês cabe em <6 semanas
+  }
+  calHtml += '</div>';
+
+  // ----- Reuniões da semana -----
+  const hojeRef = new Date(); hojeRef.setHours(0,0,0,0);
+  const fimSemana = new Date(hojeRef); fimSemana.setDate(fimSemana.getDate() + 7);
+  const reunioesSem = (eventosMes || []).filter(ev => {
+    try {
+      const dt = new Date(ev.inicio);
+      return dt >= hojeRef && dt <= fimSemana && !ev.diaTodo;
+    } catch(e) { return false; }
+  }).sort((a,b) => new Date(a.inicio) - new Date(b.inicio)).slice(0, 6);
+
+  let reunHtml = '';
+  if (reunioesSem.length) {
+    reunHtml = reunioesSem.map(ev => {
+      const dt = new Date(ev.inicio);
+      const dia = dt.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' });
+      const h = `${String(dt.getHours()).padStart(2,'0')}:${String(dt.getMinutes()).padStart(2,'0')}`;
+      const tit = (ev.titulo || '—').replace(/</g,'&lt;');
+      return `
+        <div onclick="verEvento('${ev.id}')" style="display:flex;gap:8px;padding:7px 8px;border-radius:6px;cursor:pointer;background:rgba(77,201,255,.06);border:1px solid rgba(77,201,255,.2);margin-bottom:5px">
+          <div style="flex-shrink:0;text-align:center;min-width:42px">
+            <div style="font-size:9px;color:var(--accent);font-weight:700;text-transform:uppercase">${dia.replace('.','')}</div>
+            <div style="font-size:11px;font-weight:800">${h}</div>
+          </div>
+          <div style="flex:1;min-width:0;font-size:11.5px;font-weight:600;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${tit}</div>
+        </div>
+      `;
+    }).join('');
+  } else {
+    reunHtml = '<div style="font-size:11.5px;color:var(--text-dim);text-align:center;padding:14px 6px;font-style:italic">Sem reuniões nos próximos 7 dias</div>';
+  }
+
+  // ----- Tarefas da semana (compromissos abertos com prazo nos próximos 7 dias) -----
+  let tarefasHtml = '';
+  try {
+    if (!Array.isArray(_compromissosCache) || !_compromissosCache.length) {
+      // Tenta buscar se ainda não carregou
+      const r = await chamarAPI('listar-compromissos');
+      _compromissosCache = r.compromissos || [];
+    }
+    const tarefasSem = (_compromissosCache || []).filter(c => {
+      if (c.status === 'Concluído') return false;
+      if (!c.prazo) return false;
+      try {
+        const dt = new Date(c.prazo);
+        return dt >= hojeRef && dt <= fimSemana;
+      } catch(e) { return false; }
+    }).sort((a,b) => new Date(a.prazo) - new Date(b.prazo)).slice(0, 6);
+    if (tarefasSem.length) {
+      tarefasHtml = tarefasSem.map(c => {
+        const dt = new Date(c.prazo);
+        const dia = dt.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' });
+        const empEsc = (c.empresa || '').replace(/'/g,"\\'");
+        return `
+          <div onclick="abrirHistorico('${empEsc}')" style="display:flex;gap:8px;padding:7px 8px;border-radius:6px;cursor:pointer;background:rgba(251,191,36,.06);border:1px solid rgba(251,191,36,.2);margin-bottom:5px">
+            <div style="flex-shrink:0;text-align:center;min-width:42px">
+              <div style="font-size:9px;color:var(--warning);font-weight:700;text-transform:uppercase">${dia.replace('.','')}</div>
+            </div>
+            <div style="flex:1;min-width:0;font-size:11.5px;color:var(--text)">
+              <div style="font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${(c.empresa || '—').replace(/</g,'&lt;')}</div>
+              <div style="color:var(--text-dim);font-size:10.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${(c.descricao || '—').replace(/</g,'&lt;')}</div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    } else {
+      tarefasHtml = '<div style="font-size:11.5px;color:var(--text-dim);text-align:center;padding:14px 6px;font-style:italic">Sem tarefas nos próximos 7 dias</div>';
+    }
+  } catch (e) {
+    tarefasHtml = '<div style="font-size:11px;color:var(--text-dim);text-align:center;padding:10px 6px;font-style:italic">— erro ao carregar —</div>';
+  }
+
+  root.innerHTML = `
+    <div class="side-card">
+      <h4>📅 Calendário</h4>
+      ${calHtml}
+    </div>
+    <div class="side-card">
+      <h4>🤝 Reuniões da semana</h4>
+      ${reunHtml}
+    </div>
+    <div class="side-card">
+      <h4>✅ Tarefas da semana</h4>
+      ${tarefasHtml}
+    </div>
+  `;
+}
+
+function navegarMiniCal(delta) {
+  if (!_miniCalMes) _miniCalMes = new Date();
+  _miniCalMes = new Date(_miniCalMes.getFullYear(), _miniCalMes.getMonth() + delta, 1);
+  // Recarrega eventos do novo mês
+  const ini = new Date(_miniCalMes);
+  const fim = new Date(_miniCalMes.getFullYear(), _miniCalMes.getMonth() + 1, 1);
+  chamarAPI('listar-eventos', { de: ini.toISOString(), ate: fim.toISOString() })
+    .then(r => { _agendaEventos = r.eventos || []; renderSidebarEmpresas(); })
+    .catch(() => renderSidebarEmpresas());
+}
+
+function abrirDiaNaAgenda(dataISO) {
+  // Vai pra aba agenda e tenta navegar pro dia
+  trocarAba('agenda');
+  try {
+    const [a,m,d] = dataISO.split('-').map(Number);
+    _agendaMes = new Date(a, m-1, d);
+    if (typeof _agendaVisao !== 'undefined') _agendaVisao = 'dia';
+    if (typeof renderCalendarioConformeVisao === 'function') renderCalendarioConformeVisao();
+  } catch(e) {}
 }
 
 function renderRascunhosNovos() {
@@ -2543,6 +2739,9 @@ function trocarAba(aba) {
   if ($('aba-pipeline')) $('aba-pipeline').style.display = aba === 'pipeline' ? '' : 'none';
   $('aba-agenda').style.display = aba === 'agenda' ? '' : 'none';
   $('aba-compromissos').style.display = aba === 'compromissos' ? '' : 'none';
+  if (aba === 'empresas') {
+    renderSidebarEmpresas();
+  }
   if (aba === 'agenda') {
     if (!_agendaMes) _agendaMes = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
     renderCalendario();
@@ -2566,11 +2765,8 @@ const PIPELINE_ETAPAS = [
   { id: 'cancelado',      label: '🚫 Cancelado',         cor: '#94a3b8', desc: 'Encerrado / Cancelado' }
 ];
 
-// === Visão Empresas: Lista OU Kanban (preferência salva no localStorage) ===
-let _visaoEmpresas = (function() {
-  try { const v = localStorage.getItem('visao_empresas_v1'); if (v === 'lista' || v === 'kanban') return v; } catch(e) {}
-  return 'lista'; // padrão: lista (mais leve, menos requisições)
-})();
+// === Visão Empresas: agora apenas Lista (kanban removido) ===
+let _visaoEmpresas = 'lista';
 const KANBAN_CFG_KEY = 'kanban_colunas_v1';
 
 function getConfigColunas() {
