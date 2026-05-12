@@ -723,10 +723,11 @@
       <div class="filtro-mini"><label>Etapa pipeline</label>
         <select id="filtro-etapa" onchange="filtrarEmpresas()">
           <option value="">Todas</option>
-          <option value="posvenda">🆕 Pós-venda</option>
+          <option value="sem_onboarding">🆕 Sem Onboarding</option>
           <option value="onboarding">🎯 Onboarding feito</option>
-          <option value="diagnostico">📋 Diagnóstico OK</option>
-          <option value="acompanhamento">🚀 Em acompanhamento</option>
+          <option value="r1_r3">🚀 Reunião 1 a 3</option>
+          <option value="r4_r6">⭐ Reunião 4 a 6</option>
+          <option value="avancado">🏆 7+ reuniões</option>
           <option value="cancelado">🚫 Cancelado</option>
         </select>
       </div>
@@ -1219,7 +1220,7 @@
     </div>
   </div>
 
-  <footer>Método Gestão Life · Gestão PRO<br><small>Ferramenta interna · Planos de Ação v4.5 · build 05/05 logo-topo-restaurada</small></footer>
+  <footer>Método Gestão Life · Gestão PRO<br><small>Ferramenta interna · Planos de Ação v4.7 · build 05/05 fix-filtro-consultor-substring-empty</small></footer>
 </div>
 
 <!-- Modal: VISUALIZAR compromisso (read-only) com botões de cobrança -->
@@ -2265,6 +2266,48 @@ function renderListaEmpresas() {
   renderEmpresas(_empresasCache);
 }
 
+// Normaliza nome de consultor pra comparação tolerante (acento, case, espaços)
+function _normConsultor(s) {
+  return String(s || '')
+    .normalize('NFD').replace(/[̀-ͯ]/g, '') // tira acento
+    .toLowerCase()
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+// Checa se um consultor "alvo" bate com a empresa (consultorPrincipal, apoio, ou especialista da Base).
+// Cobre variações tipo "Matheus" vs "Matheus Silva" vs "MATHEUS SILVA" via substring com guards.
+function _consultorBate(alvoRaw, crm, base) {
+  const alvo = _normConsultor(alvoRaw);
+  if (!alvo) return true; // sem filtro = passa
+  const principal = _normConsultor(crm && crm.consultorPrincipal);
+  const apoioArr = (crm && Array.isArray(crm.consultoresApoio)) ? crm.consultoresApoio
+                 : (crm && crm.consultoresApoio ? [crm.consultoresApoio] : []);
+  const apoioNorms = apoioArr.map(_normConsultor).filter(Boolean);
+  const especialistaBase = _normConsultor(base && base.especialista);
+
+  // Match em PRINCIPAL (com substring nos dois sentidos, se algum lado tiver >= 4 chars)
+  if (principal) {
+    if (principal === alvo) return true;
+    if (principal.includes(alvo) && alvo.length >= 3) return true;
+    if (alvo.includes(principal) && principal.length >= 3) return true;
+  }
+  // Match em APOIO (compara cada item da lista)
+  for (const ap of apoioNorms) {
+    if (!ap) continue;
+    if (ap === alvo) return true;
+    if (ap.includes(alvo) && alvo.length >= 3) return true;
+    if (alvo.includes(ap) && ap.length >= 3) return true;
+  }
+  // Match em ESPECIALISTA da Base
+  if (especialistaBase) {
+    if (especialistaBase === alvo) return true;
+    if (especialistaBase.includes(alvo) && alvo.length >= 3) return true;
+    if (alvo.includes(especialistaBase) && especialistaBase.length >= 3) return true;
+  }
+  return false;
+}
+
 function renderEmpresas(lista) {
   // Atualiza _empresasCache + mescla Base com DEDUPLICAÇÃO permissiva
   const cache = lista.slice();
@@ -2364,24 +2407,16 @@ function renderEmpresas(lista) {
     if (!fStatus && (statusEmpresa === 'Cancelado' || statusEmpresa === 'Encerrado')) return false;
     if (fStatus && statusEmpresa !== fStatus) return false;
     if (fNivel) {
-      const nv = (crm.nivel || '').match(/\d+/)?.[0]?.padStart(2,'0') || '';
+      // Pode vir do CRM ou do diagnóstico (Nível 02 → "02")
+      const nivelTxt = crm.nivel || e.nivelDiagnostico || '';
+      const nv = String(nivelTxt).match(/\d+/)?.[0]?.padStart(2,'0') || '';
       if (nv !== fNivel) return false;
     }
     if (fConsultor) {
-      const alvo = fConsultor.trim().toLowerCase();
-      const principal = (crm.consultorPrincipal || '').trim().toLowerCase();
-      const apoio = (Array.isArray(crm.consultoresApoio) ? crm.consultoresApoio.join(',') : (crm.consultoresApoio || '')).toLowerCase();
-      const especialistaBase = (base && base.especialista || '').trim().toLowerCase();
-      const bate = principal === alvo || apoio.includes(alvo) || especialistaBase === alvo || especialistaBase.includes(alvo) || alvo.includes(especialistaBase);
-      if (!bate) return false;
+      if (!_consultorBate(fConsultor, crm, base)) return false;
     }
     if (_filtroMinhasAtivo && meuNome) {
-      const alvo = meuNome.trim().toLowerCase();
-      const principal = (crm.consultorPrincipal || '').trim().toLowerCase();
-      const apoio = (Array.isArray(crm.consultoresApoio) ? crm.consultoresApoio.join(',') : (crm.consultoresApoio || '')).toLowerCase();
-      const especialistaBase = (base && base.especialista || '').trim().toLowerCase();
-      const bate = principal === alvo || apoio.includes(alvo) || especialistaBase === alvo || especialistaBase.includes(alvo) || alvo.includes(especialistaBase);
-      if (!bate) return false;
+      if (!_consultorBate(meuNome, crm, base)) return false;
     }
     if (fData && e.ultimaData) {
       const dt = new Date(e.ultimaData);
@@ -2393,10 +2428,13 @@ function renderEmpresas(lista) {
     }
     if (fSegmento && (!base || base.segmento !== fSegmento)) return false;
     if (fDiag) {
-      const semReuniao = !e.reunioes;
-      if (fDiag === 'completo' && e.statusDiagnostico !== 'COMPLETO') return false;
-      if (fDiag === 'pendente' && e.statusDiagnostico !== 'PENDENTE_FASE2') return false;
-      if (fDiag === 'sem' && (!e.origemBase || e.statusDiagnostico === 'COMPLETO' || e.statusDiagnostico === 'PENDENTE_FASE2')) return false;
+      // "Tem diagnóstico" = tem nível cadastrado (CRM ou diagnóstico) OU statusDiagnostico === COMPLETO
+      const temNivelLocal = !!(crm.nivel || e.nivelDiagnostico);
+      const temCompleto = e.statusDiagnostico === 'COMPLETO' || temNivelLocal;
+      const temPendente = e.statusDiagnostico === 'PENDENTE_FASE2' && !temNivelLocal;
+      if (fDiag === 'completo' && !temCompleto) return false;
+      if (fDiag === 'pendente' && !temPendente) return false;
+      if (fDiag === 'sem' && (temCompleto || temPendente)) return false;
     }
     // Filtro por Etapa do pipeline
     const fEtapa = $('filtro-etapa')?.value || '';
@@ -2421,7 +2459,7 @@ function renderEmpresas(lista) {
   });
 
   if (!filtradas.length) {
-    $('empresas-root').innerHTML = `<div class="empty-state"><div class="icon">🔍</div><p>Nenhuma empresa com esses filtros.</p></div>`;
+    $('empresas-root').innerHTML = `<div class="empty-state"><div class="icon">🔍</div><p>Nenhuma empresa com esses filtros.</p><button class="btn btn-secondary" onclick="limparTodosFiltros()" style="margin-top:12px">🧹 Limpar todos os filtros</button></div>`;
     return;
   }
 
@@ -2688,6 +2726,23 @@ async function marcarOnboardingEmpresa(empresa, cnpj) {
 
 function filtrarEmpresas() {
   renderEmpresas(_empresasCache);
+}
+
+function limparTodosFiltros() {
+  // Reseta todos os selects e a busca
+  ['busca'].forEach(id => { const el = $(id); if (el) el.value = ''; });
+  ['filtro-status','filtro-nivel','filtro-consultor','filtro-segmento','filtro-diag','filtro-etapa','filtro-contato','filtro-onb','filtro-data'].forEach(id => {
+    const el = $(id);
+    if (el) el.value = '';
+  });
+  // Desativa "Minhas empresas" se estava ativo
+  if (_filtroMinhasAtivo) {
+    _filtroMinhasAtivo = false;
+    const btn = $('btn-minhas');
+    if (btn) btn.classList.remove('ativo');
+  }
+  renderEmpresas(_empresasCache);
+  toast('🧹 Filtros limpos', 1800);
 }
 
 // =========== CRM — Card no histórico + modal de edição ===========
