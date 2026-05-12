@@ -563,9 +563,18 @@
 
   .loading { text-align: center; padding: 40px; color: var(--text-dim); }
 
-  .modal-bg { position: fixed; inset: 0; background: rgba(6,10,31,.85); backdrop-filter: blur(4px); display: none; align-items: center; justify-content: center; z-index: 1000; padding: 20px; }
+  .modal-bg { position: fixed; inset: 0; background: rgba(6,10,31,.85); backdrop-filter: blur(4px); display: none; align-items: center; justify-content: center; z-index: 1000; padding: 20px; overflow-y: auto; }
   .modal-bg.show { display: flex; }
-  .modal { background: var(--card); border: 1px solid var(--accent); border-radius: 14px; padding: 28px; max-width: 600px; width: 100%; }
+  /* Modal scrollável: nunca passa de 90vh, conteúdo interno rola, e botões de ação ficam sempre visíveis. */
+  .modal { background: var(--card); border: 1px solid var(--accent); border-radius: 14px; padding: 28px; max-width: 600px; width: 100%; max-height: 90vh; overflow-y: auto; -webkit-overflow-scrolling: touch; position: relative; }
+  /* Em telas baixas (notebooks/tablets), libera ainda mais espaço */
+  @media (max-height: 720px) { .modal { padding: 18px 22px; max-height: 94vh; } }
+  /* Botão de fechar no canto superior direito — aparece em todos os modais */
+  .modal::before { content: ""; }
+  .modal-close-x { position: sticky; top: -28px; float: right; margin: -28px -28px 0 0; width: 36px; height: 36px; border-radius: 50%; background: rgba(248,113,113,.15); color: #f87171; border: 1px solid rgba(248,113,113,.35); font-size: 18px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; line-height: 1; z-index: 10; transition: background .15s; }
+  .modal-close-x:hover { background: rgba(248,113,113,.3); }
+  /* Garante que actions (rodapé) fica "sticky" no bottom quando o modal é alto — sempre visível pra salvar/cancelar */
+  .modal .actions { position: sticky; bottom: 0; background: var(--card); padding: 12px 0 4px; margin-top: 14px; z-index: 5; border-top: 1px solid rgba(255,255,255,.04); }
   .modal h3 { margin: 0 0 12px; }
   .modal p { color: var(--text-dim); font-size: 14px; margin: 0 0 20px; }
   .modal textarea { width: 100%; background: var(--bg-2); border: 1px solid var(--border); color: var(--text); padding: 10px; border-radius: 6px; font-family: monospace; font-size: 11px; min-height: 200px; }
@@ -1220,7 +1229,7 @@
     </div>
   </div>
 
-  <footer>Método Gestão Life · Gestão PRO<br><small>Ferramenta interna · Planos de Ação v4.7 · build 05/05 fix-filtro-consultor-substring-empty</small></footer>
+  <footer>Método Gestão Life · Gestão PRO<br><small>Ferramenta interna · Planos de Ação v4.8 · build 05/05 modais-scrollaveis + salvamento-otimista</small></footer>
 </div>
 
 <!-- Modal: VISUALIZAR compromisso (read-only) com botões de cobrança -->
@@ -1409,6 +1418,7 @@
 <!-- Modal: editar dados CRM da empresa -->
 <div class="modal-bg" id="modal-crm">
   <div class="modal modal-crm-content">
+    <button class="modal-close-x" onclick="fecharModalCRM()" aria-label="Fechar">×</button>
     <h3>📇 Dados da empresa</h3>
     <p style="font-size:12px;color:var(--text-dim);margin:6px 0 14px">Atualizar informações de cadastro · status · vínculo de consultores</p>
     <div class="field-group">
@@ -1463,6 +1473,7 @@
 <!-- Modal: vincular empresa à Base de Clientes -->
 <div class="modal-bg" id="modal-vincular-base">
   <div class="modal" style="max-width:560px">
+    <button class="modal-close-x" onclick="fecharModalVincularBase()" aria-label="Fechar">×</button>
     <h3>🔗 Vincular à Base de Clientes</h3>
     <p style="font-size:12.5px;color:var(--text-dim);margin:6px 0 14px">
       Esta empresa não foi encontrada automaticamente na sua Base de Clientes (geralmente porque o CNPJ está diferente ou faltando).
@@ -1605,6 +1616,33 @@ function toast(msg, ms=3500, isErr=false, isSuccess=false){
   if(isErr) t.classList.add('error'); if(isSuccess) t.classList.add('success');
   t.classList.add('show'); clearTimeout(t._h); t._h=setTimeout(()=>t.classList.remove('show'), ms);
 }
+
+// === HANDLERS GLOBAIS DE MODAL: fechar com ESC e clicando no backdrop ===
+function _fecharTodosModais() {
+  document.querySelectorAll('.modal-bg.show').forEach(m => {
+    // Tenta usar a função de fechar específica do modal, se existir
+    const id = m.id;
+    if (id === 'modal-crm' && typeof fecharModalCRM === 'function') { fecharModalCRM(); return; }
+    if (id === 'modal-vincular-base' && typeof fecharModalVincularBase === 'function') { fecharModalVincularBase(); return; }
+    if (id === 'modal-paste' && typeof fecharModalPaste === 'function') { fecharModalPaste(); return; }
+    // Fallback: só remove a classe
+    m.classList.remove('show');
+  });
+}
+document.addEventListener('keydown', (ev) => {
+  if (ev.key === 'Escape') {
+    // Só fecha se tiver algum modal aberto
+    if (document.querySelector('.modal-bg.show')) {
+      _fecharTodosModais();
+    }
+  }
+});
+document.addEventListener('click', (ev) => {
+  // Click no backdrop (área fora do .modal) fecha o modal
+  if (ev.target.classList && ev.target.classList.contains('modal-bg') && ev.target.classList.contains('show')) {
+    _fecharTodosModais();
+  }
+});
 function mostrarView(id){ document.querySelectorAll('.view').forEach(v=>v.classList.remove('show')); $(id).classList.add('show'); window.scrollTo({top:0,behavior:'smooth'}); }
 function formatarData(iso){ if(!iso) return '—'; const [y,m,dd]=iso.split('-'); return `${dd}/${m}/${y}`; }
 function formatarDataComDia(iso){
@@ -4459,15 +4497,37 @@ async function salvarCRM() {
     observacoes: $('crm-obs').value.trim()
   };
   if (!dados.empresa) { toast('⚠ Preencha o nome da empresa', 3000, true); return; }
+
+  // ATUALIZAÇÃO OTIMISTA: já fecha o modal e atualiza a UI imediatamente.
+  // O fetch acontece em paralelo — se der erro, mostra toast e o usuário pode tentar de novo.
+  // Isso evita aquela sensação de "apertei salvar e voltou pro mesmo lugar sem ter salvo".
+  // 1) Atualiza _crmCache localmente
+  _crmCache = _crmCache || [];
+  const cnpjKey = String(dados.cnpj || '').replace(/\D/g, '');
+  const nomeKey = (dados.empresa || '').trim().toLowerCase();
+  let idx = -1;
+  if (cnpjKey) idx = _crmCache.findIndex(c => String(c.cnpj || '').replace(/\D/g, '') === cnpjKey);
+  if (idx < 0 && nomeKey) idx = _crmCache.findIndex(c => (c.empresa || '').trim().toLowerCase() === nomeKey);
+  const registro = idx >= 0 ? { ..._crmCache[idx], ...dados } : { ...dados, atualizadoEm: new Date().toISOString() };
+  if (idx >= 0) _crmCache[idx] = registro;
+  else _crmCache.push(registro);
+
+  // 2) Fecha modal + re-renderiza imediatamente (UI já mostra os dados novos)
+  fecharModalCRM();
+  toast('✓ Empresa atualizada! · sincronizando…', 2500, false, true);
+  if (empresaAtual) renderCRMCard(empresaAtual);
+  if (_empresasCache && _empresasCache.length) renderEmpresas(_empresasCache);
+
+  // 3) Salva no servidor em background
   try {
     await chamarAPI('salvar-empresa-crm', { empresa: dados });
+    // Recarrega do servidor pra garantir consistência, mas a UI já está OK
     await carregarCRM();
-    fecharModalCRM();
-    toast('✓ Empresa atualizada!', 3000, false, true);
-    // Re-renderiza tela atual
     if (empresaAtual) renderCRMCard(empresaAtual);
-    if ($('view-dashboard').classList.contains('active')) renderEmpresas(_empresasCache);
-  } catch (err) { toast('❌ ' + err.message, 4000, true); }
+    if (_empresasCache && _empresasCache.length) renderEmpresas(_empresasCache);
+  } catch (err) {
+    toast('❌ Erro ao sincronizar: ' + err.message + ' (alteração local mantida)', 5000, true);
+  }
 }
 
 // =========== HISTÓRICO ===========
