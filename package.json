@@ -1,0 +1,14 @@
+{
+  "name": "gestao-life-pro",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Suite de ferramentas do Método Gestão PRO (Gestão Life) — hospedada na Vercel.",
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev": "vercel dev",
+    "deploy": "vercel --prod"
+  }
+}
