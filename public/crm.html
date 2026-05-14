@@ -2676,19 +2676,19 @@ function renderEmpresas(lista) {
         <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px">
           <span class="status-badge" style="background:${etapa.cor}30;color:${etapa.cor};border:1px solid ${etapa.cor}50">${etapaLabel}</span>
           <span class="status-badge ${statusClass}">${status}</span>
-          ${crm.nivel ? '<span class="status-badge ativo" style="background:rgba(77,201,255,.15);color:var(--accent)">' + crm.nivel + '</span>' : ''}
+          ${(function(){const nv=crm.nivel||e.nivelDiagnostico||'';if(!nv)return '<span class="status-badge" style="background:rgba(160,170,200,.12);color:#94a3b8">⚪ Sem nível</span>';const num=String(nv).match(/\d+/);const lbl=String(nv).match(/n[ií]vel/i)?nv:(num?'Nível '+num[0].padStart(2,'0'):nv);return '<span class="status-badge ativo" style="background:rgba(77,201,255,.15);color:var(--accent)">'+lbl+'</span>';})()}
           ${badgeNaoVinculada}
           ${badgeDiag}
           ${badgeInad}
           ${badgeContato}
           ${temRasc ? '<span class="badge-rascunho">📝 Rascunho</span>' : ''}
         </div>
-        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px">
-          ${btnConversa}
-          ${btnOnb}
-        </div>
+        ${btnOnb ? '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px">' + btnOnb + '</div>' : ''}
       </div>
-      <div class="count" style="background:${corCount}1f;color:${corCount};border:1px solid ${corCount}44" title="${_tooltipCount}">${textoCount}</div>
+      <div style="flex:0 0 auto;display:flex;flex-direction:column;gap:8px;align-items:stretch;min-width:150px">
+        <div class="count" style="background:${corCount}1f;color:${corCount};border:1px solid ${corCount}44;text-align:center" title="${_tooltipCount}">${textoCount}</div>
+        ${btnConversa}
+      </div>
     </div>`;
   }).join('');
 }
