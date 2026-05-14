@@ -1750,9 +1750,11 @@ async function fazerLogin() {
 }
 
 function sair() {
+  // Limpa o login interno do CRM e volta pra home.
+  // Não faz logout do Google — usuário continua logado no portal.
+  // Pra logout completo, usar o botão "Sair" no portal (index.html).
   localStorage.removeItem('planoLogin'); consultorLogado = null;
-  $('login-user').value=''; $('login-pass').value='';
-  mostrarView('view-login');
+  window.location.replace('/');
 }
 
 // =========== DASHBOARD ===========
@@ -7543,8 +7545,9 @@ async function gerarPDF(d) {
     console.warn('[SSO] falhou:', e.message);
   }
 
-  // 3) Fallback: mostra login interno como antes
-  mostrarView('view-login');
+  // 3) Fallback: redireciona pro login do portal (Google Sign-In)
+  // A view-login antiga ficou no HTML só por compatibilidade, mas nunca aparece.
+  window.location.replace('/login?next=' + encodeURIComponent('/crm'));
 })();
 </script>
 </body>
