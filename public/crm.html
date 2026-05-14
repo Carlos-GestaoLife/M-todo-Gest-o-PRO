@@ -5712,6 +5712,19 @@ async function novaReuniaoEmpresaAtual() {
   renderQuadroCards();
   limparFormulario();
   $('empresa').value = empresaAtual;
+
+  // Auto-puxa CNPJ + nível do CRM/Base/cache (vale pra primeira reunião também)
+  const _crmAuto = getCRMByEmpresa(empresaAtual) || {};
+  const _baseAuto = getBaseByEmpresa(empresaAtual, _crmAuto.cnpj) || {};
+  const _empCacheAuto = (_empresasCache || []).find(e => (e.empresa || '').trim().toLowerCase() === empresaAtual.trim().toLowerCase()) || {};
+  const _cnpjAuto = _crmAuto.cnpj || _baseAuto.cnpj || _empCacheAuto.cnpj || '';
+  if (_cnpjAuto) $('cnpj').value = aplicarMascaraCNPJ(_cnpjAuto);
+  const _nivelAuto = _crmAuto.nivel || _empCacheAuto.nivelDiagnostico || '';
+  if (_nivelAuto) {
+    const _numNv = String(_nivelAuto).match(/\d+/);
+    if (_numNv) $('nivel').value = _numNv[0].padStart(2,'0');
+  }
+
   // Pega participantes da última reunião pra reaproveitar
   if (planos.length) {
     const ult = planos[planos.length - 1];
@@ -5747,6 +5760,24 @@ async function novaReuniaoEmpresaAtual() {
       } catch(e) { console.warn(e); }
     }
   }
+  // Tenta importar diagnóstico automaticamente se tem CNPJ (puxa contexto completo)
+  if (_cnpjAuto) {
+    try {
+      const r = await chamarAPI('importar-diagnostico', { cnpj: _cnpjAuto, nomeEmpresa: empresaAtual });
+      contextoImportado = {
+        ig: r.informacoesGerais,
+        diag: r.diagnostico,
+        idRegistro: r.idRegistro || '',
+        modoBusca: r.modoBusca || '',
+        statusDiagnostico: r.statusDiagnostico || ''
+      };
+      aplicarContextoImportado();
+      if (r.avisoConsultor) mostrarBannerAviso(r.statusDiagnostico, r.avisoConsultor, r);
+    } catch (e) {
+      console.warn('[autoImport] Sem diagnóstico pra essa empresa:', e.message);
+    }
+  }
+
   mostrarView('view-form');
   bindAutoSave();
   checarRascunho();
