@@ -7509,17 +7509,28 @@ async function gerarPDF(d) {
       const rc = await chamarAPI('listar-consultores', {}).catch(() => null);
       const lista = (rc && rc.consultores) || [];
       const alvo = String(me.user || '').trim().toLowerCase();
-      const consultor = lista.find(c =>
+      let consultor = lista.find(c =>
         (c.email || '').trim().toLowerCase() === alvo ||
         (c.usuario || '').trim().toLowerCase() === alvo ||
         (c.nome || '').trim().toLowerCase() === alvo ||
         (c.email || '').trim().toLowerCase().split('@')[0] === alvo.split('@')[0]
       );
+      // FALLBACK: se não achar na planilha, usa identidade do Google direto
+      // Assim qualquer email autorizado entra sem precisar tá na aba Consultores
+      if (!consultor) {
+        const nomeFromEmail = (me.name && me.name.trim()) ? me.name.trim() : alvo.split('@')[0];
+        consultor = {
+          usuario: alvo.split('@')[0],
+          nome: nomeFromEmail,
+          email: me.user
+        };
+        console.warn('[SSO] Email "' + me.user + '" não está na aba Consultores. Logando com identidade Google. Pra rastrear melhor, adiciona esse email na coluna Email da planilha.');
+      }
       if (consultor) {
         consultorLogado = {
           usuario: consultor.usuario || me.user,
           nome: consultor.nome || me.user,
-          email: consultor.email || ''
+          email: consultor.email || me.user
         };
         localStorage.setItem('planoLogin', JSON.stringify(consultorLogado));
         irDashboard();
@@ -7527,8 +7538,6 @@ async function gerarPDF(d) {
         carregarCRM().then(() => { if (_empresasCache.length) renderEmpresas(_empresasCache); });
         return;
       }
-      // Username do Vercel não bate com nenhum consultor — cai pro login interno
-      console.warn('[SSO] Usuário do Vercel "' + me.user + '" não encontrado na aba Consultores');
     }
   } catch (e) {
     console.warn('[SSO] falhou:', e.message);
