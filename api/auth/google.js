@@ -56,11 +56,21 @@ export default async function handler(req, res) {
   const allowedDomain = String(process.env.ALLOWED_DOMAIN || "").trim().toLowerCase();
 
   if (!secret || !clientId) {
-    res.status(500).json({ ok: false, error: "server_not_configured" });
+    console.error("[google-auth] env vars faltando", { hasSecret: !!secret, hasClientId: !!clientId });
+    res.status(500).json({
+      ok: false,
+      error: "server_not_configured",
+      missing: { AUTH_SECRET: !secret, GOOGLE_CLIENT_ID: !clientId }
+    });
     return;
   }
   if (!allowedEmails.length && !allowedDomain) {
-    res.status(500).json({ ok: false, error: "no_allowlist_configured" });
+    console.error("[google-auth] sem allowlist configurada");
+    res.status(500).json({
+      ok: false,
+      error: "no_allowlist_configured",
+      hint: "Configure ALLOWED_EMAILS ou ALLOWED_DOMAIN no Vercel"
+    });
     return;
   }
 
@@ -82,7 +92,8 @@ export default async function handler(req, res) {
     );
     info = await r.json();
   } catch (err) {
-    res.status(502).json({ ok: false, error: "google_unreachable" });
+    console.error("[google-auth] fetch tokeninfo falhou:", err.message);
+    res.status(502).json({ ok: false, error: "google_unreachable", detail: err.message });
     return;
   }
 
