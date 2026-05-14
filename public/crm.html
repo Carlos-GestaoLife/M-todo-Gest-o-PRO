@@ -7510,9 +7510,10 @@ async function gerarPDF(d) {
       const lista = (rc && rc.consultores) || [];
       const alvo = String(me.user || '').trim().toLowerCase();
       const consultor = lista.find(c =>
+        (c.email || '').trim().toLowerCase() === alvo ||
         (c.usuario || '').trim().toLowerCase() === alvo ||
         (c.nome || '').trim().toLowerCase() === alvo ||
-        (c.email || '').trim().toLowerCase().split('@')[0] === alvo
+        (c.email || '').trim().toLowerCase().split('@')[0] === alvo.split('@')[0]
       );
       if (consultor) {
         consultorLogado = {

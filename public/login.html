@@ -14,7 +14,6 @@
     --danger:#f87171;
     --border:rgba(255,255,255,0.08);
     --body-bg-1: #060a1f; --body-bg-2: #0b1230;
-    --input-bg: rgba(0,0,0,.25);
   }
   * { box-sizing: border-box; }
   html, body { background: var(--body-bg-1); }
@@ -27,6 +26,7 @@
   }
   .login-shell { width:100%; max-width: 440px; }
   .brand-top { text-align:center; margin-bottom: 28px; }
+  .brand-top .logo-svg { width: 90px; height: 90px; color: #ffffff; margin: 0 auto 16px; display: block; filter: drop-shadow(0 0 32px rgba(255,255,255,.35)) drop-shadow(0 0 12px rgba(77,201,255,.25)); }
   .brand-top .badge {
     display:inline-block; padding: 5px 12px;
     background: rgba(77,201,255,.12); color: var(--accent);
@@ -36,79 +36,93 @@
   .brand-top h1 { margin:0 0 6px; font-size: 28px; font-weight: 800; text-transform: uppercase; letter-spacing: -.01em; }
   .brand-top h1 .hl { color: var(--accent); }
   .brand-top p { margin:0; color: var(--text-dim); font-size: 13px; }
-  .card { background: var(--card); border:1px solid var(--border); border-radius: 14px; padding: 32px 28px; box-shadow: 0 20px 60px rgba(0,0,0,.45); }
-  .field { margin-bottom: 16px; }
-  .field label { display:block; font-size: 11px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; font-weight: 700; }
-  .field input { width:100%; background: var(--bg-2); border:1px solid var(--border); border-radius: 8px; padding: 12px 14px; color: var(--text); font-size: 14px; font-family: inherit; }
-  .field input:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
-  .btn { width:100%; padding: 13px 16px; border-radius: 10px; border:none; background: linear-gradient(135deg, var(--accent), var(--accent-2)); color:#001028; font-weight: 800; font-size: 14px; letter-spacing: .5px; text-transform: uppercase; cursor: pointer; margin-top: 8px; transition: transform .15s, box-shadow .15s, opacity .15s; }
-  .btn:hover { transform: translateY(-1px); box-shadow: 0 8px 24px rgba(77,201,255,.35); }
-  .btn:disabled { opacity: .6; cursor: not-allowed; transform:none; box-shadow:none; }
+  .card { background: var(--card); border:1px solid var(--border); border-radius: 14px; padding: 36px 28px; box-shadow: 0 20px 60px rgba(0,0,0,.45); text-align:center; }
+  .g-wrap { display:flex; justify-content:center; min-height: 44px; margin: 8px 0 12px; }
   .error { display:none; margin-top: 14px; padding: 10px 12px; background: rgba(248,113,113,.1); color: var(--danger); border: 1px solid rgba(248,113,113,.3); border-radius: 8px; font-size: 13px; }
   .error.show { display:block; }
+  .info-restricted { margin-top: 18px; font-size: 11px; color: var(--text-dim); letter-spacing: .5px; }
+  .info-restricted strong { color: var(--accent); }
   .footer-note { text-align:center; margin-top: 22px; color: var(--text-dim); font-size: 12px; }
 </style>
 </head>
 <body>
   <div class="login-shell">
     <div class="brand-top">
+      <svg class="logo-svg" viewBox="0 0 185 187" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <path d="M152.945 113.669L178.358 102.612C182.017 101.019 184.298 97.5529 184.316 93.565C184.334 89.577 182.081 86.0902 178.435 84.4662L152.919 73.1036L149.268 80.4371L142.947 93.1384L152.945 113.669Z" fill="currentColor"/>
+        <path d="M64.2437 79.5225C57.067 78.2326 52.1745 71.562 53.1047 64.3339C53.3745 62.2346 54.1248 60.2586 55.3325 58.4625L75.5497 28.427L53.2178 11.9459C51.455 10.6431 49.4071 9.98529 47.3489 9.98529C45.6607 9.98529 43.9648 10.4273 42.4051 11.3215C38.9439 13.3052 37.0553 17.0027 37.4767 20.9676L40.4188 48.7136L44.1344 83.7571L44.6149 88.295C44.7408 89.4795 45.0594 90.5947 45.5631 91.6251C45.7301 91.9694 45.9202 92.3009 46.1284 92.6246C46.4855 93.1797 46.8915 93.6859 47.3335 94.1433C49.2144 96.091 51.7814 97.1496 54.4075 97.165C54.5616 97.165 54.7158 97.165 54.87 97.1573C55.1783 97.1445 55.4892 97.1188 55.7976 97.0751C57.0335 96.9081 58.2567 96.5047 59.4027 95.8469L61.5714 94.6058L82.2511 82.755L64.2437 79.5199V79.5225Z" fill="currentColor"/>
+        <path d="M76 56.1499C76.0231 55.9392 76.0514 55.731 76.0848 55.5203C76.185 54.8934 76.3289 54.2715 76.5139 53.6625C77.2 51.4245 78.4668 49.338 80.304 47.6421C81.8637 46.198 83.7164 45.1599 85.8054 44.5586L120.613 34.5605L114.101 7.59303C113.166 3.71557 110.144 0.868509 106.218 0.161882C105.609 0.0539606 105.003 0 104.404 0C101.143 0 98.1239 1.58798 96.2404 4.38366L80.6509 27.5456L80.0856 28.3858L79.6514 29.0308L58.4346 60.5489C57.5532 61.8568 57.0085 63.2906 56.8132 64.8118C56.2427 69.2417 58.6838 73.3813 62.5921 75.1312C63.0264 75.3264 63.4786 75.4909 63.9463 75.6219C64.2597 75.7093 64.5784 75.7838 64.9047 75.8429L90.8032 80.4938L79.0809 66.4152C76.6064 63.4448 75.5992 59.7241 75.9975 56.1473L76 56.1499Z" fill="currentColor"/>
+        <path d="M98.8251 84.2787L103.992 90.4867L116.866 105.945C118.577 108.001 120.975 109.257 123.616 109.481C126.27 109.704 128.938 108.854 130.932 107.145C131.939 106.287 132.753 105.236 133.36 104.018L138.782 93.118L139.039 92.5989L140.881 88.8936L145.074 80.468L163.519 43.4048C165.297 39.8331 164.814 35.709 162.26 32.6435C160.327 30.3258 157.588 29.0616 154.708 29.0616C153.78 29.0616 152.84 29.1926 151.907 29.4599L125.083 37.1634L86.833 48.1508C85.3118 48.5876 83.968 49.3405 82.8399 50.3837C82.619 50.5867 82.4134 50.8 82.2155 51.0184C79.1475 54.4051 78.798 59.4645 81.3624 63.2392C81.5449 63.5064 81.7402 63.7685 81.9534 64.0229L83.2279 65.5544L98.8225 84.2787H98.8251Z" fill="currentColor"/>
+        <path d="M71.287 116.598C71.2613 116.657 71.2356 116.717 71.2099 116.778C71.1534 116.907 71.0943 117.035 71.0352 117.164C71.0043 117.23 70.9709 117.295 70.9401 117.362C70.8784 117.485 70.8167 117.606 70.7525 117.724C70.7191 117.785 70.6883 117.847 70.6549 117.906C70.5752 118.05 70.493 118.191 70.4082 118.333C70.3902 118.364 70.3722 118.397 70.3517 118.428C70.2489 118.597 70.141 118.762 70.0305 118.926L23.2209 95.9828L3.1039 115.09C0.210589 117.837 -0.747854 121.876 0.601161 125.63C1.95018 129.384 5.25976 131.887 9.24 132.165L37.1017 134.11L76.7807 136.877C78.3738 136.988 79.9078 136.739 81.3391 136.13C81.4907 136.065 81.6397 135.998 81.7862 135.927C85.4478 134.156 87.5856 130.366 87.3698 126.45C87.3518 126.137 87.321 125.823 87.2722 125.51C87.1771 124.883 87.0203 124.256 86.7968 123.636L77.8702 98.8042L71.5131 116.028C71.4411 116.223 71.3641 116.413 71.2844 116.601L71.287 116.598Z" fill="currentColor"/>
+        <path d="M90.3171 122.369C92.7685 129.184 89.4666 136.741 82.8012 139.57C82.5699 139.668 82.3361 139.758 82.1022 139.842L40.4113 138.082L37.2533 165.587C36.7985 169.549 38.6537 173.259 42.0995 175.274C45.5452 177.286 49.6899 177.083 52.9224 174.742L76.4852 157.662L77.0197 157.274L107.741 135.009C109.044 134.064 110.064 132.876 110.771 131.481L110.874 131.276C111.498 129.973 111.811 128.59 111.84 127.221C111.878 125.396 111.413 123.59 110.501 122.015C110.349 121.753 110.185 121.496 110.008 121.247C109.83 120.997 109.643 120.756 109.442 120.525C108.743 119.707 107.898 118.996 106.922 118.425L84.1065 105.092L90.3145 122.367L90.3171 122.369Z" fill="currentColor"/>
+        <path d="M136.705 105.683C136.61 105.873 136.51 106.06 136.407 106.245C136.374 106.305 136.34 106.361 136.307 106.418C136.235 106.546 136.158 106.672 136.081 106.798L125.106 149.622L151.652 157.495C155.476 158.631 159.454 157.444 162.033 154.401C164.613 151.359 165.13 147.24 163.385 143.653L151.149 118.528L141.223 98.1437L140.842 97.3625L136.7 105.685L136.705 105.683Z" fill="currentColor"/>
+        <path d="M68.0084 114.73L77.138 89.9985L61.2607 99.0947C61.086 99.195 60.9087 99.29 60.7314 99.3825L37.0709 52.6758L9.40971 54.3665C5.42947 54.6107 2.09933 57.0851 0.71691 60.8264C-0.665509 64.5702 0.25953 68.6173 3.12715 71.3898L51.8125 118.438C52.9713 119.559 54.3203 120.355 55.8184 120.807C56.7589 121.093 57.7122 121.229 58.65 121.234C58.9635 121.234 59.2744 121.221 59.5828 121.193C60.1995 121.136 60.8085 121.021 61.3995 120.854C64.3519 120.011 66.8675 117.819 68.0032 114.743L68.0084 114.73Z" fill="currentColor"/>
+        <path d="M130.235 111.983C130.114 112.04 129.993 112.091 129.872 112.145C129.829 112.163 129.782 112.184 129.739 112.204C129.572 112.274 129.405 112.338 129.235 112.402L108.81 115.208C115.041 118.849 117.366 126.743 114.106 133.18L113.587 134.205H113.527C112.602 135.698 111.397 136.988 109.933 138.049L80.6603 159.266L95.9311 182.376C98.1307 185.704 101.939 187.356 105.87 186.683C109.802 186.012 112.846 183.191 113.818 179.321L130.271 113.646C130.314 113.469 130.353 113.294 130.386 113.117Z" fill="currentColor"/>
+      </svg>
       <span class="badge">Gestão Life</span>
       <h1>Método <span class="hl">Gestão PRO</span></h1>
-      <p>Acesso restrito · faça login para continuar</p>
+      <p>Faça login com sua conta Google</p>
     </div>
-    <form class="card" id="login-form" autocomplete="on">
-      <div class="field">
-        <label for="username">Usuário</label>
-        <input id="username" name="username" type="text" required autocomplete="username" autofocus>
+    <div class="card">
+      <!-- Renderiza o botão "Sign in with Google" via Google Identity Services -->
+      <div id="g_id_onload"
+        data-client_id="730600409609-gh8mlmd5a6clk7aismj7q8t2u4q7f8vp.apps.googleusercontent.com"
+        data-callback="handleCredentialResponse"
+        data-auto_prompt="false"
+        data-ux_mode="popup"></div>
+      <div class="g-wrap">
+        <div class="g_id_signin"
+          data-type="standard"
+          data-shape="rectangular"
+          data-theme="filled_black"
+          data-text="signin_with"
+          data-size="large"
+          data-locale="pt-BR"
+          data-logo_alignment="left"
+          data-width="320"></div>
       </div>
-      <div class="field">
-        <label for="password">Senha</label>
-        <input id="password" name="password" type="password" required autocomplete="current-password">
-      </div>
-      <button class="btn" type="submit" id="submit-btn">Entrar</button>
       <div class="error" id="error-msg"></div>
-    </form>
+      <p class="info-restricted">🔒 <strong>Acesso restrito</strong> aos consultores autorizados</p>
+    </div>
     <p class="footer-note">© Gestão Life · Metodologia Guiada de Execução</p>
   </div>
+
+<script src="https://accounts.google.com/gsi/client" async defer></script>
 <script>
-(function() {
-  const form = document.getElementById('login-form');
-  const errorBox = document.getElementById('error-msg');
-  const submitBtn = document.getElementById('submit-btn');
-  const params = new URLSearchParams(window.location.search);
-  const next = params.get('next') || '/';
-  function showError(msg) { errorBox.textContent = msg; errorBox.classList.add('show'); }
-  function clearError() { errorBox.textContent = ''; errorBox.classList.remove('show'); }
-  form.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    clearError();
-    submitBtn.disabled = true;
-    submitBtn.textContent = 'Entrando...';
-    const username = document.getElementById('username').value.trim();
-    const password = document.getElementById('password').value;
-    try {
-      const res = await fetch('/api/login', {
-        method: 'POST',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ username, password }),
-        credentials: 'same-origin',
-      });
-      if (res.ok) {
-        const dest = next.startsWith('/') && !next.startsWith('//') ? next : '/';
-        window.location.replace(dest);
-        return;
-      }
-      if (res.status === 401) showError('Usuário ou senha inválidos.');
-      else if (res.status === 500) showError('Servidor não configurado. Avise o administrador.');
-      else showError('Não foi possível entrar. Tente novamente.');
-    } catch (err) {
-      showError('Erro de rede. Verifique sua conexão.');
-    } finally {
-      submitBtn.disabled = false;
-      submitBtn.textContent = 'Entrar';
+async function handleCredentialResponse(response) {
+  const err = document.getElementById('error-msg');
+  err.style.display = 'none';
+  try {
+    const res = await fetch('/api/auth/google', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ credential: response.credential }),
+      credentials: 'same-origin'
+    });
+    const data = await res.json();
+    if (res.ok && data.ok) {
+      const params = new URLSearchParams(window.location.search);
+      const next = params.get('next') || '/';
+      const dest = next.startsWith('/') && !next.startsWith('//') ? next : '/';
+      window.location.replace(dest);
+      return;
     }
-  });
-})();
+    // Erros conhecidos
+    if (res.status === 403) {
+      err.textContent = '🚫 Seu email não está autorizado. Peça pra o admin liberar.';
+    } else if (res.status === 401) {
+      err.textContent = '⚠️ Token inválido. Tente entrar de novo.';
+    } else if (res.status === 500) {
+      err.textContent = '⚠️ Servidor não configurado. Avise o admin.';
+    } else {
+      err.textContent = '⚠️ Erro: ' + (data.error || 'desconhecido');
+    }
+    err.classList.add('show');
+  } catch (e) {
+    err.textContent = '⚠️ Erro de rede. Verifique sua conexão.';
+    err.classList.add('show');
+  }
+}
 </script>
 </body>
 </html>
