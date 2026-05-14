@@ -4,10 +4,10 @@ export const config = {
   matcher: [
     // Rotas SEM proteção de login:
     //   - assets internos (_next/, _vercel/, favicon, robots)
-    //   - telas de auth (login, api/login)
+    //   - telas de auth (login, api/login, api/auth/google)
     //   - páginas públicas pra cliente (formulario, quadro-execucao, rascunho-perguntas)
     //   - api/gas-proxy (pra essas páginas conseguirem chamar o GAS)
-    "/((?!_next/|_vercel/|favicon\\.ico|robots\\.txt|login\\.html|login$|api/login|formulario|quadro-execucao|rascunho-perguntas|api/gas-proxy).*)",
+    "/((?!_next/|_vercel/|favicon\\.ico|robots\\.txt|login\\.html|login$|api/login|api/auth/google|formulario|quadro-execucao|rascunho-perguntas|api/gas-proxy).*)",
   ],
 };
 export default async function middleware(request) {
